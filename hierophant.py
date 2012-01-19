@@ -3,8 +3,12 @@ import requests
 import simplejson as json
 import uuid
 
-APIKeyException = Exception(""""Must provide an API key to instantiate
-		a Veritable connection""")
+class APIKeyException(Exception):
+	def __init__(self):
+		self.value = """"Must provide an API key to instantiate
+						 a Veritable connection"""
+	def __str__(self):
+		return repr(self.value)
 
 def veritable_connect(api_key):
 	return VeritableAPI(VeritableConnection(api_key))
