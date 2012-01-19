@@ -31,6 +31,9 @@ def make_table_id():
 def make_row_id():
 	return uuid.uuid4()
 
+def join_url(*args):
+	return "/".join(args)
+	
 class VeritableConnection:
 	BASE_URL = "https://api.priorknowledge.com/tables"
 	
@@ -67,7 +70,7 @@ class VeritableAPI:
 	
 	def create_table(self, table_id = make_table_id(), description = ""):
 		"""Create a table with the given id."""	
-		r = self.connection.put(self.connection.BASE_URL + "/" + table_id,
+		r = self.connection.put(join_url(self.connection.BASE_URL, table_id),
 								data = {"description": description})
 		return VeritableTable(self.connection, r)
 
@@ -101,19 +104,19 @@ class VeritableTable:
 			row_id = row["_id"]
 		else:
 			row_id = make_row_id()
-		return self.connection.put(self.links["rows"] + "/" + row_id, row)
+		return self.connection.put(join_url(self.links["rows"], row_id), row)
 		
 	def add_rows(self, data):
 		return self.connection.post(self.links["rows"], data)
 		
 	def get_row(self, row_id):
-		return self.connection.get(self.links["rows"] + "/" + row_id)
+		return self.connection.get(join_url(self.links["rows"], row_id))
 
 	def get_rows(self):
 		return self.connection.get(self.links["rows"])
 		
 	def delete_row(self, row_id):
-		return self.connection.delete(self.links["rows"] + "/" + row_id)
+		return self.connection.delete(join_url(self.links["rows"], row_id))
 		
 	def get_analyses(self):
 		r = self.connection.get(self.links["analyses"])
@@ -121,7 +124,7 @@ class VeritableTable:
 	
 	def create_analysis(self, schema, description = "",
 						analysis_id = make_analysis_id(), type = "veritable"):
-		r = self.connection.put(self.links["analyses"] + "/" + analysis_id,
+		r = self.connection.put(join_url(self.links["analyses"], analysis_id),
 								data = {"description": description,
 										"type": type,
 										"schema": schema})
