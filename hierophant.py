@@ -14,8 +14,8 @@ def veritable_connect(api_key):
 	return VeritableAPI(VeritableConnection(api_key))
 
 def http_req(f):
-	def g(*args):
-		r = f(*args)
+	def g(*args, **kwargs):
+		r = f(*args, **kwargs)
 		if r.status_code == requests.codes.ok:
 			return json.loads(r.content)
 		else:
