@@ -1,8 +1,10 @@
 from requests.auth import HTTPBasicAuth
 import requests
 import simplejson as json
+import uuid
 
-APIKeyException = Exception("Must provide an API key to instantiate a Veritable connection")
+APIKeyException = Exception(""""Must provide an API key to instantiate
+		a Veritable connection""")
 
 def veritable_connect(api_key):
 	return VeritableAPI(VeritableConnection(api_key))
@@ -11,13 +13,19 @@ def http_req(f):
 	def g(*args):
 		r = f(*args)
 		if r.status_code == requests.codes.ok:
-			return r.content
+			return json.loads(r.content)
 		else:
-			raise r.raise_for_status()
+			handle_http_error(r)
 	return g
 
+def handle_http_error(r):
+	raise r.raise_for_status()
+
+def make_table_id():
+	return uuid.uuid4()
+	
 class VeritableConnection:
-	BASE_URL = "https://api.priorknowledge.com"
+	BASE_URL = "https://api.priorknowledge.com/tables"
 	
 	def __init__(self, api_key):
 		if api_key is None:
