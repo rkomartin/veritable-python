@@ -41,35 +41,58 @@ class VeritableConnection:
 	def post(self, url):
 		return requests.post(url, auth=self.auth)
 	
+	@http_req
+	def put(self, url, data):
+		return requests.put(url, data, auth = self.auth)
+		
 	@http_req	
 	def delete(self, url):
 		return requests.delete(url, auth=self.auth)
 			
 class VeritableAPI:
 	def __init__(self, connection):
-		self.api_key = api_key
 		self.connection = connection
-		
-	def __repr__(self):
-		return "<<Hierophant %s>>" % id(self)
-	
-	def entry(self):
-		"""Return the entry point into the API"""
-		return self.connection.get()
-		
+			
 	def tables(self):
-		pass
-		
+		"""Return the Veritable tables available to the user."""
+		r = self.connection.get()
+		ts = [VeritableTable(self.connection, t) for t in r["data"]]
+		return ts
+	
+	def create_table(self, table_id = make_table_id(), description):
+		"""Create a table with the given id."""	
+		if description is not None:
+			r = self.connection.put(self.connection.BASE_URL + "/" + table_id,
+									data = {"description": description})
+		else:
+			r = self.connection.put(self.connection.BASE_URL + "/" + table_id)
+		return VeritableTable(self.connection, r)
 
 class VeritableTable:
-	def __init__(self, table_id):
-		self.table_id = table_id
-		
+	def __init__(self, connection, data):
+		self.connection = connection
+		if "description" in data:
+			self.description = data["description"]
+		self.id = data["_id"]
+		self.last_updated = data["last_updated"]
+		self.links = {"self": data["links"]["self"],
+					  "analyses": data["links"]["analyses"],
+					  "rows": data["links"]["rows"]}		
+
 	def get():
-		pass
+		data = self.connection.get(self.links["self"])
+		if "description" in data:
+			self.description = data["description"]
+		self.id = data["_id"]
+		self.last_updated = data["last_updated"]
+		self.links = {"self": data["links"]["self"],
+					  "analyses": data["links"]["analyses"],
+					  "rows": data["links"]["rows"]}	
+		return self
 		
 	def delete():
-		pass
+		r = self.connection.delete(self.links["self"])
+		return r
 		
 	def add_rows():
 		pass
