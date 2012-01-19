@@ -39,7 +39,7 @@ class VeritableConnection:
 	
 	def __init__(self, api_key):
 		if api_key is None:
-			raise APIKeyException
+			raise APIKeyException()
 		self.api_key = api_key
 		self.auth = HTTPBasicAuth(self.api_key)
 		
