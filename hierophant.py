@@ -48,12 +48,12 @@ class VeritableConnection:
 		return requests.get(url, auth=self.auth)
 	
 	@http_req	
-	def post(self, url):
-		return requests.post(url, auth=self.auth)
+	def post(self, url, data):
+		return requests.post(url, data=json.dumps(data), auth=self.auth)
 	
 	@http_req
 	def put(self, url, data):
-		return requests.put(url, data, auth = self.auth)
+		return requests.put(url, data=json.dumps(data), auth = self.auth)
 		
 	@http_req	
 	def delete(self, url):
