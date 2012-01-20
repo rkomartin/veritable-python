@@ -18,7 +18,7 @@ class API:
     def tables(self):
         """Return the Veritable tables available to the user."""
         r = self.connection.get()
-        return [Table(self.connection, t) for t in r["data"]]
+        return [Table(self.connection, t) for t in r["tables"]]
     
     def create_table(self, table_id = None, description = ""):
         """Create a table with the given id."""    
@@ -33,7 +33,6 @@ class Table:
         self.connection = connection
         if "description" in data:
             self.description = data["description"]
-        self.id = data["_id"]
         self.last_updated = data["last_updated"]
         self.links = {"self": data["links"]["self"],
                       "analyses": data["links"]["analyses"],
@@ -50,7 +49,6 @@ class Table:
         data = self.connection.get(self.links["self"])
         if "description" in data:
             self.description = data["description"]
-        self.id = data["_id"]
         self.last_updated = data["last_updated"]
         self.links = {"self": data["links"]["self"],
                       "analyses": data["links"]["analyses"],
