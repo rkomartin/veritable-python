@@ -29,6 +29,10 @@ class API:
         r = self.connection.put(join_url(self.connection.BASE_URL, table_id),
                                 data = {"description": description})
         return Table(self.connection, r)
+    
+    def get_table_by_id(self, table_id):
+        r = self.connection.get(join_url(self.connection.BASE_URL, table_id))
+        return Table(self.connection, r)
 
 class Table:
     def __init__(self, connection, data):
