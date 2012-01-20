@@ -45,6 +45,7 @@ class Table:
             raise DeletedTableException()
             
     def get(self):
+        """Get the description of the table."""
         self.still_alive()
         data = self.connection.get(self.links["self"])
         if "description" in data:
@@ -57,11 +58,13 @@ class Table:
         return self
         
     def delete(self):
+        """Delete the table."""
         self.still_alive()
         self.has_been_deleted = True
         return self.connection.delete(self.links["self"])
         
     def add_row(self, row):
+        """Add a row to the table."""
         self.still_alive()
         if "_id" in row:
             row_id = row["_id"]
@@ -70,28 +73,34 @@ class Table:
         return self.connection.put(join_url(self.links["rows"], row_id), row)
         
     def add_rows(self, data):
+        """Add many rows to the table."""
         self.still_alive()
         return self.connection.post(self.links["rows"], data)
-        
+
     def get_row(self, row_id):
+        """Get a row from the table by its id."""
         self.still_alive()
         return self.connection.get(join_url(self.links["rows"], row_id))
 
     def get_rows(self):
+        """Get the rows of the table."""
         self.still_alive()
         return self.connection.get(self.links["rows"])
-        
+
     def delete_row(self, row_id):
+        """Delete a row from the table by its id."""
         self.still_alive()
         return self.connection.delete(join_url(self.links["rows"], row_id))
-        
+
     def get_analyses(self):
+        """Get the analyses corresponding to the table."""
         self.still_alive()
         r = self.connection.get(self.links["analyses"])
         return [Analysis(self.connection, a) for a in r["data"]]
-    
+
     def create_analysis(self, schema, description = "",
                         analysis_id = None, type = "veritable"):
+        """Create a new analysis for the table."""
         self.still_alive()
         if analysis_id is None:
             analysis_id = make_analysis_id()
@@ -99,6 +108,7 @@ class Table:
                                 data = {"description": description,
                                         "type": type,
                                         "schema": schema})
+                                        
 class Analysis:
     def __init__(self, connection, data):
         self.connection = connection
