@@ -1,8 +1,10 @@
 from hierophant.connection import Connection
 from hierophant.utils import *
 
-def veritable_connect(api_key):
-    return API(Connection(api_key))
+BASE_URL = "https://api.priorknowledge.com/tables"
+
+def veritable_connect(api_key, api_base_url = BASE_URL):
+    return API(Connection(api_key, api_base_url))
 
 class DeletedTableException(Exception):
     def __init__(self):
@@ -17,7 +19,7 @@ class API:
             
     def tables(self):
         """Return the Veritable tables available to the user."""
-        r = self.connection.get()
+        r = self.connection.get(self.connection.BASE_URL)
         return [Table(self.connection, t) for t in r["tables"]]
     
     def create_table(self, table_id = None, description = ""):
