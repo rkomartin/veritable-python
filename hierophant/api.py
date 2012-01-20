@@ -13,8 +13,10 @@ class API:
         r = self.connection.get()
         return [Table(self.connection, t) for t in r["data"]]
     
-    def create_table(self, table_id = make_table_id(), description = ""):
+    def create_table(self, table_id = None, description = ""):
         """Create a table with the given id."""    
+        if table_id is None:
+            table_id = make_table_id()
         r = self.connection.put(join_url(self.connection.BASE_URL, table_id),
                                 data = {"description": description})
         return Table(self.connection, r)
@@ -68,7 +70,9 @@ class Table:
         return [Analysis(self.connection, a) for a in r["data"]]
     
     def create_analysis(self, schema, description = "",
-                        analysis_id = make_analysis_id(), type = "veritable"):
+                        analysis_id = None, type = "veritable"):
+        if analysis_id is None:
+            analysis_id = make_analysis_id()
         r = self.connection.put(join_url(self.links["analyses"], analysis_id),
                                 data = {"description": description,
                                         "type": type,
