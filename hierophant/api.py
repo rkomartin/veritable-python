@@ -77,7 +77,7 @@ class Analysis:
     def __init__(self, connection, data):
         self.connection = connection
         self.last_learned = data["last_learned"]
-        if "last_updated" in data
+        if "last_updated" in data:
             self.last_updated = data["last_updated"]
         self.links = {"self": data["links"]["self"],
                       "schema": data["links"]["schema"],
@@ -86,7 +86,7 @@ class Analysis:
     def get(self):
         data = self.connection.get(self.links["self"])
         self.last_learned = data["last_learned"]
-        if "last_updated" in data
+        if "last_updated" in data:
             self.last_updated = data["last_updated"]
         self.links = {"self": data["links"]["self"],
                       "schema": data["links"]["schema"],
