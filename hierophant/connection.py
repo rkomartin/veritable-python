@@ -1,3 +1,4 @@
+from requests.auth import HTTPBasicAuth
 import requests
 import simplejson as json
 
