@@ -31,15 +31,19 @@ class Connection:
         
     @http_req
     def get(self, url = BASE_URL):
-        return requests.get(url, auth=self.auth)
+        return requests.get(url, auth=self.auth, headers = headers)
     
     @http_req    
     def post(self, url, data):
-        return requests.post(url, data=json.dumps(data), auth=self.auth)
+        headers = {'content-type': 'application/json'}
+        return requests.post(url, data=json.dumps(data), auth=self.auth,
+                             headers = headers)
     
     @http_req
     def put(self, url, data):
-        return requests.put(url, data=json.dumps(data), auth = self.auth)
+        headers = {'content-type': 'application/json'}
+        return requests.put(url, data=json.dumps(data), auth = self.auth,
+                            headers = headers)
         
     @http_req    
     def delete(self, url):
