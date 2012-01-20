@@ -40,7 +40,7 @@ class Connection:
         self.auth = HTTPBasicAuth(self.api_key, None)
         
     @http_req
-    def get(self, url = BASE_URL):
+    def get(self, url = self.BASE_URL):
         return requests.get(url, auth=self.auth)
     
     @http_req    
