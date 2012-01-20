@@ -21,8 +21,8 @@ Users can also specify the id and/or a long-form description of the table to mak
 
     client_data = API.create_table(table_id = "client_data")
     client_data = API.create_table(table_id = "client_data", description = """Customer
-                interaction data from Client, Inc. for 3/2011 - 12/2011, 978k rows,
-                75 columns""")
+                    interaction data from Client, Inc. for 3/2011 - 12/2011, 978k rows,
+                    75 columns""")
 
 ## Deleting a table
 To delete an existing table, call its `delete` method.
