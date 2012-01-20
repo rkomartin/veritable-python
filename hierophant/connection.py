@@ -37,11 +37,11 @@ class Connection:
         if api_key is None:
             raise APIKeyException()
         self.api_key = api_key
-        self.auth = HTTPBasicAuth(self.api_key)
+        self.auth = HTTPBasicAuth(self.api_key, None)
         
     @http_req
     def get(self, url = BASE_URL):
-        return requests.get(url, auth=self.auth, headers = headers)
+        return requests.get(url, auth=self.auth)
     
     @http_req    
     def post(self, url, data):
