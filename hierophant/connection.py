@@ -2,6 +2,8 @@ from requests.auth import HTTPBasicAuth
 import requests
 import simplejson as json
 
+BASE_URL = "https://api.priorknowledge.com/tables"
+
 class APIKeyException(Exception):
     def __init__(self):
         self.value = """"Must provide an API key to instantiate
@@ -31,16 +33,18 @@ def handle_http_error(r):
         r.raise_for_status()
 
 class Connection:
-    BASE_URL = "https://api.priorknowledge.com/tables"
     
     def __init__(self, api_key):
         if api_key is None:
             raise APIKeyException()
         self.api_key = api_key
         self.auth = HTTPBasicAuth(self.api_key, None)
+        self.BASE_URL = BASE_URL
         
     @http_req
-    def get(self, url = self.BASE_URL):
+    def get(self, url = None):
+        if url is None:
+            url = self.BASE_URL
         return requests.get(url, auth=self.auth)
     
     @http_req    
