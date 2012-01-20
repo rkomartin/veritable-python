@@ -18,7 +18,16 @@ def http_req(f):
     return g
 
 def handle_http_error(r):
-    raise r.raise_for_status()
+    if r.status_code != requests.codes.bad_request:
+        r.raise_for_status()
+    try:
+        content = json.loads(r.content)
+        message = content["message"]
+        code = content["code"]
+        raise Exception(""""HTTP Error {0} Bad Request {1}:
+            \n{2}""".format(r.status_code, code, message))
+    except:
+        r.raise_for_status()
 
 class Connection:
     BASE_URL = "https://api.priorknowledge.com/tables"
