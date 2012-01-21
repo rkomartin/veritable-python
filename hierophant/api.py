@@ -37,6 +37,7 @@ class API:
 class Table:
     def __init__(self, connection, data):
         self.connection = connection
+        self.has_been_deleted = False
         if "description" in data:
             self.description = data["description"]
         self.last_updated = data["last_updated"]
