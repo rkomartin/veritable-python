@@ -4,4 +4,4 @@ bin/
 include/
 lib/
 *.pyc
-
+hierophant/*.pyc
