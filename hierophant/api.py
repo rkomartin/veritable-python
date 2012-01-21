@@ -1,10 +1,10 @@
 from hierophant.connection import Connection
 from hierophant.utils import *
 
-BASE_URL = "https://api.priorknowledge.com/tables"
+BASE_URL = "https://api.priorknowledge.com/"
 
-def veritable_connect(api_key, api_base_url = BASE_URL):
-    return API(Connection(api_key, api_base_url))
+def veritable_connect(api_key, api_base_url = BASE_URL, ssl_verify = True):
+    return API(Connection(api_key, api_base_url, ssl_verify))
 
 class DeletedTableException(Exception):
     def __init__(self):
@@ -19,19 +19,19 @@ class API:
             
     def tables(self):
         """Return the Veritable tables available to the user."""
-        r = self.connection.get(self.connection.BASE_URL)
+        r = self.connection.get("tables")
         return [Table(self.connection, t) for t in r["tables"]]
     
     def create_table(self, table_id = None, description = ""):
         """Create a table with the given id."""    
         if table_id is None:
             table_id = make_table_id()
-        r = self.connection.put(join_url(self.connection.BASE_URL, table_id),
+        r = self.connection.put(format_url("tables", table_id),
                                 data = {"description": description})
         return Table(self.connection, r)
     
     def get_table_by_id(self, table_id):
-        r = self.connection.get(join_url(self.connection.BASE_URL, table_id))
+        r = self.connection.get(format_url("tables", table_id))
         return Table(self.connection, r)
 
 class Table:
@@ -74,7 +74,7 @@ class Table:
             row_id = row["_id"]
         else:
             row_id = make_row_id()
-        return self.connection.put(join_url(self.links["rows"], row_id), row)
+        return self.connection.put(format_url(self.links["rows"], row_id), row)
         
     def add_rows(self, data):
         """Add many rows to the table."""
@@ -84,7 +84,7 @@ class Table:
     def get_row(self, row_id):
         """Get a row from the table by its id."""
         self.still_alive()
-        return self.connection.get(join_url(self.links["rows"], row_id))
+        return self.connection.get(format_url(self.links["rows"], row_id))
 
     def get_rows(self):
         """Get the rows of the table."""
@@ -94,7 +94,7 @@ class Table:
     def delete_row(self, row_id):
         """Delete a row from the table by its id."""
         self.still_alive()
-        return self.connection.delete(join_url(self.links["rows"], row_id))
+        return self.connection.delete(format_url(self.links["rows"], row_id))
 
     def get_analyses(self):
         """Get the analyses corresponding to the table."""
@@ -108,7 +108,7 @@ class Table:
         self.still_alive()
         if analysis_id is None:
             analysis_id = make_analysis_id()
-        r = self.connection.put(join_url(self.links["analyses"], analysis_id),
+        r = self.connection.put(format_url(self.links["analyses"], analysis_id),
                                 data = {"description": description,
                                         "type": type,
                                         "schema": schema})

@@ -9,5 +9,5 @@ def make_analysis_id():
 def make_row_id():
     return uuid.uuid4().hex
 
-def join_url(*args):
-    return "/".join(args)
+def format_url(*args):
+    return "/".join([x.rstrip("/").lstrip("/") for x in args])
