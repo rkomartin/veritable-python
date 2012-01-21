@@ -68,7 +68,9 @@ class Table:
             row_id = row["_id"]
         else:
             row_id = make_row_id()
-        return self.connection.put(format_url(self.links["rows"], row_id), row)
+            row["_id"] = row_id
+        return self.connection.put(format_url(self.links["rows"], row_id),
+                                     row)
         
     def add_rows(self, data):
         """Add many rows to the table."""
