@@ -53,7 +53,7 @@ def mgzip(buf):
     return result
 
 class Connection:
-    def __init__(self, api_key, api_base_url):
+    def __init__(self, api_key, api_base_url, ssl_verify=True):
         if api_key is None:
             raise APIKeyException()
         if api_base_url is None:
@@ -61,29 +61,34 @@ class Connection:
         self.api_key = api_key
         self.api_base_url = format_url(api_base_url)
         self.auth = HTTPBasicAuth(self.api_key, self.api_key)
+        self.ssl_verify=ssl_verify
         
     def get(self, url):
         headers = {'accept-encoding': 'gzip'}
-        r = requests.get(format_url(self.api_base_url, url), auth=self.auth,
-                           headers = headers)
+        r = requests.get(format_url(self.api_base_url, url),
+                           verify=self.ssl_verify, auth=self.auth,
+                           headers=headers)
         return get_response_data(r)
     
     def post(self, url, data):
         headers = {'content-type': 'application/json',
                      'content-encoding': 'gzip'}
         r = requests.post(format_url(self.api_base_url,url), 
+                            verify=self.ssl_verify, 
                             data=mgzip(json.dumps(data)), auth=self.auth,
-                            headers = headers)
+                            headers=headers)
         return get_response_data(r)
     
     def put(self, url, data):
         headers = {'content-type': 'application/json',
                      'content-encoding': 'gzip'}
         r = requests.put(format_url(self.api_base_url,url), 
-                           data=mgzip(json.dumps(data)), auth = self.auth,
-                           headers = headers)
+                           verify=self.ssl_verify,
+                           data=mgzip(json.dumps(data)), auth=self.auth,
+                           headers=headers)
         return get_response_data(r)
         
     def delete(self, url):
-        r = requests.delete(format_url(self.api_base_url,url), auth=self.auth)
+        r = requests.delete(format_url(self.api_base_url,url),
+                              verify=self.ssl_verify, auth=self.auth)
         return get_response_data(r)
