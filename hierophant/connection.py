@@ -75,7 +75,7 @@ class Connection:
                      'content-encoding': 'gzip'}
         r = requests.post(format_url(self.api_base_url,url), 
                             verify=self.ssl_verify, 
-                            data=mgzip(json.dumps(data)), auth=self.auth,
+                            data=json.dumps(data), auth=self.auth,
                             headers=headers)
         return get_response_data(r)
     
@@ -84,7 +84,7 @@ class Connection:
                      'content-encoding': 'gzip'}
         r = requests.put(format_url(self.api_base_url,url), 
                            verify=self.ssl_verify,
-                           data=mgzip(json.dumps(data)), auth=self.auth,
+                           data=json.dumps(data), auth=self.auth,
                            headers=headers)
         return get_response_data(r)
         
