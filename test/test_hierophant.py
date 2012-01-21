@@ -36,9 +36,9 @@ t4 = API.connection.get(join_url(TEST_BASE_URL, "gargh"))
 #t5.get()
 #t6.get()
 
-#ts = API.tables()
+ts = API.tables()
 
-#t1 = API.create_table()
+t1 = API.create_table()
 #t2 = API.create_table("foo")
 #t3 = API.create_table("bar", "A table of humbuggery")
 
