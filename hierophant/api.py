@@ -52,14 +52,8 @@ class Table:
     def get(self):
         """Get the description of the table."""
         self.still_alive()
-        data = self.connection.get(self.links["self"])
-        if "description" in data:
-            self.description = data["description"]
-        self.last_updated = data["last_updated"]
-        self.links = {"self": data["links"]["self"],
-                      "analyses": data["links"]["analyses"],
-                      "rows": data["links"]["rows"]}    
-        return self
+        r = self.connection.get(self.links["self"])
+        return Table(self.connection, r)
         
     def delete(self):
         """Delete the table."""
