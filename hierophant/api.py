@@ -8,8 +8,7 @@ def veritable_connect(api_key, api_base_url = BASE_URL, ssl_verify = True):
 
 class DeletedTableException(Exception):
     def __init__(self):
-        self.value = """"Cannot perform operations on a table that has already
-                         been deleted"""
+        self.value = """"Cannot perform operations on a table that has already been deleted"""
     def __str__(self):
         return repr(self.value)
 
