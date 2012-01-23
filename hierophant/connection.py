@@ -69,7 +69,7 @@ class Connection:
         self.api_key = api_key
         self.api_base_url = format_url(api_base_url)
         self.auth = HTTPBasicAuth(self.api_key, self.api_key)
-        self.ssl_verify=ssl_verify
+        self.ssl_verify = ssl_verify
         
     @fully_qualify_url
     def get(self, url):
