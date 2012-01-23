@@ -108,6 +108,7 @@ class Table:
                                 data = {"description": description,
                                         "type": type,
                                         "schema": schema})
+        return Analysis(self.connection, r["data"])
                                         
 class Analysis:
     def __init__(self, connection, data):
