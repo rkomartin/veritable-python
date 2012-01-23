@@ -96,6 +96,10 @@ class Table:
         """Get a row from the table by its id."""
         self.still_alive()
         return [self, self.connection.get(format_url(self.links["rows"], row_id))]
+    def get_row_by_url(self, url):
+        """Get a row from the table by its url."""
+        self.still_alive()
+        return self.connection.get(format_url(url))
 
     def get_rows(self):
         """Get the rows of the table."""
@@ -113,6 +117,18 @@ class Table:
         self.still_alive()
         r = self.connection.get(self.links["analyses"])
         return [[Analysis(self.connection, a), a] for a in r["data"]]
+
+    def get_analysis_by_id(self, analysis_id):
+        """Get an analysis corresponding to the table by its id."""
+        self.still_alive()
+        r = self.connection.get(format_url(self.links["analyses"], analysis_id))
+        return [Analysis(self.connection, r), r]
+
+    def get_analysis_by_url(self, url):
+        """Get an analysis by its URL."""
+        self.still_alive()
+        r = self.connection.get(url)
+        return [Analysis(self.connection, r), r]
 
     def create_analysis(self, schema, description = "",
                         analysis_id = None, type = "veritable"):
