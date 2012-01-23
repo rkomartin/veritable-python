@@ -1,5 +1,5 @@
 from nose import with_setup
-from connection import Connection, APIKeyException, APIBaseURLException
+from hierophant.connection import Connection, APIKeyException, APIBaseURLException
 import os
 from test_web import app
 from multiprocessing import Process
@@ -7,25 +7,25 @@ from nose.tools import raises
 
 
 port = int(os.environ.get("PORT", 5000))
+host = "127.0.0.1"
 apikey = "jellokey"
 
-web_process = Process(target=lambda x: app.run(host='0.0.0.0', port=x), args=(port,)) 
+web_process = Process(target=lambda x: app.run(host=host, port=x), args=(port,)) 
 
-url_base = "http://localhost:"+str(port)
+url_base = "http://"+host+":"+str(port)
 conn = Connection(api_key=apikey,api_base_url=url_base)
 
-url_base2 = "http://localhost:"+str(port)+"/inst"
+url_base2 = "http://"+host+":"+str(port)+"/inst"
 conn2 = Connection(api_key=apikey,api_base_url=url_base2)
 
-url_base2a = "http://localhost:"+str(port)+"/inst/"
-conn2a = Connection(api_key=apikey,api_base_url=url_base2)
+url_base2a = "http://"+host+":"+str(port)+"/inst/"
+conn2a = Connection(api_key=apikey,api_base_url=url_base2a)
 
 def setUp():
     web_process.start()
 
 def tearDown():
     web_process.terminate()
-
 
 def test_get():
     content = 'jello'
@@ -79,7 +79,3 @@ def test_noapikey():
 @raises(APIBaseURLException)
 def test_nobaseurl():
     testconn = Connection(api_key=apikey, api_base_url=None)
-    
-
-
-    

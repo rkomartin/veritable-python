@@ -8,8 +8,7 @@ def veritable_connect(api_key, api_base_url = BASE_URL, ssl_verify = True):
 
 class DeletedTableException(Exception):
     def __init__(self):
-        self.value = """"Cannot perform operations on a table that has already
-                         been deleted"""
+        self.value = """"Cannot perform operations on a table that has already been deleted"""
     def __str__(self):
         return repr(self.value)
 
@@ -53,14 +52,8 @@ class Table:
     def get(self):
         """Get the description of the table."""
         self.still_alive()
-        data = self.connection.get(self.links["self"])
-        if "description" in data:
-            self.description = data["description"]
-        self.last_updated = data["last_updated"]
-        self.links = {"self": data["links"]["self"],
-                      "analyses": data["links"]["analyses"],
-                      "rows": data["links"]["rows"]}    
-        return self
+        r = self.connection.get(self.links["self"])
+        return Table(self.connection, r)
         
     def delete(self):
         """Delete the table."""
@@ -75,7 +68,9 @@ class Table:
             row_id = row["_id"]
         else:
             row_id = make_row_id()
-        return self.connection.put(format_url(self.links["rows"], row_id), row)
+            row["_id"] = row_id
+        return self.connection.put(format_url(self.links["rows"], row_id),
+                                     row)
         
     def add_rows(self, data):
         """Add many rows to the table."""
@@ -113,6 +108,7 @@ class Table:
                                 data = {"description": description,
                                         "type": type,
                                         "schema": schema})
+        return Analysis(self.connection, r["data"])
                                         
 class Analysis:
     def __init__(self, connection, data):

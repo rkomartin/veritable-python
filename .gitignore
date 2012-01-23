@@ -5,3 +5,7 @@ include/
 lib/
 *.pyc
 hierophant/*.pyc
+build/
+share/
+man/
+
