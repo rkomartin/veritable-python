@@ -49,6 +49,16 @@ class API:
         r = self.connection.get(format_urls(url))
         return [Table(self.connection, r), r]
 
+    def delete_table_by_id(self, table_id):
+        """Delete a table from the collection by its id."""
+        r = self.connection.get(format_url("tables", table_id))
+        return Table(self.connection, r).delete()
+
+    def delete_table_by_url(self, url):
+        """Delete a table from the collection by its id."""
+        r = self.connection.get(url)
+        return Table(self.connection, r).delete()
+
 class Table:
     def __init__(self, connection, data):
         self.connection = connection
@@ -107,10 +117,15 @@ class Table:
         self.still_alive()
         return self.connection.get(self.links["rows"])
 
-    def delete_row(self, row_id):
+    def delete_row_by_id(self, row_id):
         """Delete a row from the table by its id."""
         self.still_alive()
         return self.connection.delete(format_url(self.links["rows"], row_id))
+
+    def delete_row_by_url(self, url):
+        """Delete a row from the table by its url."""
+        self.still_alive()
+        return self.connection.delete(url)
 
     def get_analyses(self):
         """Get the analyses corresponding to the table."""
@@ -129,6 +144,18 @@ class Table:
         self.still_alive()
         r = self.connection.get(url)
         return [Analysis(self.connection, r), r]
+
+    def delete_analysis_by_id(self, analysis_id):
+        """Delete an analysis corresponding to the table by its id."""
+        self.still_alive()
+        r = self.connection.get(format_url(self.links["analyses"], analysis_id))
+        return Analysis(self.connection, r).delete()
+
+    def delete_analysis_by_url(self, url):
+        """Delete an analysis corresponding to the table by its URL."""
+        self.still_alive()
+        r = self.connection.get(url)
+        return Analysis(self.connection, r).delete()
 
     def create_analysis(self, schema, description = "",
                         analysis_id = None, type = "veritable"):
