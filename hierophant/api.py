@@ -95,7 +95,8 @@ class Table:
     def get_row_by_id(self, row_id):
         """Get a row from the table by its id."""
         self.still_alive()
-        return [self, self.connection.get(format_url(self.links["rows"], row_id))]
+        return self.connection.get(format_url(self.links["rows"], row_id))
+
     def get_row_by_url(self, url):
         """Get a row from the table by its url."""
         self.still_alive()
@@ -104,13 +105,12 @@ class Table:
     def get_rows(self):
         """Get the rows of the table."""
         self.still_alive()
-        return [self, self.connection.get(self.links["rows"])]
+        return self.connection.get(self.links["rows"])
 
     def delete_row(self, row_id):
         """Delete a row from the table by its id."""
         self.still_alive()
-        return [self, self.connection.delete(format_url(self.links["rows"],
-          row_id))]
+        return self.connection.delete(format_url(self.links["rows"], row_id))
 
     def get_analyses(self):
         """Get the analyses corresponding to the table."""
