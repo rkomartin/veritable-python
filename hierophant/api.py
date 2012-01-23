@@ -17,6 +17,8 @@ class API:
         self.connection = connection
             
     def tables(self):
+    def __str__(self):
+        return "Veritable API at " + self.url
         """Return the Veritable tables available to the user."""
         r = self.connection.get("tables")
         return [Table(self.connection, t) for t in r["tables"]]
@@ -44,6 +46,8 @@ class Table:
                       "analyses": data["links"]["analyses"],
                       "rows": data["links"]["rows"]}    
                       
+    def __str__(self):
+        return "Veritable table at " + self.links["self"]
     def still_alive(self):
         """Check to make sure the table still exists."""
         if self.has_been_deleted:
@@ -120,6 +124,8 @@ class Analysis:
                       "schema": data["links"]["schema"],
                       "learn": data["links"]["learn"],
                       "predict": data["links"]["predict"]}
+    def __str__(self):
+        return "Veritable analysis at " + self.links["self"]
     def get(self):
         data = self.connection.get(self.links["self"])
         self.last_learned = data["last_learned"]
