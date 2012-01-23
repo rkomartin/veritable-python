@@ -34,10 +34,12 @@ class API:
         return [Table(self.connection, r), r]
     
     def get_table_by_id(self, table_id):
+        """Get a table from the collection by its id."""
         r = self.connection.get(format_url("tables", table_id))
         return [Table(self.connection, r), r]
     
     def get_table_by_url(self, url):
+        """Get a table from the collection by its URL."""
         r = self.connection.get(format_urls(url))
         return [Table(self.connection, r), r]
 
