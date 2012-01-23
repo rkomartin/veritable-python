@@ -92,7 +92,7 @@ class Table:
         self.still_alive()
         return [self, self.connection.post(self.links["rows"], data)]
 
-    def get_row(self, row_id):
+    def get_row_by_id(self, row_id):
         """Get a row from the table by its id."""
         self.still_alive()
         return [self, self.connection.get(format_url(self.links["rows"], row_id))]
@@ -108,7 +108,7 @@ class Table:
         return [self, self.connection.delete(format_url(self.links["rows"],
           row_id))]
 
-    def analyses(self):
+    def get_analyses(self):
         """Get the analyses corresponding to the table."""
         self.still_alive()
         r = self.connection.get(self.links["analyses"])
