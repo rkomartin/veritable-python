@@ -12,6 +12,12 @@ class DeletedTableException(Exception):
     def __str__(self):
         return repr(self.value)
 
+class DeletedAnalysisException(Exception):
+    def __init__(self):
+        self.value = """"Cannot perform operations on an analysis that has already been deleted"""
+    def __str__(self):
+        return repr(self.value)
+
 class API:
     def __init__(self, connection):
         self.connection = connection
@@ -123,6 +129,7 @@ class Table:
 class Analysis:
     def __init__(self, connection, data):
         self.connection = connection
+        self.has_been_deleted = False
         self.links = {"self": data["links"]["self"],
                       "schema": data["links"]["schema"],
                       "learn": data["links"]["learn"],
@@ -131,18 +138,33 @@ class Analysis:
     def __str__(self):
         return "Veritable analysis at " + self.links["self"]
 
+    def still_alive(self):
+        """Check to make sure the analysis still exists."""
+        if self.has_been_deleted:
+            raise DeletedAnalysisException()
+
     def get(self):
+        """Get the description of the analysis."""
+        self.still_alive()
         return self.connection.get(self.links["self"])
         
     def learn(self):
+        """Learn the analysis."""
+        self.still_alive()
         return [self, self.connection.post(self.links["learn"])]
         
     def delete(self):
+        """"Delete the analysis."""
+        self.still_alive()
         return [self, self.connection.delete(self.links["self"])]
 
     def get_schema(self):
+        """Get the schema corresponding to the analysis."""
+        self.still_alive()
         return self.connection.get(self.links["schema"])
         
     def predict(self, request):
+        """Make predictions based on analysis results."""
+        self.still_alive()
         return [self, self.connection.post(self.links["predict"], data = request)]
         
