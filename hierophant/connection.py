@@ -4,7 +4,7 @@ from gzip import GzipFile
 from io import BytesIO
 from requests.auth import HTTPBasicAuth
 from urlparse import urljoin
-from hierophant.utils import format_url
+from hierophant.utils import format_url, url_has_scheme
 
 class APIKeyException(Exception):
     def __init__(self):
@@ -20,6 +20,14 @@ class APIBaseURLException(Exception):
     def __str__(self):
         return repr(self.value)
 
+
+def fully_qualify_url(f):
+    def g(*args, **kwargs):
+        url = args[1]
+        if not url_has_scheme(url):
+            url = format_url(args[0].api_base_url, url)
+        return f(args[0], url, *args[2:], **kwargs)
+    return g
 
 def get_response_data(r):
     if r.status_code == requests.codes.ok:
@@ -63,32 +71,30 @@ class Connection:
         self.auth = HTTPBasicAuth(self.api_key, self.api_key)
         self.ssl_verify=ssl_verify
         
+    @fully_qualify_url
     def get(self, url):
         headers = {'accept-encoding': 'gzip'}
-        r = requests.get(format_url(self.api_base_url, url),
-                           verify=self.ssl_verify, auth=self.auth,
+        r = requests.get(url, verify=self.ssl_verify, auth=self.auth,
                            headers=headers)
         return get_response_data(r)
     
+    @fully_qualify_url
     def post(self, url, data):
         headers = {'content-type': 'application/json',
                      'content-encoding': 'gzip'}
-        r = requests.post(format_url(self.api_base_url,url), 
-                            verify=self.ssl_verify, 
-                            data=json.dumps(data), auth=self.auth,
-                            headers=headers)
+        r = requests.post(url, verify=self.ssl_verify, ata=json.dumps(data),
+                            auth=self.auth, headers=headers)
         return get_response_data(r)
     
+    @fully_qualify_url
     def put(self, url, data):
         headers = {'content-type': 'application/json',
                      'content-encoding': 'gzip'}
-        r = requests.put(format_url(self.api_base_url,url), 
-                           verify=self.ssl_verify,
-                           data=json.dumps(data), auth=self.auth,
-                           headers=headers)
+        r = requests.put(url,verify=self.ssl_verify, data=json.dumps(data),
+                           auth=self.auth, headers=headers)
         return get_response_data(r)
-        
+    
+    @fully_qualify_url
     def delete(self, url):
-        r = requests.delete(format_url(self.api_base_url,url),
-                              verify=self.ssl_verify, auth=self.auth)
+        r = requests.delete(url, verify=self.ssl_verify, auth=self.auth)
         return get_response_data(r)
