@@ -15,39 +15,43 @@ class DeletedTableException(Exception):
 class API:
     def __init__(self, connection):
         self.connection = connection
-            
-    def tables(self):
+        self.url = connection.api_base_url
+    
     def __str__(self):
         return "Veritable API at " + self.url
+        
+    def get_tables(self):
         """Return the Veritable tables available to the user."""
         r = self.connection.get("tables")
-        return [Table(self.connection, t) for t in r["tables"]]
-    
+        return [[Table(conn, t), t] for t in r["tables"]]
+
     def create_table(self, table_id = None, description = ""):
         """Create a table with the given id."""    
         if table_id is None:
             table_id = make_table_id()
         r = self.connection.put(format_url("tables", table_id),
                                 data = {"description": description})
-        return Table(self.connection, r)
+        return [Table(self.connection, r), r]
     
     def get_table_by_id(self, table_id):
         r = self.connection.get(format_url("tables", table_id))
-        return Table(self.connection, r)
+        return [Table(self.connection, r), r]
+    
+    def get_table_by_url(self, url):
+        r = self.connection.get(format_urls(url))
+        return [Table(self.connection, r), r]
 
 class Table:
     def __init__(self, connection, data):
         self.connection = connection
         self.has_been_deleted = False
-        if "description" in data:
-            self.description = data["description"]
-        self.last_updated = data["last_updated"]
         self.links = {"self": data["links"]["self"],
                       "analyses": data["links"]["analyses"],
                       "rows": data["links"]["rows"]}    
                       
     def __str__(self):
         return "Veritable table at " + self.links["self"]
+
     def still_alive(self):
         """Check to make sure the table still exists."""
         if self.has_been_deleted:
@@ -56,14 +60,13 @@ class Table:
     def get(self):
         """Get the description of the table."""
         self.still_alive()
-        r = self.connection.get(self.links["self"])
-        return Table(self.connection, r)
+        return self.connection.get(self.links["self"])
         
     def delete(self):
         """Delete the table."""
         self.still_alive()
         self.has_been_deleted = True
-        return self.connection.delete(self.links["self"])
+        return [self, self.connection.delete(self.links["self"])]
         
     def add_row(self, row):
         """Add a row to the table."""
@@ -73,34 +76,35 @@ class Table:
         else:
             row_id = make_row_id()
             row["_id"] = row_id
-        return self.connection.put(format_url(self.links["rows"], row_id),
-                                     row)
+        return [self, self.connection.put(format_url(self.links["rows"], row_id),
+                                     row)]
         
     def add_rows(self, data):
         """Add many rows to the table."""
         self.still_alive()
-        return self.connection.post(self.links["rows"], data)
+        return [self, self.connection.post(self.links["rows"], data)]
 
     def get_row(self, row_id):
         """Get a row from the table by its id."""
         self.still_alive()
-        return self.connection.get(format_url(self.links["rows"], row_id))
+        return [self, self.connection.get(format_url(self.links["rows"], row_id))]
 
     def get_rows(self):
         """Get the rows of the table."""
         self.still_alive()
-        return self.connection.get(self.links["rows"])
+        return [self, self.connection.get(self.links["rows"])]
 
     def delete_row(self, row_id):
         """Delete a row from the table by its id."""
         self.still_alive()
-        return self.connection.delete(format_url(self.links["rows"], row_id))
+        return [self, self.connection.delete(format_url(self.links["rows"],
+          row_id))]
 
-    def get_analyses(self):
+    def analyses(self):
         """Get the analyses corresponding to the table."""
         self.still_alive()
         r = self.connection.get(self.links["analyses"])
-        return [Analysis(self.connection, a) for a in r["data"]]
+        return [[Analysis(self.connection, a), a] for a in r["data"]]
 
     def create_analysis(self, schema, description = "",
                         analysis_id = None, type = "veritable"):
@@ -112,40 +116,31 @@ class Table:
                                 data = {"description": description,
                                         "type": type,
                                         "schema": schema})
-        return Analysis(self.connection, r["data"])
+        return [Analysis(self.connection, r["data"]), r["data"]]
                                         
 class Analysis:
     def __init__(self, connection, data):
         self.connection = connection
-        self.last_learned = data["last_learned"]
-        if "last_updated" in data:
-            self.last_updated = data["last_updated"]
         self.links = {"self": data["links"]["self"],
                       "schema": data["links"]["schema"],
                       "learn": data["links"]["learn"],
                       "predict": data["links"]["predict"]}
+    
     def __str__(self):
         return "Veritable analysis at " + self.links["self"]
+
     def get(self):
-        data = self.connection.get(self.links["self"])
-        self.last_learned = data["last_learned"]
-        if "last_updated" in data:
-            self.last_updated = data["last_updated"]
-        self.links = {"self": data["links"]["self"],
-                      "schema": data["links"]["schema"],
-                      "learn": data["links"]["learn"],
-                      "predict": data["links"]["predict"]}
-        return self
+        return self.connection.get(self.links["self"])
         
     def learn(self):
-        return self.connection.post(self.links["learn"])
+        return [self, self.connection.post(self.links["learn"])]
         
     def delete(self):
-        return self.connection.delete(self.links["self"])
+        return [self, self.connection.delete(self.links["self"])]
 
     def get_schema(self):
         return self.connection.get(self.links["schema"])
         
     def predict(self, request):
-        return self.connection.post(self.links["predict"], data = request)
+        return [self, self.connection.post(self.links["predict"], data = request)]
         
