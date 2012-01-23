@@ -82,7 +82,8 @@ class Connection:
     def post(self, url, data):
         headers = {'content-type': 'application/json',
                      'content-encoding': 'gzip'}
-        r = requests.post(url, verify=self.ssl_verify, ata=json.dumps(data),
+        r = requests.post(url, verify=self.ssl_verify,
+                            data=mgzip(json.dumps(data)),
                             auth=self.auth, headers=headers)
         return get_response_data(r)
     
@@ -90,7 +91,8 @@ class Connection:
     def put(self, url, data):
         headers = {'content-type': 'application/json',
                      'content-encoding': 'gzip'}
-        r = requests.put(url,verify=self.ssl_verify, data=json.dumps(data),
+        r = requests.put(url,verify=self.ssl_verify,
+                           data=mgzip(json.dumps(data)),
                            auth=self.auth, headers=headers)
         return get_response_data(r)
     
