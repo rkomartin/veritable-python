@@ -10,3 +10,4 @@ setup(name='Hierophant',
 	  url='http://www.priorknowledge.com/',
 	  requires=['requests', 'simplejson'],
 	  packages=['hierophant'])
+	  
