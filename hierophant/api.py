@@ -9,12 +9,12 @@ def veritable_connect(api_key, api_base_url = BASE_URL, ssl_verify = True):
 def validate_schema(schema):
     for k in schema.keys():
         if not isinstance(k, basestring):
-            raise Exception()
+            raise InvalidSchemaException()
     for v in schema.values():
         if not v.keys() == ['type'] and (v.values() == 'boolean' or
           v.values() == 'categorical' or v.values() == 'continuous' or
           v.values() == 'count')
-            raise Exception()
+            raise InvalidSchemaException()
 
 class DeletedTableException(Exception):
     def __init__(self):
@@ -40,6 +40,12 @@ class InvalidAnalysisTypeException(Exception):
     def __str__(self):
         return repr(self.value)
 
+class InvalidSchemaException(Exception):
+    def __init__(self):
+        self.value = """Invalid schema specification."""
+    def __str__(self):
+        return repr(self.value)
+        
 class API:
     def __init__(self, connection):
         self.connection = connection
