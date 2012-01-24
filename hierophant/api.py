@@ -34,6 +34,12 @@ class MissingRowIDException(Exception):
     def __str__(self):
         return repr(self.value)
 
+class InvalidAnalysisTypeException(Exception):
+    def __init__(self):
+        self.value = """Invalid analysis type."""
+    def __str__(self):
+        return repr(self.value)
+
 class API:
     def __init__(self, connection):
         self.connection = connection
@@ -190,6 +196,8 @@ class Table:
                         analysis_id = None, type = "veritable"):
         """Create a new analysis for the table."""
         self.still_alive()
+        if type is not "veritable":
+            raise InvalidAnalysisTypeException()
         if analysis_id is None:
             analysis_id = make_analysis_id()
         r = self.connection.put(format_url(self.links["analyses"], analysis_id),
