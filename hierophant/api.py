@@ -6,6 +6,16 @@ BASE_URL = "https://api.priorknowledge.com/"
 def veritable_connect(api_key, api_base_url = BASE_URL, ssl_verify = True):
     return API(Connection(api_key, api_base_url, ssl_verify))
 
+def validate_schema(schema):
+    for k in schema.keys():
+        if not isinstance(k, basestring):
+            raise Exception()
+    for v in schema.values():
+        if not v.keys() == ['type'] && (v.values() == 'boolean' ||
+          v.values() == 'categorical' || v.values() == 'continuous' ||
+          v.values() == 'count')
+            raise Exception()
+
 class DeletedTableException(Exception):
     def __init__(self):
         self.value = """"Cannot perform operations on a table that has already been deleted"""
