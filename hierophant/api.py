@@ -28,6 +28,12 @@ class DeletedAnalysisException(Exception):
     def __str__(self):
         return repr(self.value)
 
+class MissingRowIDException(Exception):
+    def __init__(self):
+        self.value = """Rows for deletion must contain row ids in the _id field"""
+    def __str__(self):
+        return repr(self.value)
+
 class API:
     def __init__(self, connection):
         self.connection = connection
@@ -136,6 +142,15 @@ class Table:
         """Delete a row from the table by its url."""
         self.still_alive()
         return self.connection.delete(url)
+
+    def delete_rows(self, rows):
+        """Batch delete rows from the table."""
+        self.still_alive()
+        for i in range(len(rows)):
+            if not "_id" in rows[i]:
+                raise MissingRowIDException()
+        data = {'action': 'delete', 'rows': rows}
+        return [self, self.connection.post(self.links["rows"], data)]
 
     def get_analyses(self):
         """Get the analyses corresponding to the table."""
