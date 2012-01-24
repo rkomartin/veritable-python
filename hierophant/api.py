@@ -58,6 +58,12 @@ class DuplicateAnalysisException(Exception):
     def __str__(self):
         return repr(self.value)
 
+class DuplicateRowException(Exception):
+    def __init__(self, row_id):
+        self.value = "Row with id" + row_id + "already exists! Set force=True to override."
+    def __str__(self):
+        return repr(self.value)
+
 class API:
     def __init__(self, connection):
         self.connection = connection
@@ -132,7 +138,7 @@ class Table:
         self.has_been_deleted = True
         return [self, self.connection.delete(self.links["self"])]
         
-    def add_row(self, row):
+    def add_row(self, row, force=False):
         """Add a row to the table."""
         self.still_alive()
         if "_id" in row:
@@ -140,15 +146,27 @@ class Table:
         else:
             row_id = make_row_id()
             row["_id"] = row_id
+        if not force:
+            try:
+                self.get_row_by_id(row_id)
+                raise DuplicateRowException(row_id)
+            except:
+                pass
         return [self, self.connection.put(format_url(self.links["rows"], row_id),
-                                     row)]
+                                            row)]
         
-    def add_rows(self, rows):
+    def add_rows(self, rows, force=False):
         """Batch add rows to the table."""
         self.still_alive()
         for i in range(len(rows)):
             if not "_id" in rows[i]:
-                rows[i]["id"] = make_row_id()
+                rows[i]["_id"] = make_row_id()
+            if not force:
+                try:
+                    self.get_row_by_id(rows[i]["_id"])
+                    raise DuplicateRowException(rows[i]["_id"])
+                except:
+                    pass
         data = {'action': 'put', 'rows': rows}
         return [self, self.connection.post(self.links["rows"], data)]
 
