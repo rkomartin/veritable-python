@@ -11,8 +11,8 @@ def validate_schema(schema):
         if not isinstance(k, basestring):
             raise Exception()
     for v in schema.values():
-        if not v.keys() == ['type'] && (v.values() == 'boolean' ||
-          v.values() == 'categorical' || v.values() == 'continuous' ||
+        if not v.keys() == ['type'] and (v.values() == 'boolean' or
+          v.values() == 'categorical' or v.values() == 'continuous' or
           v.values() == 'count')
             raise Exception()
 
