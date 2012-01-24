@@ -45,7 +45,19 @@ class InvalidSchemaException(Exception):
         self.value = """Invalid schema specification."""
     def __str__(self):
         return repr(self.value)
-        
+
+class DuplicateTableException(Exception):
+    def __init__(self, table_id):
+        self.value = "Table with id" + table_id + "already exists! Set force=True to override."
+    def __str__(self):
+        return repr(self.value)
+
+class DuplicateAnalysisException(Exception):
+    def __init__(self, analysis_id):
+        self.value = "Analysis with id" + analysis_id + "already exists! Set force=True to override."
+    def __str__(self):
+        return repr(self.value)
+
 class API:
     def __init__(self, connection):
         self.connection = connection
@@ -59,10 +71,16 @@ class API:
         r = self.connection.get("tables")
         return [[Table(conn, t), t] for t in r["tables"]]
 
-    def create_table(self, table_id = None, description = ""):
+    def create_table(self, table_id=None, description="", force=False):
         """Create a table with the given id."""    
         if table_id is None:
             table_id = make_table_id()
+        if not force:
+            try:
+                self.get_table_by_id(table_id)
+                raise DuplicateTableException(table_id)
+            except:
+                pass
         r = self.connection.put(format_url("tables", table_id),
                                 data = {"description": description})
         return [Table(self.connection, r), r]
@@ -198,14 +216,21 @@ class Table:
         r = self.connection.get(url)
         return Analysis(self.connection, r).delete()
 
-    def create_analysis(self, schema, description = "",
-                        analysis_id = None, type = "veritable"):
+    def create_analysis(self, schema, description="",
+                        analysis_id=None, type="veritable",
+                        force=False):
         """Create a new analysis for the table."""
         self.still_alive()
         if type is not "veritable":
             raise InvalidAnalysisTypeException()
         if analysis_id is None:
             analysis_id = make_analysis_id()
+        if not force:
+            try:
+                self.get_analysis_by_id(analysis_id)
+                raise DuplicateAnalysisException(analysis_id)
+            except:
+                pass
         r = self.connection.put(format_url(self.links["analyses"], analysis_id),
                                 data = {"description": description,
                                         "type": type,
