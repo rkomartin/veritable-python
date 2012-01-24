@@ -4,22 +4,8 @@ from gzip import GzipFile
 from io import BytesIO
 from requests.auth import HTTPBasicAuth
 from urlparse import urljoin
+from hierophant.exceptions import APIKeyException, APIBaseURLException
 from hierophant.utils import format_url, url_has_scheme
-
-class APIKeyException(Exception):
-    def __init__(self):
-        self.value = """Must provide an API key to instantiate a Veritable
-                        connection"""
-    def __str__(self):
-        return repr(self.value)
-
-class APIBaseURLException(Exception):
-    def __init__(self):
-        self.value = """Must provide an base URL to instantiate a Veritable
-                        connection"""
-    def __str__(self):
-        return repr(self.value)
-
 
 def fully_qualify_url(f):
     def g(*args, **kwargs):
