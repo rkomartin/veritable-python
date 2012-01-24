@@ -1,8 +1,9 @@
 #! usr/bin/python
 
 from requests.auth import HTTPBasicAuth
-from hierophant.api import veritable_connect, DeletedTableException
 from requests.exceptions import HTTPError
+from hierophant.api import veritable_connect, DeletedTableException
+from hierophant.utils import format_url
 
 TEST_API_KEY = "test"
 TEST_BASE_URL = "http://127.0.0.1:5000"
@@ -12,19 +13,18 @@ def test_create_api():
 
 def test_get_tables():
 	ts = API.get_tables()
-	assert len(ts) == 0
 
 def test_create_table_autoid():
-	t1 = API.create_table()
+	t1 = API.create_table()[0]
 
 def test_create_table_id():
-	t2 = API.create_table("foo")
+	t2 = API.create_table("foo")[0]
 
 def test_create_table_desc():
-	t3 = API.create_table("bar", "A table of humbuggery")
+	t3 = API.create_table("bar", "A table of humbuggery")[0]
 
 def test_get_table_by_id():
-	t4 = API.get_table_by_id("foo")
+	t4 = API.get_table_by_id("foo")[0]
 
 def test_delete_table():
 	t4.delete()
@@ -33,79 +33,102 @@ def test_delete_table():
 def test_get_deleted_table():
 	t4.get()
 
-def test_tables_created():
-	ts2 = API.get_tables()
-	assert len(ts2) = 3
-
 def test_get_table_by_url():
-	pass
+	t5 = API.create_table()[0]
+	API.get_table_by_url(t5.links["self"])
 
+@raises(DeletedTableException)
 def test_get_deleted_table_by_id():
-	pass
+	API.get_table_by_id("foo")
 
 def test_get_deleted_table_by_url():
-	pass
+	API.get_table_by_url(t4.links["self"])
 
 def test_tables_still_alive():
+	ts2 = [t[0] for t in API.get_tables()]
 	[t.still_alive() for t in ts2]
 
 def test_create_duplicate_tables():
-	t5 = API.create_table("foo")
-	t5 = API.create_table("foo")
+	t5 = API.create_table("foo")[0]
+	t5 = API.create_table("foo")[0]
 
 def test_delete_table_by_url():
-	pass
+	t6 = API.create_table("baz")[0]
+	API.delete_table_by_url(t6.links["self"])
 
 def test_delete_table_by_id():
-	pass
+	t7 = API.create_table("buzz")[0]
+	API.delete_table_by_id("bazz")
 
+@raises(DeletedTableException)
 def test_get_deleted_table_by_url_2():
-	pass
+	API.get_table_by_url(t6.links["self"])
 
+@raises(DeletedTableException)
 def test_get_deleted_table_by_url_3():
-	pass
+	API.get_table_by_url(t7.links["self"])
 
 def test_table_add_row_with_id():
-	pass
+	t3.add_row({'_id': 'onebug', 'zim': 'zam', 'wos': 19.2})
 
 def test_table_add_row_with_autogen_id():
-	pass
+	t3.add_row({'zim': 'zom', 'wos': 21.1})
 
 def test_table_add_duplicate_rows():
-	pass
+	t3.add_row({'_id': 'twobug', 'zim': 'vim', 'wos': 11.3})
+	t3.add_row({'_id': 'twobug', 'zim': 'fop', 'wos': 17.5})
 
 def test_get_table_data():
-	pass
+	t3.get()
 
 def test_batch_add_rows():
-	pass
+	t3.add_rows([{'_id': 'threebug', 'zim': 'zop', 'wos': 10.3},
+				 {'_id': 'fourbug', 'zim': 'zam', 'wos': 9.3},
+				 {'_id': 'fivebug', 'zim': 'zop', 'wos': 18.9}])
 
 def test_batch_add_rows_autogen():
-	pass
+	t3.add_rows([{'zim': 'zop', 'wos': 10.3},
+				 {'zim': 'zam', 'wos': 9.3},
+				 {'zim': 'zop', 'wos': 18.9},
+				 {'_id': 'sixbug', 'zim': 'fop', 'wos': 18.3}])
 
 def test_get_row_by_id():
-	pass
+	t3.get_row_by_id("threebug")
 
 def test_get_row_by_url():
-	pass
+	t3.get_row_by_url(format_url(t3.links["rows"], 'threebug'))
 
 def test_batch_get_rows():
-	pass
+	t3.get_rows()
 
 def test_delete_row_by_id():
-	pass
+	t3.delete_row_by_id("fivebug")
 
 def test_delete_row_by_url():
-	pass
+	t3.delete_row_by_url(format_url(t3.links["rows"], 'threebug'))
+
+@raises(Exception)
+def test_delete_deleted_row_by_id():
+	t3.delete_row_by_id("fivebug")
+
+@raises(Exception)
+def test_delete_deleted_row_by_url():
+	t3.delete_row_by_url(format_url(t3.links["rows"], 'threebug'))
 
 def test_batch_delete_rows():
-	pass
+	rs = t3.get_rows
+	t3.delete_rows(rs[0:1])
+	t3.delete_rows([r["_id"] for r in rs[2:3]])
+
 
 def test_batch_delete_rows_faulty():
-	pass
+	rs = [{'zim': 'zam', 'wos': 9.3},
+	      {'zim': 'zop', 'wos': 18.9}]
+	rs.append(t3.get_rows[0])
+	t3.delete_rows(rs)
 
 def test_get_analyses():
-	pass
+	t3.get_analyses()
 
 def test_create_analysis():
 	pass
@@ -164,7 +187,7 @@ def test_delete_analysis():
 def test_learn_analysis():
 	pass
 
-def test_get_anlysis():
+def test_get_analysis():
 	pass
 
 def test_delete_analysis_fails():
@@ -175,28 +198,3 @@ def test_learn_analysis_fails():
 
 def test_get_anlysis_fails():
 	pass
-
-
-
-t5.add_row({'furry': 'true', 'hooves': 'false', 'size': 2})
-t5.add_row({'_id': 'camel', 'furry': 'true', 'hooves': 'true', 'size': 4})
-t5.add_row({'_id': 'camel', 'furry': 'true', 'hooves': 'true', 'size': 4})
-t5.add_row({'_id': 'lizard', 'furry': 'false', 'hooves': 'false', 'size': 1})
-t5.get_rows()
-t5.get_row('camel')
-t5.get_row('lizard')
-t5.delete_row('lizard')
-t5.delete_row('lizard')
-t5.get_row('lizard')
-t5.delete_row('camel')
-t5.get_rows()
-
-t6 = t5.get()
-t5.last_updated == t6.last_updated
-
-#add_rows
-#get - compare timestamps
-#create_analysis
-#get_analyses
-
-# analyses - get, learn, delete, get_schema, predict
