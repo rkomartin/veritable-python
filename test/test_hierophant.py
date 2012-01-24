@@ -1,5 +1,6 @@
 #! usr/bin/python
 
+import simplejson as json
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 from hierophant.api import veritable_connect, DeletedTableException
@@ -120,7 +121,6 @@ def test_batch_delete_rows():
 	t3.delete_rows(rs[0:1])
 	t3.delete_rows([r["_id"] for r in rs[2:3]])
 
-
 def test_batch_delete_rows_faulty():
 	rs = [{'zim': 'zam', 'wos': 9.3},
 	      {'zim': 'zop', 'wos': 18.9}]
@@ -198,3 +198,10 @@ def test_learn_analysis_fails():
 
 def test_get_anlysis_fails():
 	pass
+
+def test_end_to_end():
+	mammals_data = json.loads(file("mammals.json"))
+	mammals_handle = API.create_table("mammals", "Oldie but goodie")[0]
+	mammals_handle.add_rows(mammals_data)
+	mammals_handle.delete_row_by_id("dalmatian")
+	mammals_handle.get_rows()
