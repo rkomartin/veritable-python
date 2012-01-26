@@ -1,6 +1,6 @@
 from distutils.core import setup
 
-setup(name='Hierophant',
+setup(name='Veritable',
 	  version='0.1',
 	  description='Python Client Library for Veritable API',
 	  author='Prior Knowledge, Inc.',
@@ -9,5 +9,5 @@ setup(name='Hierophant',
 	  maintainer_email='max@priorknowledge.com',
 	  url='http://www.priorknowledge.com/',
 	  requires=['requests', 'simplejson'],
-	  packages=['hierophant'])
+	  packages=['veritable'])
 	  

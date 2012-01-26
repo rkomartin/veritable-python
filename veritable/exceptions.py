@@ -59,3 +59,9 @@ class DuplicateRowException(Exception):
         self.value = "Row with id" + row_id + "already exists! Set force=True to override."
     def __str__(self):
         return repr(self.value)
+
+class AnalysisNotReadyException(Exception):
+    def __init__(self, row_id):
+        self.value = "Analysis is not ready for predictions."
+    def __str__(self):
+        return repr(self.value)

@@ -1,7 +1,10 @@
 FIXME add descriptions of error codes
 
-# Hierophant
-Hierophant (Pyrophant?) is a Python client library for the Veritable API. 
+# Veritable Python client
+First things first.
+
+    import veritable
+
 
 ## Handles and vanilla representations
 Most of the methods in this library return lists of the form `[HandleObject, dict_representation]`. The handle objects provide methods for manipulating API objects, while the dicts contain full representations of the objects. Handles are stateless, and dict representations are snapshots.
@@ -10,12 +13,12 @@ Most of the methods in this library return lists of the form `[HandleObject, dic
 The `veritable_connect` method returns an instance of the Veritable API. This is the entry point for everything that follows. In general, the API key should be kept in an environment variable.
 
     VERITABLE_API_KEY = os.getenv("VERITABLE_API_KEY")
-    API = hierophant.veritable_connect(VERITABLE_API_KEY)
+    API = veritable.veritable_connect(VERITABLE_API_KEY)
 
 If your instance of the API doesn't live at the default URL, `https://api.priorknowledge.com/`, then you can pass the entry point of the API to `veritable_connect` as its second argument.
 
     VERITABLE_API_BASE_URL = os.getenv("VERITABLE_API_BASE_URL")
-    API = hierophant.veritable_connect(VERITABLE_API_KEY, VERITABLE_API_BASE_URL)
+    API = veritable.veritable_connect(VERITABLE_API_KEY, VERITABLE_API_BASE_URL)
 
 Attempting to instantiate the API without passing an API key, or with no base URL, will cause an `APIKeyException` or `APIBaseURLException`, respectively, to be raised.
 
@@ -99,12 +102,12 @@ It's also possible to batch delete rows from the table, using the `delete_rows` 
     client_data_handle.delete_rows(client_subset)
 
 ## Specifying new analyses of a table and performing inference
-To set up a new analysis of a table, use the `create_analysis` method of the table handle. This method takes a `schema`, which must be a dict whose keys are column names (for some subset of the columns in the table---note that it is not necessary to analyze all of the columns in the table) and whose values are dicts:
+To set up a new analysis of a table, use the `create_analysis` method of the table handle. This method takes a `schema`, which must be a dict whose keys are column names (for some subset of the columns in the table--note that it is not necessary to analyze all of the columns in the table) and whose values are dicts:
 
-   {'age': {'type': 'count'},
-    'weight': {'type': 'real'},
-    'diagnosis': {'type': 'categorical'},
-    'medicaid': {'type': 'boolean'}}
+    {'age': {'type': 'count'},
+     'weight': {'type': 'real'},
+     'diagnosis': {'type': 'categorical'},
+     'medicaid': {'type': 'boolean'}}
 
 To validate a schema, we provide the convenience function `validate_schema`, which raises a `InvalidSchemaException` if it does not succeed. Note that this function does *not* presently check column names against the table, and is *not* automatically run when an analysis is created.
 
@@ -159,3 +162,5 @@ A predictions request should be a dict with two entries. The `data` entry should
     results = my_analysis_handle.predict(request)
 
 Predictions are synchronous!
+
+FIXME for real docs: install instructions

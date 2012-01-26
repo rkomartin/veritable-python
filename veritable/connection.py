@@ -4,8 +4,8 @@ from gzip import GzipFile
 from io import BytesIO
 from requests.auth import HTTPBasicAuth
 from urlparse import urljoin
-from hierophant.exceptions import APIKeyException, APIBaseURLException
-from hierophant.utils import format_url, url_has_scheme
+from veritable.exceptions import APIKeyException, APIBaseURLException
+from veritable.utils import format_url, url_has_scheme
 
 def fully_qualify_url(f):
     def g(*args, **kwargs):

@@ -1,6 +1,6 @@
-from hierophant.connection import Connection
-from hierophant.exceptions import *
-from hierophant.utils import *
+from veritable.connection import Connection
+from veritable.exceptions import *
+from veritable.utils import *
 
 BASE_URL = "https://api.priorknowledge.com/"
 
@@ -16,6 +16,9 @@ def validate_schema(schema):
           v.values() == 'categorical' or v.values() == 'continuous' or
           v.values() == 'count')
             raise InvalidSchemaException()
+
+def handle_api_error(err):
+    pass
 
 class API:
     def __init__(self, connection):
@@ -212,10 +215,11 @@ class Analysis:
     def __init__(self, connection, data):
         self.connection = connection
         self.has_been_deleted = False
-        self.links = {"self": data["links"]["self"],
-                      "schema": data["links"]["schema"],
-                      "learn": data["links"]["learn"],
-                      "predict": data["links"]["predict"]}
+        self.type = data["type"]
+        self.links = {}
+        for k in ["self", "schema", "learn", "predict"]:
+            if k in data:
+                self.links[k] = data[k]
     
     def __str__(self):
         return "Veritable analysis at " + self.links["self"]
@@ -229,12 +233,27 @@ class Analysis:
         """Get the description of the analysis."""
         self.still_alive()
         return self.connection.get(self.links["self"])
-        
+    
+    def did_not_fail(self):
+        data = self.get()
+        if data["state"] is "failed":
+            handle_api_error(data["error"])
+    
+    def ready_to_predict(self):
+        data = self.get()
+        if "predict" not in self["links"]:
+            raise AnalysisNotReadyException()
+    
+    def status(self):
+        data = self.get()
+        return data["state"]
+
     def learn(self):
         """Learn the analysis."""
         self.still_alive()
+        self.did_not_fail()
         return [self, self.connection.post(self.links["learn"])]
-        
+    
     def delete(self):
         """"Delete the analysis."""
         self.still_alive()
@@ -244,9 +263,11 @@ class Analysis:
         """Get the schema corresponding to the analysis."""
         self.still_alive()
         return self.connection.get(self.links["schema"])
-        
+
     def predict(self, request):
         """Make predictions based on analysis results."""
         self.still_alive()
+        self.did_not_fail()
+        self.ready_to_predict()
         return [self, self.connection.post(self.links["predict"], data = request)]
         

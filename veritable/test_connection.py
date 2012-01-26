@@ -1,5 +1,5 @@
 from nose import with_setup
-from hierophant.connection import Connection, APIKeyException, APIBaseURLException
+from veritable.connection import Connection, APIKeyException, APIBaseURLException
 import os
 from test_web import app
 from multiprocessing import Process
