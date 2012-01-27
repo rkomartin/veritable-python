@@ -31,7 +31,7 @@ class API:
     def get_tables(self):
         """Return the Veritable tables available to the user."""
         r = self.connection.get("tables")
-        return [[Table(conn, t), t] for t in r["tables"]]
+        return [Table(conn, t) for t in r["tables"]]
 
     def create_table(self, table_id=None, description="", force=False):
         """Create a table with the given id."""    
@@ -45,17 +45,17 @@ class API:
                 pass
         r = self.connection.put(format_url("tables", table_id),
                                 data = {"description": description})
-        return [Table(self.connection, r), r]
+        return Table(self.connection, r)
     
     def get_table_by_id(self, table_id):
         """Get a table from the collection by its id."""
         r = self.connection.get(format_url("tables", table_id))
-        return [Table(self.connection, r), r]
+        return Table(self.connection, r)
     
     def get_table_by_url(self, url):
         """Get a table from the collection by its URL."""
         r = self.connection.get(format_urls(url))
-        return [Table(self.connection, r), r]
+        return Table(self.connection, r)
 
     def delete_table_by_id(self, table_id):
         """Delete a table from the collection by its id."""
@@ -83,8 +83,8 @@ class Table:
         if self.has_been_deleted:
             raise DeletedTableException()
             
-    def get(self):
-        """Get the description of the table."""
+    def get_state(self):
+        """Get the state of the table."""
         self.still_alive()
         return self.connection.get(self.links["self"])
         
@@ -92,7 +92,7 @@ class Table:
         """Delete the table."""
         self.still_alive()
         self.has_been_deleted = True
-        return [self, self.connection.delete(self.links["self"])]
+        return self.connection.delete(self.links["self"])
         
     def add_row(self, row, force=False):
         """Add a row to the table."""
@@ -108,8 +108,8 @@ class Table:
                 raise DuplicateRowException(row_id)
             except:
                 pass
-        return [self, self.connection.put(format_url(self.links["rows"], row_id),
-                                            row)]
+        return self.connection.put(format_url(self.links["rows"], row_id),
+                                   row)
         
     def add_rows(self, rows, force=False):
         """Batch add rows to the table."""
@@ -124,7 +124,7 @@ class Table:
                 except:
                     pass
         data = {'action': 'put', 'rows': rows}
-        return [self, self.connection.post(self.links["rows"], data)]
+        return self.connection.post(self.links["rows"], data)
 
     def get_row_by_id(self, row_id):
         """Get a row from the table by its id."""
@@ -158,25 +158,25 @@ class Table:
             if not "_id" in rows[i]:
                 raise MissingRowIDException()
         data = {'action': 'delete', 'rows': rows}
-        return [self, self.connection.post(self.links["rows"], data)]
+        return self.connection.post(self.links["rows"], data)
 
     def get_analyses(self):
         """Get the analyses corresponding to the table."""
         self.still_alive()
         r = self.connection.get(self.links["analyses"])
-        return [[Analysis(self.connection, a), a] for a in r["data"]]
+        return [Analysis(self.connection, a) for a in r["data"]]
 
     def get_analysis_by_id(self, analysis_id):
         """Get an analysis corresponding to the table by its id."""
         self.still_alive()
         r = self.connection.get(format_url(self.links["analyses"], analysis_id))
-        return [Analysis(self.connection, r), r]
+        return Analysis(self.connection, r)
 
     def get_analysis_by_url(self, url):
         """Get an analysis by its URL."""
         self.still_alive()
         r = self.connection.get(url)
-        return [Analysis(self.connection, r), r]
+        return Analysis(self.connection, r)
 
     def delete_analysis_by_id(self, analysis_id):
         """Delete an analysis corresponding to the table by its id."""
@@ -209,7 +209,7 @@ class Table:
                                 data = {"description": description,
                                         "type": type,
                                         "schema": schema})
-        return [Analysis(self.connection, r["data"]), r["data"]]
+        return Analysis(self.connection, r["data"])
                                         
 class Analysis:
     def __init__(self, connection, data):
@@ -229,8 +229,8 @@ class Analysis:
         if self.has_been_deleted:
             raise DeletedAnalysisException()
 
-    def get(self):
-        """Get the description of the analysis."""
+    def get_state(self):
+        """Get the state of the analysis."""
         self.still_alive()
         return self.connection.get(self.links["self"])
     
@@ -248,16 +248,16 @@ class Analysis:
         data = self.get()
         return data["state"]
 
-    def learn(self):
+    def run(self):
         """Learn the analysis."""
         self.still_alive()
         self.did_not_fail()
-        return [self, self.connection.post(self.links["learn"])]
+        return self.connection.post(self.links["learn"])
     
     def delete(self):
         """"Delete the analysis."""
         self.still_alive()
-        return [self, self.connection.delete(self.links["self"])]
+        return self.connection.delete(self.links["self"])
 
     def get_schema(self):
         """Get the schema corresponding to the analysis."""
@@ -269,5 +269,5 @@ class Analysis:
         self.still_alive()
         self.did_not_fail()
         self.ready_to_predict()
-        return [self, self.connection.post(self.links["predict"], data = request)]
+        return self.connection.post(self.links["predict"], data = request)
         
