@@ -151,6 +151,17 @@ To check the status of an analysis, use its `status` method.
 
     my_analysis.status()
 
+This will return a Python dict with at least three entries, `type`, `state`, and `links`, and possible also with the entries `last_learned` or `error`. The `type` will always be `veritable`. The `status` will always be one of the following values:
+
+*  `new`: the analysis has never run
+*  `pending`: the analysis is running and not yet finished
+*  `finished`: the analysis is finished running, and ready for predictions
+*  `failed`: the analysis has failed
+
+The `links` entry will contain links to the related resources if available. The `last_learned` entry will be present after the analysis has been run at least once. You can compare this timestamp to the `last_updated` timestamp in the representation of the table state in order to make sure that the analysis reflects the latest data. (If not, just call the analysis's `run` method again.) 
+
+If the analysis status is `failed`, then an `error` entry will also be present, and will describe the reason for failure.
+
 ## Making predictions based on a completed analysis
 A predictions request should be a dict with two entries. The `data` entry should contain a row specification, where the value of every conditioning column is specified and the value of every predicted column is `null`. The `count` entry should specify the number of predicted values requested.
 
