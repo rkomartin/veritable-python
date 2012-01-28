@@ -56,7 +56,7 @@ class API:
     
     def get_table_by_url(self, url):
         """Get a table from the collection by its URL."""
-        r = self.connection.get(format_urls(url))
+        r = self.connection.get(format_url(url))
         return Table(self.connection, r)
 
     def delete_table_by_id(self, table_id):
