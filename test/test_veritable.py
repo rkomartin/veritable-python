@@ -166,6 +166,10 @@ class TestTableOps:
     def test_get_row_by_id(self):
         self.t.get_row_by_id("sixbug")
 
+    def test_get_multiple_rows_by_id(self):
+        self.t.get_row_by_id("sixbug")
+        self.t.get_row_by_id("fivebug")
+
     def test_get_row_by_url(self):
         self.t.get_row_by_url(format_url(t.links["rows"], 'fivebug'))
 
@@ -218,7 +222,7 @@ class TestTableOps:
     @raises(DuplicateAnalysisException)
     def test_create_duplicate_analysis(self):
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
-        self.t.create_analysis(schema, analysis_id="zubble_2")
+        self.t.create_analysis(schema, analysis_id="zubble_2", force=True)
         self.t.create_analysis(schema, analysis_id="zubble_2")
 
     def test_create_duplicate_analysis_force(self):
