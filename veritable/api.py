@@ -12,9 +12,10 @@ def validate_schema(schema):
         if not isinstance(k, basestring):
             raise InvalidSchemaException()
     for v in schema.values():
-        if not v.keys() == ['type'] and (v.values() == 'boolean' or
-          v.values() == 'categorical' or v.values() == 'continuous' or
-          v.values() == 'count')
+        if not v.keys() == ['type']:
+            raise InvalidSchemaException
+        if not v.values() in ['boolean', 'categorical', 'continuous',
+                              'count']:
             raise InvalidSchemaException()
 
 def handle_api_error(err):
