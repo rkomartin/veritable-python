@@ -205,7 +205,7 @@ class Table:
             analysis_id = make_analysis_id()
         if not force:
             try:
-                self.get_analysis_by_id(table_id)
+                self.get_analysis_by_id(analysis_id)
             except:
                 pass
             else:
