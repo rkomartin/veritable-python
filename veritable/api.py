@@ -32,7 +32,7 @@ class API:
     def get_tables(self):
         """Return the Veritable tables available to the user."""
         r = self.connection.get("tables")
-        return [Table(conn, t) for t in r["tables"]]
+        return [Table(self.connection, t) for t in r["tables"]]
 
     def create_table(self, table_id=None, description="", force=False):
         """Create a table with the given id."""    
