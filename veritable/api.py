@@ -41,9 +41,10 @@ class API:
         if not force:
             try:
                 self.get_table_by_id(table_id)
-                raise DuplicateTableException(table_id)
             except:
                 pass
+            else:
+                raise DuplicateTableException(table_id)
         r = self.connection.put(format_url("tables", table_id),
                                 data = {"description": description})
         return Table(self.connection, r)
@@ -106,9 +107,10 @@ class Table:
         if not force:
             try:
                 self.get_row_by_id(row_id)
-                raise DuplicateRowException(row_id)
             except:
                 pass
+            else:
+                raise DuplicateRowException(row_id)
         return self.connection.put(format_url(self.links["rows"], row_id),
                                    row)
         
@@ -121,9 +123,10 @@ class Table:
             if not force:
                 try:
                     self.get_row_by_id(rows[i]["_id"])
-                    raise DuplicateRowException(rows[i]["_id"])
                 except:
                     pass
+                else:
+                    raise DuplicateRowException(rows[i]["_id"])
         data = {'action': 'put', 'rows': rows}
         return self.connection.post(self.links["rows"], data)
 
@@ -202,10 +205,11 @@ class Table:
             analysis_id = make_analysis_id()
         if not force:
             try:
-                self.get_analysis_by_id(analysis_id)
-                raise DuplicateAnalysisException(analysis_id)
+                self.get_analysis_by_id(table_id)
             except:
                 pass
+            else:
+                raise DuplicateAnalysisException(analysis_id)
         r = self.connection.put(format_url(self.links["analyses"], analysis_id),
                                 data = {"description": description,
                                         "type": type,
