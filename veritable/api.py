@@ -214,7 +214,7 @@ class Table:
                                 data = {"description": description,
                                         "type": type,
                                         "schema": schema})
-        return Analysis(self.connection, r["data"])
+        return Analysis(self.connection, r)
                                         
 class Analysis:
     def __init__(self, connection, data):
@@ -223,8 +223,8 @@ class Analysis:
         self.type = data["type"]
         self.links = {}
         for k in ["self", "schema", "learn", "predict"]:
-            if k in data:
-                self.links[k] = data[k]
+            if k in data["links"]:
+                self.links[k] = data["links"][k]
     
     def __str__(self):
         return "Veritable analysis at " + self.links["self"]
