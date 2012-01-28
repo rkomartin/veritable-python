@@ -85,7 +85,7 @@ You can also retrieve rows by their urls, using the `get_row_by_url` method.
 
     animals_handle.get_row_by_url("https://api.priorknowledge.com/tables/animals/rows/cat")
 
-Alternatively, you can get all of the rows belonging to a table at once using the batch `get_rows` method.
+Alternatively, you can get all of the rows belonging to a table at once using the batch `get_rows` method. This method returns a dict of the form `{'rows': [{'_id': 'row_1_id', ...}, ...]}`.
 
     client_data_handle.get_rows()
 
