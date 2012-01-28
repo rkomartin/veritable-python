@@ -171,7 +171,7 @@ class TestTableOps:
         self.t.get_row_by_id("fivebug")
 
     def test_get_row_by_url(self):
-        self.t.get_row_by_url(format_url(t.links["rows"], 'fivebug'))
+        self.t.get_row_by_url(format_url(self.t.links["rows"], 'fivebug'))
 
     def test_batch_get_rows(self):
         self.t.get_rows()
@@ -180,7 +180,7 @@ class TestTableOps:
         self.t.delete_row_by_id("fivebug")
 
     def test_delete_row_by_url(self):
-        self.t.delete_row_by_url(format_url(t.links["rows"], 'fourbug'))
+        self.t.delete_row_by_url(format_url(self.t.links["rows"], 'fourbug'))
 
     @raises(Exception)
     def test_delete_deleted_row_by_id(self):
