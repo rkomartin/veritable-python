@@ -1,2 +1,2 @@
-requests
+requests==0.10.0
 simplejson
