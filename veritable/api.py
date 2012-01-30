@@ -13,8 +13,10 @@ def validate_schema(schema):
             raise InvalidSchemaException()
     for v in schema.values():
         if not v.keys() == ['type']:
-            raise InvalidSchemaException
-        if not v.values() in ['boolean', 'categorical', 'continuous',
+            raise InvalidSchemaException()
+        if not len(v.values()) == 1:
+            raise InvalidSchemaException()
+        if not v.values()[0] in ['boolean', 'categorical', 'continuous',
                               'count']:
             raise InvalidSchemaException()
 
