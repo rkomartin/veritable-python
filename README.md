@@ -139,19 +139,18 @@ And it is possible to delete an analysis in the same way.
     client_data.delete_analysis_by_id("my_analysis")
     client_data.delete_analysis_by_url("https://api.priorknowledge.com/tables/client_data/analyses/my_analysis")
 
-## Retrieving the state or schema of an analysis
-Given an analysis handle, it is always possible to retrieve either its state or the corresponding schema, using the `get_state` and `get_schema` methods of the handle object.
+## Retrieving the schema of an analysis
+Given an analysis handle, it is always possible to retrieve the corresponding schema.
 
-    my_analysis_state = my_analysis_handle.get_state()
     my_analysis_schema = my_analysis_handle.get_schema()
 
 
 ## Checking the status of an analysis
-To check the status of an analysis, use its `status` method.
+Each analysis handle also allows you to check on the current state of the analysis.
 
-    my_analysis.status()
+    my_analysis_state = my_analysis_handle.get_state()
 
-This will return a Python dict with at least three entries, `type`, `state`, and `links`, and possible also with the entries `last_learned` or `error`. The `type` will always be `veritable`. The `status` will always be one of the following values:
+The state of an analysis is a Python dict with at least three entries, `type`, `state`, and `links`, and possibly the entries `last_learned` or `error`. The `type` will always be `veritable`. The `status` will always be one of the following values:
 
 *  `new`: the analysis has never run
 *  `pending`: the analysis is running and not yet finished
@@ -161,6 +160,11 @@ This will return a Python dict with at least three entries, `type`, `state`, and
 The `links` entry will contain links to the related resources if available. The `last_learned` entry will be present after the analysis has been run at least once. You can compare this timestamp to the `last_updated` timestamp in the representation of the table state in order to make sure that the analysis reflects the latest data. (If not, just call the analysis's `run` method again.) 
 
 If the analysis status is `failed`, then an `error` entry will also be present, and will describe the reason for failure.
+
+For convenience, if you just want to check the status of an analysis, use its `status` method.
+
+    my_analysis.status()
+
 
 ## Making predictions based on a completed analysis
 A predictions request should be a dict with two entries. The `data` entry should contain a row specification, where the value of every conditioning column is specified and the value of every predicted column is `null`. The `count` entry should specify the number of predicted values requested.
