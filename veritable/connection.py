@@ -26,17 +26,15 @@ def handle_http_error(r):
         content = json.loads(r.content)
         message = content["message"]
         code = content["code"]
-        resource = content["resource"]
-        id = content["id"]
     except:
         r.raise_for_status()
     else:
         if r.status_code is requests.codes.not_found:
-            raise Exception("""HTTP Error {0} Not Found for {1} resource {2}:
-                \n{3}""".format(code, resource, id, message))
+            raise Exception("""HTTP Error {0} Not Found -- {1}:
+                \n{2}""".format(r.status_code, code, message))
         if r.status_code is requests.codes.bad_request:
-            raise Exception("""HTTP Error {0} Bad Request for {1} resource {2}:
-                \n{3}""".format(code, resource, id, message))
+            raise Exception("""HTTP Error {0} Bad Request -- {1}:
+                \n{2}""".format(r.status_code, code, message))
         r.raise_for_status()
 
 
