@@ -16,8 +16,7 @@ def validate_schema(schema):
             raise InvalidSchemaException()
         if not len(v.values()) == 1:
             raise InvalidSchemaException()
-        if not v.values()[0] in ['boolean', 'categorical', 'continuous',
-                              'count']:
+        if not v.values()[0] in ['boolean', 'categorical', 'real', 'count']:
             raise InvalidSchemaException()
 
 def handle_api_error(err):
@@ -224,7 +223,7 @@ class Analysis:
         self.has_been_deleted = False
         self.type = data["type"]
         self.links = {}
-        for k in ["self", "schema", "learn", "predict"]:
+        for k in ["self", "schema", "run", "predict"]:
             if k in data["links"]:
                 self.links[k] = data["links"][k]
     
@@ -242,24 +241,24 @@ class Analysis:
         return self.connection.get(self.links["self"])
     
     def did_not_fail(self):
-        data = self.get()
+        data = self.get_state()
         if data["state"] is "failed":
             handle_api_error(data["error"])
     
     def ready_to_predict(self):
-        data = self.get()
+        data = self.get_state()
         if "predict" not in self["links"]:
             raise AnalysisNotReadyException()
     
     def status(self):
-        data = self.get()
+        data = self.get_state()
         return data["state"]
 
     def run(self):
-        """Learn the analysis."""
+        """Run the analysis."""
         self.still_alive()
         self.did_not_fail()
-        return self.connection.post(self.links["learn"])
+        return self.connection.post(self.links["run"], {})
     
     def delete(self):
         """"Delete the analysis."""
