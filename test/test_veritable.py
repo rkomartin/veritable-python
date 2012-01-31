@@ -230,42 +230,49 @@ class TestTableOps:
         self.t.create_analysis(schema, analysis_id="zubble_3")
         self.t.create_analysis(schema, analysis_id="zubble_3", force=True)
 
-    @raises(Exception)
     def test_create_analysis_faulty_schema_1(self):
         schema = {'zim': {'type': 'real'}, 'wos': {'type': 'real'}}
-        self.t.create_analysis(schema)
+        a = self.t.create_analysis(schema)
+        a.run()
+        assert a.status() is "failed"
 
-    @raises(Exception)
     def test_create_analysis_faulty_schema_2(self):
         schema = 'wimmel'
-        self.t.create_analysis(schema)
+        a = self.t.create_analysis(schema)
+        a.run()
+        assert a.status() is "failed"
 
-    @raises(Exception)
     def test_create_analysis_faulty_schema_3(self):
         schema = {}
-        self.t.create_analysis(schema)
+        a = self.t.create_analysis(schema)
+        a.run()
+        assert a.status() is "failed"
 
-    @raises(Exception)
     def test_create_analysis_faulty_schema_4(self):
         schema = {'zim': 'real', 'wos': 'real'}
-        self.t.create_analysis(schema)
+        a = self.t.create_analysis(schema)
+        a.run()
+        assert a.status() is "failed"
 
-    @raises(Exception)
     def test_create_analysis_faulty_schema_5(self):
         schema = ['categorical', 'real']
-        self.t.create_analysis(schema)
+        a = self.t.create_analysis(schema)
+        a.run()
+        assert a.status() is "failed"
 
-    @raises(Exception)
     def test_create_analysis_faulty_schema_6(self):
         schema = {'zim': {'type': 'categorical'},
                   'wos': {'type': 'real'},
                   'krob': {'type': 'count'}}
-        self.t.create_analysis(schema)
+        a = self.t.create_analysis(schema)
+        a.run()
+        assert a.status() is "failed"
 
-    @raises(Exception)
     def test_create_analysis_faulty_type(self):
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
-        self.t.create_analysis(schema, type="svm", analysis_id="zubble_2")
+        a = self.t.create_analysis(schema, type="svm", analysis_id="zubble_2")
+        a.run()
+        assert a.status() is "failed"
 
     def test_create_analysis_with_all_datatypes(self):
         schema = {'cat': {'type': 'categorical'},
@@ -273,97 +280,109 @@ class TestTableOps:
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
-        self.t2.create_analysis(schema, analysis_id="test_analysis")
+        a = self.t2.create_analysis(schema, analysis_id="test_analysis")
+        a.run()
+        assert a.status() is "new"
 
-    @raises(Exception)
     def test_create_analysis_with_mismatch_categorical_real(self):
         schema = {'cat': {'type': 'real'},
                   'ct': {'type': 'count'},
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                  }
-        self.t2.create_analysis(schema)
+        a = self.t2.create_analysis(schema)
+        a.run()
+        assert a.status() is "failed"
 
-    @raises(Exception)
     def test_create_analysis_with_mismatch_categorical_count(self):
         schema = {'cat': {'type': 'count'},
                   'ct': {'type': 'count'},
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                  }
-        self.t2.create_analysis(schema)
+        a = self.t2.create_analysis(schema)
+        a.run()
+        assert a.status() is "failed"
 
-    @raises(Exception)
     def test_create_analysis_with_mismatch_categorical_boolean(self):
         schema = {'cat': {'type': 'boolean'},
                   'ct': {'type': 'count'},
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
-        self.t2.create_analysis(schema)
+        a = self.t2.create_analysis(schema)
+        a.run()
+        assert a.status() is "failed"
 
-    @raises(Exception)
     def test_create_analysis_with_mismatch_boolean_real(self):
         schema = {'cat': {'type': 'categorical'},
                   'ct': {'type': 'count'},
                   'real': {'type': 'real'},
                   'bool': {'type': 'real'}
                   }
-        self.t2.create_analysis(schema)
+        a = self.t2.create_analysis(schema)
+        a.run()
+        assert a.status() is "failed"
 
-    @raises(Exception)
     def test_create_analysis_with_mismatch_boolean_count(self):
         schema = {'cat': {'type': 'categorical'},
                   'ct': {'type': 'count'},
                   'real': {'type': 'real'},
                   'bool': {'type': 'count'}
                   }
-        self.t2.create_analysis(schema)
+        a = self.t2.create_analysis(schema)
+        a.run()
+        assert a.status() is "failed"
 
-    @raises(Exception)
     def test_create_analysis_with_mismatch_real_count(self):
         schema = {'cat': {'type': 'categorical'},
                   'ct': {'type': 'count'},
                   'real': {'type': 'count'},
                   'bool': {'type': 'boolean'}
                   }
-        self.t2.create_analysis(schema)
+        a = self.t2.create_analysis(schema)
+        a.run()
+        assert a.status() is "failed"
 
-    @raises(Exception)
     def test_create_analysis_with_mismatch_real_categorical(self):
         schema = {'cat': {'type': 'categorical'},
                   'ct': {'type': 'count'},
                   'real': {'type': 'categorical'},
                   'bool': {'type': 'boolean'}
                   }
-        self.t2.create_analysis(schema)
+        a = self.t2.create_analysis(schema)
+        a.run()
+        assert a.status() is "failed"
 
-    @raises(Exception)
     def test_create_analysis_with_mismatch_real_boolean(self):
         schema = {'cat': {'type': 'categorical'},
                   'ct': {'type': 'count'},
                   'real': {'type': 'boolean'},
                   'bool': {'type': 'boolean'}
                   }
-        self.t2.create_analysis(schema)
+        a = self.t2.create_analysis(schema)
+        a.run()
+        assert a.status() is "failed"
 
-    @raises(Exception)
     def test_create_analysis_with_mismatch_count_boolean(self):
         schema = {'cat': {'type': 'categorical'},
                   'ct': {'type': 'boolean'},
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
-        self.t2.create_analysis(schema)
+        a = self.t2.create_analysis(schema)
+        a.run()
+        assert a.status() is "failed"
 
-    @raises(Exception)
     def test_create_analysis_with_mismatch_count_categorical(self):
         schema = {'cat': {'type': 'categorical'},
                   'ct': {'type': 'categorical'},
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
-        self.t2.create_analysis(schema)
+        a = self.t2.create_analysis(schema)
+        a.run()
+        assert a.status() is "failed"
 
     def test_get_analysis_by_id(self):
         schema = {'cat': {'type': 'categorical'},
