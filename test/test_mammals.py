@@ -13,7 +13,7 @@ API = veritable_connect(TEST_API_KEY, TEST_BASE_URL)
 def wait_for_analysis(analysis, poll=10):
 	while analysis.status() is "pending":
 		time.sleep(poll)
-	if analysis.status() is "error":
+	if analysis.status() is "failed":
 		raise Exception(analysis.get_state()["error"])
 
 def test_end_to_end():
