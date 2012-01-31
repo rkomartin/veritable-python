@@ -65,3 +65,10 @@ class AnalysisNotReadyException(Exception):
         self.value = "Analysis is not ready for predictions."
     def __str__(self):
         return repr(self.value)
+
+class ServerException(Exception):
+    def __init__(self, val):
+        self.value = "Error reported by server:" + val
+    def __str__(self):
+        return repr(self.value)
+

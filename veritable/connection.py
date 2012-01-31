@@ -4,7 +4,7 @@ from gzip import GzipFile
 from io import BytesIO
 from requests.auth import HTTPBasicAuth
 from urlparse import urljoin
-from veritable.exceptions import APIKeyException, APIBaseURLException
+from veritable.exceptions import *
 from veritable.utils import format_url, url_has_scheme
 
 def fully_qualify_url(f):
@@ -30,10 +30,10 @@ def handle_http_error(r):
         r.raise_for_status()
     else:
         if r.status_code is requests.codes.not_found:
-            raise Exception("""HTTP Error {0} Not Found -- {1}:
+            raise ServerException("""HTTP Error {0} Not Found -- {1}:
                 \n{2}""".format(r.status_code, code, message))
         if r.status_code is requests.codes.bad_request:
-            raise Exception("""HTTP Error {0} Bad Request -- {1}:
+            raise ServerException("""HTTP Error {0} Bad Request -- {1}:
                 \n{2}""".format(r.status_code, code, message))
         r.raise_for_status()
 
