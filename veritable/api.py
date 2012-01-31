@@ -247,7 +247,7 @@ class Analysis:
     
     def ready_to_predict(self):
         data = self.get_state()
-        if "predict" not in self["links"]:
+        if "predict" not in self.links:
             raise AnalysisNotReadyException()
     
     def status(self):

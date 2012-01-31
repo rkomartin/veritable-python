@@ -61,7 +61,7 @@ class DuplicateRowException(Exception):
         return repr(self.value)
 
 class AnalysisNotReadyException(Exception):
-    def __init__(self, row_id):
+    def __init__(self):
         self.value = "Analysis is not ready for predictions."
     def __str__(self):
         return repr(self.value)
