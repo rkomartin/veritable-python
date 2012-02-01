@@ -125,7 +125,7 @@ class TestAPI:
 
     def test_get_table_data(self):
         t = self.API.create_table("bugz_4", force=True)
-        t.add_row({'_id': 'fourbug', 'zim': 'fop', 'wos': 17.5})
+        t.add_row({'_id': 'fourbug', 'zim': 'fop', 'wos': 17.5}, force=True)
         t.get_state()
 
     def test_batch_add_rows(self):
