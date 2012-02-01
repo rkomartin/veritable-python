@@ -29,10 +29,10 @@ def handle_http_error(r):
     except:
         r.raise_for_status()
     else:
-        if r.status_code is requests.codes.not_found:
+        if r.status_code == requests.codes.not_found:
             raise ServerException("""HTTP Error {0} Not Found -- {1}:
                 \n{2}""".format(r.status_code, code, message))
-        if r.status_code is requests.codes.bad_request:
+        if r.status_code == requests.codes.bad_request:
             raise ServerException("""HTTP Error {0} Bad Request -- {1}:
                 \n{2}""".format(r.status_code, code, message))
         r.raise_for_status()

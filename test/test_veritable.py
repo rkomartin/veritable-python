@@ -266,7 +266,7 @@ class TestTableOps:
                   'krob': {'type': 'count'}}
         a = self.t.create_analysis(schema)
         a.run()
-        assert a.status() is "failed"
+        assert a.status() == "failed"
 
     def test_create_analysis_faulty_type(self):
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
@@ -282,7 +282,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema, analysis_id="test_analysis")
         a.run()
-        assert a.status() is "new"
+        assert a.status() == "new"
 
     def test_create_analysis_with_mismatch_categorical_real(self):
         schema = {'cat': {'type': 'real'},
@@ -292,7 +292,7 @@ class TestTableOps:
                  }
         a = self.t2.create_analysis(schema)
         a.run()
-        assert a.status() is "failed"
+        assert a.status() == "failed"
 
     def test_create_analysis_with_mismatch_categorical_count(self):
         schema = {'cat': {'type': 'count'},
@@ -302,7 +302,7 @@ class TestTableOps:
                  }
         a = self.t2.create_analysis(schema)
         a.run()
-        assert a.status() is "failed"
+        assert a.status() == "failed"
 
     def test_create_analysis_with_mismatch_categorical_boolean(self):
         schema = {'cat': {'type': 'boolean'},
@@ -312,7 +312,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         a.run()
-        assert a.status() is "failed"
+        assert a.status() == "failed"
 
     def test_create_analysis_with_mismatch_boolean_real(self):
         schema = {'cat': {'type': 'categorical'},
@@ -322,7 +322,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         a.run()
-        assert a.status() is "failed"
+        assert a.status() == "failed"
 
     def test_create_analysis_with_mismatch_boolean_count(self):
         schema = {'cat': {'type': 'categorical'},
@@ -332,7 +332,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         a.run()
-        assert a.status() is "failed"
+        assert a.status() == "failed"
 
     def test_create_analysis_with_mismatch_real_count(self):
         schema = {'cat': {'type': 'categorical'},
@@ -342,7 +342,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         a.run()
-        assert a.status() is "failed"
+        assert a.status() == "failed"
 
     def test_create_analysis_with_mismatch_real_categorical(self):
         schema = {'cat': {'type': 'categorical'},
@@ -352,7 +352,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         a.run()
-        assert a.status() is "failed"
+        assert a.status() == "failed"
 
     def test_create_analysis_with_mismatch_real_boolean(self):
         schema = {'cat': {'type': 'categorical'},
@@ -362,7 +362,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         a.run()
-        assert a.status() is "failed"
+        assert a.status() == "failed"
 
     def test_create_analysis_with_mismatch_count_boolean(self):
         schema = {'cat': {'type': 'categorical'},
@@ -372,7 +372,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         a.run()
-        assert a.status() is "failed"
+        assert a.status() == "failed"
 
     def test_create_analysis_with_mismatch_count_categorical(self):
         schema = {'cat': {'type': 'categorical'},
@@ -382,7 +382,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         a.run()
-        assert a.status() is "failed"
+        assert a.status() == "failed"
 
     def test_get_analysis_by_id(self):
         schema = {'cat': {'type': 'categorical'},
