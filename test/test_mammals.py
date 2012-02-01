@@ -16,7 +16,7 @@ def wait_for_analysis(analysis, poll=10):
 		raise Exception(analysis.get_state()["error"])
 
 class TestMammals:
-	def setup():
+	def setup(self):
 		self.API = veritable_connect(TEST_API_KEY, TEST_BASE_URL)
 		self.mammals = self.API.create_table("mammals", force=True)
 		self.mammals.add_rows(data)
@@ -61,7 +61,7 @@ class TestMammals:
 			'exotic': {'type': 'categorical'}
 		}
 
-	def test_run_mammals_exotic_as_categorical():
+	def test_run_mammals_exotic_as_categorical(self):
 		schema = self.schema
 		validate_schema(schema)
 		analysis = self.mammals.create_analysis(schema, description="""Full
@@ -69,7 +69,7 @@ class TestMammals:
 			analysis_id="mammals_1")
 		analysis.run()
 	
-	def test_run_mammals_exotic_as_real():
+	def test_run_mammals_exotic_as_real(self):
 		schema = self.schema
 		schema["exotic"]["type"] = "real"
 		validate_schema(schema)
@@ -78,7 +78,7 @@ class TestMammals:
 			analysis_id="mammals_1")
 		analysis.run()
 
-	def test_run_mammals_exotic_as_count():
+	def test_run_mammals_exotic_as_count(self):
 		schema = self.schema
 		schema["exotic"]["type"] = "count"
 		validate_schema(schema)
