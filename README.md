@@ -183,9 +183,9 @@ For convenience, if you just want to check the status of an analysis, use its `s
 
 
 ## Making predictions based on a completed analysis
-A predictions request should be a dict with two entries. The `data` entry should contain a row specification, where the value of every conditioning column is specified and the value of every predicted column is `null`. The `count` entry should specify the number of predicted values requested.
+A predictions request should be a dict with two entries. The `data` entry should contain a row specification, where the value of every conditioning column is specified and the value of every predicted column is `None`. The `count` entry should specify the number of predicted values requested.
 
-    request = {'data': {'age': 30, 'weight': 'null'},
+    request = {'data': {'age': 30, 'weight': None},
                'count': 2}
     results = my_analysis_handle.predict(request)
 
