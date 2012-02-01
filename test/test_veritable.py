@@ -230,37 +230,34 @@ class TestTableOps:
         self.t.create_analysis(schema, analysis_id="zubble_3")
         self.t.create_analysis(schema, analysis_id="zubble_3", force=True)
 
-    def test_create_analysis_faulty_schema_1(self):
+    @raises(ServerException)
+    def test_create_analysis_malformed_schema_1(self):
         schema = {'zim': {'type': 'real'}, 'wos': {'type': 'real'}}
         a = self.t.create_analysis(schema)
-        a.run()
-        assert a.status() is "failed"
 
-    def test_create_analysis_faulty_schema_2(self):
+    @raises(ServerException)
+    def test_create_analysis_malformed_schema_2(self):
         schema = 'wimmel'
         a = self.t.create_analysis(schema)
-        a.run()
-        assert a.status() is "failed"
 
-    def test_create_analysis_faulty_schema_3(self):
+    @raises(ServerException)
+    def test_create_analysis_malformed_schema_3(self):
         schema = {}
         a = self.t.create_analysis(schema)
-        a.run()
-        assert a.status() is "failed"
 
-    def test_create_analysis_faulty_schema_4(self):
+    @raises(ServerException)
+    def test_create_analysis_malformed_schema_4(self):
         schema = {'zim': 'real', 'wos': 'real'}
         a = self.t.create_analysis(schema)
-        a.run()
-        assert a.status() is "failed"
 
-    def test_create_analysis_faulty_schema_5(self):
+    @raises(ServerException)
+    def test_create_analysis_malformed_schema_5(self):
         schema = ['categorical', 'real']
         a = self.t.create_analysis(schema)
-        a.run()
-        assert a.status() is "failed"
 
-    def test_create_analysis_faulty_schema_6(self):
+# This test should not error synchronously -- it should fail only after
+# scanning the data and finding no rows with column "krob"
+    def test_create_analysis_malformed_schema_6(self):
         schema = {'zim': {'type': 'categorical'},
                   'wos': {'type': 'real'},
                   'krob': {'type': 'count'}}
@@ -268,11 +265,11 @@ class TestTableOps:
         a.run()
         assert a.status() == "failed"
 
+# Invalid analysis types are identified synchronously
+    @raises(InvalidAnalysisTypeException)
     def test_create_analysis_faulty_type(self):
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
         a = self.t.create_analysis(schema, type="svm", analysis_id="zubble_2")
-        a.run()
-        assert a.status() is "failed"
 
     def test_create_analysis_with_all_datatypes(self):
         schema = {'cat': {'type': 'categorical'},
