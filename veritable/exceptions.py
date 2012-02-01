@@ -67,8 +67,8 @@ class AnalysisNotReadyException(Exception):
         return repr(self.value)
 
 class ServerException(Exception):
-    def __init__(self, val):
-        self.value = "Error reported by server:" + val
+    def __init__(self, val="unknown"):
+        self.value = "Error reported by server: " + val
     def __str__(self):
         return repr(self.value)
 
