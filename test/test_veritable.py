@@ -12,6 +12,10 @@ TEST_API_KEY = "test"
 TEST_BASE_URL = "http://127.0.0.1:5000"
 
 
+def wait_for_analysis(a):
+    while a.status() in ["new", "pending"]:
+        time.sleep(2)
+
 def test_create_api():
     API = veritable_connect(TEST_API_KEY, TEST_BASE_URL)
 
@@ -289,6 +293,7 @@ class TestTableOps:
                  }
         a = self.t2.create_analysis(schema)
         a.run()
+        wait_for_analysis(a)
         assert a.status() == "failed"
 
     def test_create_analysis_with_mismatch_categorical_count(self):
@@ -299,6 +304,7 @@ class TestTableOps:
                  }
         a = self.t2.create_analysis(schema)
         a.run()
+        wait_for_analysis(a)
         assert a.status() == "failed"
 
     def test_create_analysis_with_mismatch_categorical_boolean(self):
@@ -309,6 +315,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         a.run()
+        wait_for_analysis(a)
         assert a.status() == "failed"
 
     def test_create_analysis_with_mismatch_boolean_real(self):
@@ -319,6 +326,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         a.run()
+        wait_for_analysis(a)
         assert a.status() == "failed"
 
     def test_create_analysis_with_mismatch_boolean_count(self):
@@ -329,6 +337,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         a.run()
+        wait_for_analysis(a)
         assert a.status() == "failed"
 
     def test_create_analysis_with_mismatch_real_count(self):
@@ -339,6 +348,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         a.run()
+        wait_for_analysis(a)
         assert a.status() == "failed"
 
     def test_create_analysis_with_mismatch_real_categorical(self):
@@ -349,6 +359,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         a.run()
+        wait_for_analysis(a)
         assert a.status() == "failed"
 
     def test_create_analysis_with_mismatch_real_boolean(self):
@@ -359,6 +370,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         a.run()
+        wait_for_analysis(a)
         assert a.status() == "failed"
 
     def test_create_analysis_with_mismatch_count_boolean(self):
@@ -369,6 +381,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         a.run()
+        wait_for_analysis(a)
         assert a.status() == "failed"
 
     def test_create_analysis_with_mismatch_count_categorical(self):
@@ -379,6 +392,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         a.run()
+        wait_for_analysis(a)
         assert a.status() == "failed"
 
     def test_get_analysis_by_id(self):
