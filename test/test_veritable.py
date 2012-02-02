@@ -32,9 +32,12 @@ class TestAPI:
     def test_create_table_id(self):
         t = self.API.create_table("foo", force=True)
 
-    def test_create_table_desc(self):
+    def test_create_table_with_description(self):
         t = self.API.create_table("bar", "A table of humbuggery", force=True)
 
+    def test_create_table_without_description(self):
+        pass
+        
     def test_get_table_by_id(self):
         t = self.API.create_table("hoo", force=True)
         t = self.API.get_table_by_id("hoo")
