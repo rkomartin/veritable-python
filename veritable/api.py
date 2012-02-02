@@ -100,18 +100,10 @@ class Table:
     def add_row(self, row, force=False):
         """Add a row to the table."""
         self.still_alive()
-        if "_id" in row:
-            row_id = row["_id"]
+        if "_id" not in row:
+            raise MissingRowIDException()
         else:
-            row_id = make_row_id()
-            row["_id"] = row_id
-        if not force:
-            try:
-                self.get_row_by_id(row_id)
-            except:
-                pass
-            else:
-                raise DuplicateRowException(row_id)
+            row_id = row["_id"]
         return self.connection.put(format_url(self.links["rows"], row_id),
                                    row)
         
@@ -120,14 +112,7 @@ class Table:
         self.still_alive()
         for i in range(len(rows)):
             if not "_id" in rows[i]:
-                rows[i]["_id"] = make_row_id()
-            if not force:
-                try:
-                    self.get_row_by_id(rows[i]["_id"])
-                except:
-                    pass
-                else:
-                    raise DuplicateRowException(rows[i]["_id"])
+                raise MissingRowIDException()
         data = {'action': 'put', 'rows': rows}
         return self.connection.post(self.links["rows"], data)
 
