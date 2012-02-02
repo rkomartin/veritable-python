@@ -38,6 +38,7 @@ class API:
     def create_table(self, table_id=None, description="", force=False):
         """Create a table with the given id."""    
         if table_id is None:
+            autogen = True
             table_id = make_table_id()
         if not force:
             try:
@@ -45,7 +46,11 @@ class API:
             except:
                 pass
             else:
-                raise DuplicateTableException(table_id)
+                if autogen:
+                    return self.create_table(table_id=None,
+                        description=description, force=False)
+                else:
+                    raise DuplicateTableException(table_id)
         r = self.connection.put(format_url("tables", table_id),
                                 data = {"description": description})
         return Table(self.connection, r)
@@ -188,6 +193,7 @@ class Table:
         if type is not "veritable":
             raise InvalidAnalysisTypeException()
         if analysis_id is None:
+            autogen = True
             analysis_id = make_analysis_id()
         if not force:
             try:
@@ -195,7 +201,11 @@ class Table:
             except:
                 pass
             else:
-                raise DuplicateAnalysisException(analysis_id)
+                if autogen:
+                    return self.create_analysis(schema=schema, description=description,
+                        analysis_id=None, type=type, force=False)
+                else:
+                    raise DuplicateAnalysisException(analysis_id)
         r = self.connection.put(format_url(self.links["analyses"], analysis_id),
                                 data = {"description": description,
                                         "type": type,
