@@ -184,10 +184,11 @@ For convenience, if you just want to check the status of an analysis, use its `s
 
 
 ## Making predictions based on a completed analysis
-A predictions request should be a dict with two entries. The `data` entry should contain a row specification, where the value of every conditioning column is specified and the value of every predicted column is `None`. The `count` entry should specify the number of predicted values requested.
+To make predictions once an analysis is complete, call the `predict` method of the analysis handle. This takes a row specification in the form of a dict, where the value of every **conditioning** column is specified and the value of every **predicted** column is `None`. By default, 10 predicted values will be returned, but you can change the `count` parameter to control the number of predicted values.
 
-    request = {'data': {'age': 30, 'weight': None},
-               'count': 2}
-    results = my_analysis_handle.predict(request)
+    prediction_spec = {'age': 30, 'weight': None}
+    results = my_analysis_handle.predict(prediction_spec, count=2)
 
 Predictions are synchronous!
+
+If you attempt to start predictions using an analysis which is not yet ready, an `AnalysisNotReadyException` will be raised.
