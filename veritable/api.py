@@ -134,7 +134,7 @@ class Table:
     def get_rows(self):
         """Get the rows of the table."""
         self.still_alive()
-        return self.connection.get(self.links["rows"])
+        return self.connection.get(self.links["rows"])["rows"]
 
     def delete_row_by_id(self, row_id):
         """Delete a row from the table by its id."""
