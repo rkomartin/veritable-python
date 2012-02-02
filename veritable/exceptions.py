@@ -26,7 +26,7 @@ class DeletedAnalysisException(Exception):
 
 class MissingRowIDException(Exception):
     def __init__(self):
-        self.value = """Rows for deletion must contain row ids in the _id field"""
+        self.value = """Rows must contain row ids in the _id field"""
     def __str__(self):
         return repr(self.value)
 
