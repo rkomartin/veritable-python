@@ -74,18 +74,19 @@ Alternatively, you can delete a table by its id or its URL, using the `delete_ta
 Once a table has been deleted using one of these methods, attempting to perform further operations on it will cause a `DeletedTableException` to be raised.
 
 ## Adding rows to a table
-Rows of a table are represented by dicts whose keys are the names of the columns of the table. Each row must have an `_id` field, which may be manually specified by the user or automatically assigned. These row ids must be unique within each table.
+Rows of a table are represented by dicts whose keys are the names of the columns of the table. Each row must have an `_id` field, which must be manually specified by the user. These row ids must be unique within each table.
 
 Rows can be added to a table by calling the `add_row` method of the handle object.
 
-    animals_handle.add_row({'fuzzy': 'true', 'legs': '4', 'weight_kg': 3, 'tail': true, 'paws': true})
     animals_handle.add_row({'_id': 'cat', 'fuzzy': 'true', 'legs': '4', 'weight_kg': 3, 'tail': true, 'paws': true})
 
-To add rows in bulk, use the `add_rows` method of the table handle. This method expects a list of dicts, each of which represents a single row of the table.
+To add rows in bulk, use the `add_rows` method of the table handle. This method expects a list of dicts, each of which represents a single row of the table. Each dict must contain an `_id` field.
  
     client_data_handle.add_rows(client_data_rows)
 
-Attempting to add rows which share their ids with existing rows will cause a `DuplicateRowException` to be raised unless `force=True` is passed to the `add_row` or `add_rows` method. If row creation is forced, existing rows with the same ids will be overwritten.
+Attempting to add rows which share their ids with existing rows will cause a `DuplicateRowException` to be raised unless `force=True` is passed to the `add_row` or `add_rows` method. If row creation is forced, existing rows with the same ids will be overwritten, not updated.
+
+Attempting to add or delete rows without specifying their ids will cause a `MissingRowIDException` to be raised.
 
 
 ## Retrieving and deleting rows from a table
