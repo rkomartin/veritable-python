@@ -523,3 +523,12 @@ class TestTableOps:
     # def test_get_anlysis_fails(self):
     #     pass
 
+    def test_predict_link_is_present(self):
+        pass
+        
+    def test_predictions_ready(self):
+        pass
+
+class TestLowLevel:
+    def test_connect_with_invalid_auth():
+        pass
