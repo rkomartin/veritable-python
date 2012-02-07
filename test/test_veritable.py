@@ -523,9 +523,3 @@ class TestTableOps:
     # def test_get_anlysis_fails(self):
     #     pass
 
-# def test_end_to_end():
-#     mammals_data = json.loads(file("mammals.json"))
-#     mammals_handle = API.create_table("mammals", "Oldie but goodie")
-#     mammals_handle.add_rows(mammals_data)
-#     mammals_handle.delete_row_by_id("dalmatian")
-#     mammals_handle.get_rows()
