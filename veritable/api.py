@@ -1,6 +1,6 @@
-from veritable.connection import Connection
-from veritable.exceptions import *
-from veritable.utils import *
+from .connection import Connection
+from .exceptions import *
+from .utils import *
 
 BASE_URL = "https://api.priorknowledge.com/"
 

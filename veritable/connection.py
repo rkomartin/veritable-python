@@ -4,8 +4,8 @@ from gzip import GzipFile
 from io import BytesIO
 from requests.auth import HTTPBasicAuth
 from urlparse import urljoin
-from veritable.exceptions import *
-from veritable.utils import format_url, url_has_scheme
+from .exceptions import *
+from .utils import format_url, url_has_scheme
 
 def fully_qualify_url(f):
     def g(*args, **kwargs):
