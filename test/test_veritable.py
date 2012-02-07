@@ -37,7 +37,7 @@ class TestAPI:
 
     def test_create_table_without_description(self):
         pass
-        
+
     def test_get_table_by_id(self):
         t = self.API.create_table("hoo", force=True)
         t = self.API.get_table_by_id("hoo")
@@ -237,6 +237,7 @@ class TestTableOps:
         self.t.create_analysis(schema, analysis_id="zubble_3")
         self.t.create_analysis(schema, analysis_id="zubble_3", force=True)
 
+# Misspecified analysis schemas are identified synchronously
     @raises(ServerException)
     def test_create_analysis_malformed_schema_1(self):
         schema = {'zim': {'type': 'real'}, 'wos': {'type': 'real'}}
@@ -262,6 +263,25 @@ class TestTableOps:
         schema = ['categorical', 'real']
         a = self.t.create_analysis(schema)
 
+# Invalid analysis types are identified synchronously
+    @raises(InvalidAnalysisTypeException)
+    def test_create_analysis_faulty_type(self):
+        schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
+        a = self.t.create_analysis(schema, type="svm", analysis_id="zubble_2")
+
+    def test_analysis_starts_in_new(self):
+        pass
+    def test_analysis_moves_to_pending(self):
+        pass
+    def test_analysis_succeeds(self):
+        pass
+    def test_analysis_fails(self):
+        pass
+    def test_wait_for_analysis_succeeds(self):
+        pass
+    def test_wait_for_analysis_fails(self):
+        pass
+
 # This test should not error synchronously -- it should fail only after
 # scanning the data and finding no rows with column "krob"
     def test_create_analysis_malformed_schema_6(self):
@@ -272,11 +292,6 @@ class TestTableOps:
         a.run()
         assert a.status() == "failed"
 
-# Invalid analysis types are identified synchronously
-    @raises(InvalidAnalysisTypeException)
-    def test_create_analysis_faulty_type(self):
-        schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
-        a = self.t.create_analysis(schema, type="svm", analysis_id="zubble_2")
 
     def test_create_analysis_with_all_datatypes(self):
         schema = {'cat': {'type': 'categorical'},
