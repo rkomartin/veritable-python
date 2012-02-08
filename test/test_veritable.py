@@ -4,9 +4,9 @@ import simplejson as json
 from nose.tools import raises
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
-from .api import veritable_connect
-from .exceptions import *
-from .utils import format_url
+from veritable.api import veritable_connect
+from veritable.exceptions import *
+from veritable.utils import format_url
 
 TEST_API_KEY = "test"
 TEST_BASE_URL = "http://127.0.0.1:5000"
