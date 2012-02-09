@@ -119,7 +119,7 @@ class TestAPI:
         t.add_row({'_id': 'onebug', 'zim': 'zam', 'wos': 19.2})
         t.add_row({'zim': 'zom', 'wos': 21.1})
 
-    @raises(DuplicateRowException)
+    # proper behavior?
     def test_table_add_duplicate_rows(self):
         t = self.API.create_table("bugz_3", force=True)
         t.add_row({'_id': 'twobug', 'zim': 'vim', 'wos': 11.3})
