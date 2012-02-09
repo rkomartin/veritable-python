@@ -1,3 +1,4 @@
+import logging
 import requests
 import simplejson as json
 from gzip import GzipFile
@@ -7,9 +8,6 @@ from urlparse import urljoin
 from .exceptions import *
 from .utils import format_url, url_has_scheme
 
-def debug_log(x):
-    print(x)
-
 def fully_qualify_url(f):
     def g(*args, **kwargs):
         url = args[1]
@@ -18,16 +16,18 @@ def fully_qualify_url(f):
         return f(args[0], url, *args[2:], **kwargs)
     return g
 
-def get_response_data(r, debug=False):
+def get_response_data(r, debug_log=None):
     if r.status_code == requests.codes.ok:
+        if debug_log is not None:
+            debug_log("200 OK")
         return json.loads(r.content)
     else:
-        handle_http_error(r, debug)
+        handle_http_error(r, debug_log)
 
-def handle_http_error(r, debug=False):
+def handle_http_error(r, debug_log=None):
     try:
         content = json.loads(r.content)
-        if debug:
+        if debug_log is not None:
             debug_log(content)
         message = content["message"]
         code = content["code"]
@@ -68,7 +68,20 @@ class Connection:
         self.auth = HTTPBasicAuth(self.api_key, self.api_key)
         self.ssl_verify = ssl_verify
         self.disable_gzip = disable_gzip
-        self.debug = debug
+
+        self.logger = logging.getLogger(__name__)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        self.logger.addHandler(ch)
+        if debug:
+            self.logger.setLevel(logging.DEBUG)
+        else:
+            self.logger.setLevel(logging.CRITICAL)
+    
+    def debug_log(self, x):
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(x)
+
         
     @fully_qualify_url
     def get(self, url):
@@ -76,8 +89,9 @@ class Connection:
                   'auth': self.auth}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
+        self.debug_log("GET" + url + json.dumps(kwargs))
         r = requests.get(url, **kwargs)
-        return get_response_data(r, self.debug)
+        return get_response_data(r, self.debug_log)
     
     @fully_qualify_url
     def post(self, url, data):
@@ -90,8 +104,9 @@ class Connection:
             kwargs['data'] = mgzip(json.dumps(data))
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
+        self.debug_log("POST" + url + json.dumps(kwargs))
         r = requests.post(url, **kwargs)
-        return get_response_data(r, self.debug)
+        return get_response_data(r, self.debug_log)
     
     @fully_qualify_url
     def put(self, url, data):
@@ -104,13 +119,15 @@ class Connection:
             kwargs['data'] = mgzip(json.dumps(data))
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
+        self.debug_log("PUT" + url + json.dumps(kwargs))
         r = requests.put(url, **kwargs)
-        return get_response_data(r, self.debug)
+        return get_response_data(r, self.debug_log)
     
     @fully_qualify_url
     def delete(self, url):
         kwargs = {'auth': self.auth}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
-            r = requests.delete(url, **kwargs)
-        return get_response_data(r, self.debug)
+        self.debug_log("DELETE" + url + json.dumps(kwargs))
+        r = requests.delete(url, **kwargs)
+        return get_response_data(r, self.debug_log)
