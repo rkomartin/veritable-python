@@ -4,8 +4,10 @@ from .utils import *
 
 BASE_URL = "https://api.priorknowledge.com/"
 
-def veritable_connect(api_key, api_base_url = BASE_URL, ssl_verify = True):
-    return API(Connection(api_key, api_base_url, ssl_verify))
+def veritable_connect(api_key, api_base_url=BASE_URL, ssl_verify=True,
+                      disable_gzip=False, debug=False):
+    return API(Connection(api_key, api_base_url, ssl_verify, disable_ssl,
+                          disable_gzip, debug))
 
 def validate_schema(schema):
     for k in schema.keys():
