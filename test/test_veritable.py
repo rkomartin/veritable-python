@@ -1,5 +1,6 @@
 #! usr/bin/python
 
+import time
 import simplejson as json
 from nose.tools import raises
 from requests.auth import HTTPBasicAuth
