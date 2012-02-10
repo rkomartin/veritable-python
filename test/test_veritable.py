@@ -206,7 +206,7 @@ class TestTableOps:
         self.t.delete_row_by_url(format_url(t3.links["rows"], 'fivebug'))
 
     def test_batch_delete_rows(self):
-        rs = self.t.get_rows()["rows"]
+        rs = self.t.get_rows()
         self.t.delete_rows(rs[0:1])
         self.t.delete_rows([{'_id': r["_id"]} for r in rs[2:3]])
     
