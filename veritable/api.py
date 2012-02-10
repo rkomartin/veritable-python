@@ -112,7 +112,7 @@ class Table:
         self.has_been_deleted = True
         return self.connection.delete(self.links["self"])
         
-    def add_row(self, row, force=False):
+    def add_row(self, row):
         """Add a row to the table."""
         self.still_alive()
         if "_id" not in row:
@@ -122,7 +122,7 @@ class Table:
         return self.connection.put(format_url(self.links["rows"], row_id),
                                    row)
         
-    def add_rows(self, rows, force=False):
+    def add_rows(self, rows):
         """Batch add rows to the table."""
         self.still_alive()
         for i in range(len(rows)):
