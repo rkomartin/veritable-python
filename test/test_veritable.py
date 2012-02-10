@@ -141,7 +141,10 @@ class TestAPI:
                     {'_id': 'fivebug', 'zim': 'zam', 'wos': 9.3},
                     {'_id': 'sixbug', 'zim': 'zop', 'wos': 18.9}])
 
-    def test_batch_add_rows_autogen(self):
+    # This should fail per https://app.asana.com/0/401264106780/436898020970
+    # Our client does not autogenerate row IDs
+    @raises(MissingRowIDException)
+    def test_batch_add_rows_autogen_fails(self):
         t = self.API.create_table("bugz_6", force=True)
         t.add_rows([{'zim': 'zop', 'wos': 10.3},
                     {'zim': 'zam', 'wos': 9.3},
