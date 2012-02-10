@@ -220,9 +220,9 @@ class TestTableOps:
 
     @attr('sync')
     def test_table_add_duplicate_rows_succeeded(self):
-        t.add_row({'_id': 'threebug', 'zim': 'fop', 'wos': 17.5})
-        t.add_row({'_id': 'threebug', 'zim': 'vim', 'wos': 11.3})
-        assert t.get_row_by_id("threebug") == {'_id': 'threebug', 'zim': 'vim', 'wos': 11.3}
+        self.t.add_row({'_id': 'threebug', 'zim': 'fop', 'wos': 17.5})
+        self.t.add_row({'_id': 'threebug', 'zim': 'vim', 'wos': 11.3})
+        assert self.t.get_row_by_id("threebug") == {'_id': 'threebug', 'zim': 'vim', 'wos': 11.3}
 
     @attr('sync')
     def test_get_row_by_url(self):
@@ -250,7 +250,7 @@ class TestTableOps:
     @raises(ServerException)
     def test_delete_deleted_row_by_url(self):
         self.t.delete_row_by_id("fivebug")
-        self.t.delete_row_by_url(format_url(t3.links["rows"], 'fivebug'))
+        self.t.delete_row_by_url(format_url(self.t.links["rows"], 'fivebug'))
 
     @attr('sync')
     def test_batch_delete_rows(self):
@@ -277,12 +277,12 @@ class TestTableOps:
     @attr('sync')
     def test_create_analysis_1(self):
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
-        self.t.create_analysis(schema, analysis_id="zubble_1")
+        self.t.create_analysis(schema, analysis_id="zubble_1", force=True)
 
     @attr('sync')
     def test_create_analysis_2(self):
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
-        self.t.create_analysis(schema, description="Foolish", analysis_id="zubble_2")
+        self.t.create_analysis(schema, description="Foolish", analysis_id="zubble_2", force=True)
 
     @attr('sync')
     def test_create_analysis_autogen_id(self):
@@ -299,7 +299,7 @@ class TestTableOps:
     @attr('sync')
     def test_create_duplicate_analysis_force(self):
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
-        self.t.create_analysis(schema, analysis_id="zubble_3")
+        self.t.create_analysis(schema, analysis_id="zubble_3", force=True)
         self.t.create_analysis(schema, analysis_id="zubble_3", force=True)
 
     @attr('async')
@@ -323,11 +323,12 @@ class TestTableOps:
         schema = 'wimmel'
         a = self.t.create_analysis(schema)
 
-    @attr('sync')
-    @raises(ServerException)
+    @attr('async')
     def test_create_analysis_malformed_schema_3(self):
         schema = {}
         a = self.t.create_analysis(schema)
+        wait_for_analysis(a)
+        assert a.status() == "failed"
 
     @attr('sync')
     @raises(ServerException)
@@ -347,33 +348,6 @@ class TestTableOps:
     def test_create_analysis_faulty_type(self):
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
         a = self.t.create_analysis(schema, type="svm", analysis_id="zubble_2")
-
-    @attr('sync')
-    def test_analysis_starts_in_new(self):
-        schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
-        a = self.t.create_analysis(schema, analysis_id="zubble")
-        assert a.status() == "new"
-
-    @attr('async')
-    def test_analysis_moves_to_pending(self):
-        schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
-        a = self.t.create_analysis(schema, analysis_id="zubble")
-        time.sleep(2)
-        assert a.status() == "pending"
-
-    @attr('async')
-    def test_analysis_succeeds(self):
-        schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
-        a = self.t.create_analysis(schema, analysis_id="zubble")
-        time.sleep(4)
-        assert a.status() == "finished"
-
-    @attr('async')
-    def test_analysis_fails(self):
-        schema = {'zim': {'type': 'binary'}, 'wos': {'type': 'real'}}
-        a = self.t.create_analysis(schema, analysis_id="zubble")
-        time.sleep(4)
-        assert a.status() == "failed"
 
     @attr('async')
     def test_wait_for_analysis_succeeds(self):
@@ -408,9 +382,10 @@ class TestTableOps:
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
-        a = self.t2.create_analysis(schema, analysis_id="test_analysis")
+        a = self.t2.create_analysis(schema, analysis_id="test_analysis", force=True)
         a.run()
-        assert a.status() == "new"
+        wait_for_analysis(a)        
+        assert a.status() == "finished"
 
     @attr('async')
     def test_create_analysis_with_mismatch_categorical_real(self):
@@ -539,7 +514,7 @@ class TestTableOps:
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
-        self.t2.create_analysis(schema, analysis_id="test_analysis")
+        self.t2.create_analysis(schema, analysis_id="test_analysis", force=True)
         self.t2.get_analysis_by_id("test_analysis")
 
     @attr('sync')
@@ -549,7 +524,7 @@ class TestTableOps:
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
-        a = self.t2.create_analysis(schema, analysis_id="test_analysis")
+        a = self.t2.create_analysis(schema, analysis_id="test_analysis", force=True)
         self.t2.get_analysis_by_url(a.links["self"])
       
     @attr('sync')
@@ -558,7 +533,7 @@ class TestTableOps:
         self.t2.get_analysis_by_id("yummy_tummy")
 
     @attr('sync')
-    @raises(ServerException)
+    @raises(HTTPError)
     def test_get_analysis_by_url_fails(self):
         self.t2.get_analysis_by_url("grubble")
 
@@ -569,7 +544,7 @@ class TestTableOps:
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
-        self.t2.create_analysis(schema, analysis_id="delete_me")
+        self.t2.create_analysis(schema, analysis_id="delete_me", force=True)
         self.t2.delete_analysis_by_id("delete_me")
 
     @attr('sync')
@@ -579,7 +554,7 @@ class TestTableOps:
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
-        a = self.t2.create_analysis(schema, analysis_id="delete_me")
+        a = self.t2.create_analysis(schema, analysis_id="delete_me", force=True)
         self.t2.delete_analysis_by_url(a.links["self"])
 
     @attr('sync')
@@ -588,7 +563,7 @@ class TestTableOps:
         self.t2.delete_analysis_by_id("foobar")
 
     @attr('sync')
-    @raises(ServerException)
+    @raises(HTTPError)
     def test_delete_analysis_by_url_fails(self):
         self.t2.delete_analysis_by_url("grumble")
 
@@ -600,7 +575,7 @@ class TestTableOps:
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
-        self.t2.create_analysis(schema, analysis_id="double")
+        self.t2.create_analysis(schema, analysis_id="double", force=True)
         self.t2.create_analysis(schema, analysis_id="double")
 
     @attr('sync')
@@ -610,9 +585,9 @@ class TestTableOps:
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
-        self.t2.create_analysis(schema, analysis_id="a")
-        self.t2.create_analysis(schema, analysis_id="b")
-        self.t2.create_analysis(schema, analysis_id="c")
+        self.t2.create_analysis(schema, analysis_id="a", force=True)
+        self.t2.create_analysis(schema, analysis_id="b", force=True)
+        self.t2.create_analysis(schema, analysis_id="c", force=True)
         aa = self.t2.get_analyses()
         [a.still_alive() for a in aa]
 
@@ -623,7 +598,7 @@ class TestTableOps:
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
-        a = self.t2.create_analysis(schema, analysis_id="a")
+        a = self.t2.create_analysis(schema, analysis_id="a", force=True)
         assert schema == a.get_schema()
 
     # def test_get_analysis_schema_fails(self):
