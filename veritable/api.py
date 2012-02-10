@@ -247,6 +247,9 @@ class Analysis:
     def get_state(self):
         """Get the state of the analysis."""
         self.still_alive()
+        for k in ["self", "schema", "run", "predict"]:
+            if k in data["links"]:
+                self.links[k] = data["links"][k]
         return self.connection.get(self.links["self"])
     
     def did_not_fail(self):
@@ -256,8 +259,6 @@ class Analysis:
     
     def ready_to_predict(self):
         data = self.get_state()
-        if data["state"] is "failed":
-            handle_api_error(data["error"])
         if "predict" not in self.links:
             raise AnalysisNotReadyException()
     
