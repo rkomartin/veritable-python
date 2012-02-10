@@ -42,6 +42,8 @@ class API:
         if table_id is None:
             autogen = True
             table_id = make_table_id()
+        else:
+            autogen = False
         if self.table_exists(table_id):
             if not force:
                 if autogen:
@@ -211,6 +213,8 @@ class Table:
         if analysis_id is None:
             autogen = True
             analysis_id = make_analysis_id()
+        else:
+            autogen = False
         if self.analysis_exists(analysis_id):
             if not force:
                 if autogen:
