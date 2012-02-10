@@ -534,7 +534,3 @@ class TestTableOps:
         
     def test_predictions_ready(self):
         pass
-
-class TestLowLevel:
-    def test_connect_with_invalid_auth():
-        pass
