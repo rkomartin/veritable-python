@@ -256,6 +256,8 @@ class Analysis:
     
     def ready_to_predict(self):
         data = self.get_state()
+        if data["state"] is "failed":
+            handle_api_error(data["error"])
         if "predict" not in self.links:
             raise AnalysisNotReadyException()
     
