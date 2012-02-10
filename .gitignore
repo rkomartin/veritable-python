@@ -8,4 +8,4 @@ hierophant/*.pyc
 build/
 share/
 man/
-
+test/test_results
