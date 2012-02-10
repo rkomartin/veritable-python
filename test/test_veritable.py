@@ -114,6 +114,9 @@ class TestAPI:
         t = self.API.create_table("bugz", force=True)
         t.add_row({'_id': 'onebug', 'zim': 'zam', 'wos': 19.2})
 
+    # This should fail per https://app.asana.com/0/401264106780/436898020970
+    # Our client does not autogenerate row IDs
+    @raises(MissingRowIDException)
     def test_table_add_row_with_autogen_id(self):
         t = self.API.create_table("bugz_2", force=True)
         t.add_row({'_id': 'onebug', 'zim': 'zam', 'wos': 19.2})
