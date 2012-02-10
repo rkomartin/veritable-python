@@ -42,17 +42,19 @@ class API:
         if table_id is None:
             autogen = True
             table_id = make_table_id()
-        if not force:
-            try:
-                self.get_table_by_id(table_id)
-            except:
-                pass
-            else:
+        try:
+            self.get_table_by_id(table_id)
+        except:
+            pass
+        else:
+            if not force:
                 if autogen:
                     return self.create_table(table_id=None,
                         description=description, force=False)
                 else:
                     raise DuplicateTableException(table_id)
+            else:
+                self.delete_table_by_id(table_id)
         r = self.connection.put(format_url("tables", table_id),
                                 data = {"description": description})
         return Table(self.connection, r)
@@ -197,17 +199,19 @@ class Table:
         if analysis_id is None:
             autogen = True
             analysis_id = make_analysis_id()
-        if not force:
-            try:
-                self.get_analysis_by_id(analysis_id)
-            except:
-                pass
-            else:
+        try:
+            self.get_analysis_by_id(analysis_id)
+        except:
+            pass
+        else:
+            if not force:
                 if autogen:
                     return self.create_analysis(schema=schema, description=description,
                         analysis_id=None, type=type, force=False)
                 else:
                     raise DuplicateAnalysisException(analysis_id)
+            else:
+                self.delete_analysis_by_id(analysis_id)
         r = self.connection.put(format_url(self.links["analyses"], analysis_id),
                                 data = {"description": description,
                                         "type": type,
