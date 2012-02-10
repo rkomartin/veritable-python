@@ -9,11 +9,9 @@ DATA_FILE = "mammals.json"
 data = json.load(open(DATA_FILE, 'r'))
 
 
-def wait_for_analysis(analysis, poll=10):
-	while analysis.status() == "pending":
-		time.sleep(poll)
-	if analysis.status() == "failed":
-		raise Exception(analysis.get_state()["error"])
+def wait_for_analysis(a, poll=2):
+    while a.status() in ["new", "pending"]:
+        time.sleep(poll)
 
 class TestMammals:
 	def setup(self):
