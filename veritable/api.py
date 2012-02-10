@@ -42,7 +42,7 @@ class API:
         if table_id is None:
             autogen = True
             table_id = make_table_id()
-        if table_exists(table_id):
+        if self.table_exists(table_id):
             if not force:
                 if autogen:
                     return self.create_table(table_id=None,
@@ -211,7 +211,7 @@ class Table:
         if analysis_id is None:
             autogen = True
             analysis_id = make_analysis_id()
-        if analysis_exists(analysis_id):
+        if self.analysis_exists(analysis_id):
             if not force:
                 if autogen:
                     return self.create_analysis(schema=schema, description=description,
