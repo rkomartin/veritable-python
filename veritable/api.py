@@ -42,11 +42,7 @@ class API:
         if table_id is None:
             autogen = True
             table_id = make_table_id()
-        try:
-            self.get_table_by_id(table_id)
-        except:
-            pass
-        else:
+        if table_exists(table_id):
             if not force:
                 if autogen:
                     return self.create_table(table_id=None,
@@ -59,6 +55,14 @@ class API:
                                 data = {"description": description})
         return Table(self.connection, r)
     
+    def table_exists(self, table_id):
+        try:
+            self.get_table_by_id(table_id)
+        except:
+            return False
+        else:
+            return True
+
     def get_table_by_id(self, table_id):
         """Get a table from the collection by its id."""
         r = self.connection.get(format_url("tables", table_id))
@@ -189,6 +193,14 @@ class Table:
         r = self.connection.get(url)
         return Analysis(self.connection, r).delete()
 
+    def analysis_exists(self, analysis_id):
+        try:
+            self.get_analysis_by_id(analysis_id)
+        except:
+            return False
+        else:
+            return True
+
     def create_analysis(self, schema, description="",
                         analysis_id=None, type="veritable",
                         force=False):
@@ -199,11 +211,7 @@ class Table:
         if analysis_id is None:
             autogen = True
             analysis_id = make_analysis_id()
-        try:
-            self.get_analysis_by_id(analysis_id)
-        except:
-            pass
-        else:
+        if analysis_exists(analysis_id):
             if not force:
                 if autogen:
                     return self.create_analysis(schema=schema, description=description,
