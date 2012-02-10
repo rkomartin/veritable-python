@@ -44,13 +44,13 @@ class InvalidSchemaException(Exception):
 
 class DuplicateTableException(Exception):
     def __init__(self, table_id):
-        self.value = "Table with id" + table_id + "already exists! Set force=True to override."
+        self.value = "Table with id " + table_id + " already exists! Set force=True to override."
     def __str__(self):
         return repr(self.value)
 
 class DuplicateAnalysisException(Exception):
     def __init__(self, analysis_id):
-        self.value = "Analysis with id" + analysis_id + "already exists! Set force=True to override."
+        self.value = "Analysis with id " + analysis_id + " already exists! Set force=True to override."
     def __str__(self):
         return repr(self.value)
 
