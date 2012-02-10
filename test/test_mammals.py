@@ -58,6 +58,23 @@ class TestMammals:
 			'order': {'type': 'categorical'},
 			'exotic': {'type': 'categorical'}
 		}
+		self.predictions_spec_1 = {'big': True, 'small': None}
+		self.predictions_spec_2 = {"furry": True, "hairless": False, "big": False, 
+			"small": False, "flippers": False, "hands": False,
+			"hooves": False, "paws": True, "longneck": False, "tail": True,
+			"filter_feeder": False, "horns": False, "claws": True,
+			"tusks": False, "flys": None, "tunnels": False, "walks": True,
+			"nocturnal": False, "eats_fish": False, "eats_meat": True,
+			"eats_plankton": False, "eats_vegetation": True,
+			"grazer": False, "hunter": True, "scavenger": False,
+			"lives_in_arctic": False, "lives_on_coast": False,
+			"lives_on_plains": False, "lives_in_forest": False,
+			"lives_in_jungle": False, "lives_in_ocean": False,
+			"lives_on_ground": True, "lives_in_water": False,
+			"lives_in_trees": False, "herd": False, "family": "canidae",
+			"order": "carnivora", "exotic": None}
+		self.predictions_spec_3 = [{'big': True, 'small': None},
+			{'big': False, 'small': None}]
 
 	def test_run_mammals_exotic_as_categorical(self):
 		schema = self.schema
@@ -97,23 +114,9 @@ class TestMammals:
 			analysis_id="mammals_1")
 		analysis.run()
 		wait_for_analysis(analysis)
-		analysis.predict({'big': True, 'small': None}, 10)
-		analysis.predict({"furry": True, "hairless": False, "big": False, 
-			"small": False, "flippers": False, "hands": False,
-			"hooves": False, "paws": True, "longneck": False, "tail": True,
-			"filter_feeder": False, "horns": False, "claws": True,
-			"tusks": False, "flys": None, "tunnels": False, "walks": True,
-			"nocturnal": False, "eats_fish": False, "eats_meat": True,
-			"eats_plankton": False, "eats_vegetation": True,
-			"grazer": False, "hunter": True, "scavenger": False,
-			"lives_in_arctic": False, "lives_on_coast": False,
-			"lives_on_plains": False, "lives_in_forest": False,
-			"lives_in_jungle": False, "lives_in_ocean": False,
-			"lives_on_ground": True, "lives_in_water": False,
-			"lives_in_trees": False, "herd": False, "family": "canidae",
-			"order": "carnivora", "exotic": None}, 10)
-		analysis.predict([{'big': True, 'small': None},
-						  {'big': False, 'small': None}], 10)
+		analysis.predict(self.predictions_spec_1, 10)
+		analysis.predict(self.predictions_spec_2, 10)
+		analysis.predict(self.predictions_spec_3, 10)
 	
 	def test_predict_mammals_exotic_as_real(self):
 		schema = self.schema
@@ -124,23 +127,9 @@ class TestMammals:
 			analysis_id="mammals_1")
 		analysis.run()
 		wait_for_analysis(analysis)
-		analysis.predict({'big': True, 'small': None}, 10)
-		analysis.predict({"furry": True, "hairless": False, "big": False, 
-			"small": False, "flippers": False, "hands": False,
-			"hooves": False, "paws": True, "longneck": False, "tail": True,
-			"filter_feeder": False, "horns": False, "claws": True,
-			"tusks": False, "flys": None, "tunnels": False, "walks": True,
-			"nocturnal": False, "eats_fish": False, "eats_meat": True,
-			"eats_plankton": False, "eats_vegetation": True,
-			"grazer": False, "hunter": True, "scavenger": False,
-			"lives_in_arctic": False, "lives_on_coast": False,
-			"lives_on_plains": False, "lives_in_forest": False,
-			"lives_in_jungle": False, "lives_in_ocean": False,
-			"lives_on_ground": True, "lives_in_water": False,
-			"lives_in_trees": False, "herd": False, "family": "canidae",
-			"order": "carnivora", "exotic": None}, 10)
-		analysis.predict([{'big': True, 'small': None},
-						  {'big': False, 'small': None}], 10)
+		analysis.predict(self.predictions_spec_1, 10)
+		analysis.predict(self.predictions_spec_2, 10)
+		analysis.predict(self.predictions_spec_3, 10)
 
 	def test_predict_mammals_exotic_as_count(self):
 		schema = self.schema
@@ -151,20 +140,6 @@ class TestMammals:
 			analysis_id="mammals_1")
 		analysis.run()
 		wait_for_analysis(analysis)
-		analysis.predict({'big': True, 'small': None}, 10)
-		analysis.predict({"furry": True, "hairless": False, "big": False, 
-			"small": False, "flippers": False, "hands": False,
-			"hooves": False, "paws": True, "longneck": False, "tail": True,
-			"filter_feeder": False, "horns": False, "claws": True,
-			"tusks": False, "flys": None, "tunnels": False, "walks": True,
-			"nocturnal": False, "eats_fish": False, "eats_meat": True,
-			"eats_plankton": False, "eats_vegetation": True,
-			"grazer": False, "hunter": True, "scavenger": False,
-			"lives_in_arctic": False, "lives_on_coast": False,
-			"lives_on_plains": False, "lives_in_forest": False,
-			"lives_in_jungle": False, "lives_in_ocean": False,
-			"lives_on_ground": True, "lives_in_water": False,
-			"lives_in_trees": False, "herd": False, "family": "canidae",
-			"order": "carnivora", "exotic": None}, 10)
-		analysis.predict([{'big': True, 'small': None},
-						  {'big': False, 'small': None}], 10)		
+		analysis.predict(self.predictions_spec_1, 10)
+		analysis.predict(self.predictions_spec_2, 10)
+		analysis.predict(self.predictions_spec_3, 10)
