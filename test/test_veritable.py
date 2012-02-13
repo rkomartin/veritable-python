@@ -355,7 +355,7 @@ class TestTableOps:
 
     @attr('async')
     def test_wait_for_analysis_fails(self):
-        schema = {'zim': {'type': 'binary'}, 'wos': {'type': 'real'}}
+        schema = {'zim': {'type': 'boolean'}, 'wos': {'type': 'real'}}
         a = self.t.create_analysis(schema, analysis_id="zubble")
         wait_for_analysis(a)
         assert a.status() == "failed"
