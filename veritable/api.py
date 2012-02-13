@@ -53,8 +53,8 @@ class API:
                     raise DuplicateTableException(table_id)
             else:
                 self.delete_table_by_id(table_id)
-        r = self.connection.put(format_url("tables", table_id),
-                                data = {"description": description})
+        r = self.connection.post("tables",
+                data = {"_id": table_id, "description": description})
         return Table(self.connection, r)
     
     def table_exists(self, table_id):
@@ -174,7 +174,8 @@ class Table:
     def get_analysis_by_id(self, analysis_id):
         """Get an analysis corresponding to the table by its id."""
         self.still_alive()
-        r = self.connection.get(format_url(self.links["analyses"], analysis_id))
+        r = self.connection.get(format_url(self.links["analyses"],
+                analysis_id))
         return Analysis(self.connection, r)
 
     def get_analysis_by_url(self, url):
@@ -227,10 +228,9 @@ class Table:
                     raise DuplicateAnalysisException(analysis_id)
             else:
                 self.delete_analysis_by_id(analysis_id)
-        r = self.connection.put(format_url(self.links["analyses"], analysis_id),
-                                data = {"description": description,
-                                        "type": type,
-                                        "schema": schema})
+        r = self.connection.post(self.links["analyses"],
+                data = {"_id": analysis_id, "description": description,
+                        "type": type, "schema": schema})
         return Analysis(self.connection, r)
                                         
 class Analysis:
