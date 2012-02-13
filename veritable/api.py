@@ -22,7 +22,7 @@ def validate_schema(schema):
             raise InvalidSchemaException()
 
 def handle_api_error(err):
-    pass
+    raise Exception(err)
 
 class API:
     def __init__(self, connection):
