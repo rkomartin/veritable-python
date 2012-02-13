@@ -112,7 +112,7 @@ It's also possible to batch delete rows from the table, using the `delete_rows` 
     client_data_handle.delete_rows(client_subset)
 
 
-## Specifying new analyses of a table and performing inference
+## Running new analyses on a table
 To set up a new analysis of a table, use the `create_analysis` method of the table handle. This method takes a `schema`, which must be a dict whose keys are column names (for some subset of the columns in the table--note that it is not necessary to analyze all of the columns in the table) and whose values are dicts:
 
     {'age': {'type': 'count'},
@@ -131,13 +131,6 @@ It is possible to create more than one analysis against a given table both becau
 Attempting to create analyses which share their ids with existing analyses will cause a `DuplicateAnalysisException` to be raised unless `force=True` is passed to the `create_analysis` method. If analysis creation is forced,  the existing analysis with the same id will be overwritten.
 
 Do not change the `type` argument to `create_analysis` from its default value, `veritable`. Passing any other value will cause an `InvalidAnalysisTypeException` to be raised.
-
-
-## Running an analysis
-
-To start inference, just call the `run` method of the analysis handle.
-
-    my_analysis_handle.run()
 
 
 ## Retrieving and deleting analyses
@@ -167,14 +160,13 @@ Each analysis handle also allows you to check on the current state of the analys
 
     my_analysis_state = my_analysis_handle.get_state()
 
-The state of an analysis is a Python dict with at least three entries, `type`, `state`, and `links`, and possibly the entries `last_learned` or `error`. The `type` will always be `veritable`. The `status` will always be one of the following values:
+The state of an analysis is a Python dict with at least four entries, `type`, `state`, and `links`, and `created_at`, and possibly the entry `error`. The `type` will always be `veritable`. The `status` will always be one of the following values:
 
-*  `new`: the analysis has never run
-*  `pending`: the analysis is running and not yet finished
-*  `finished`: the analysis is finished running, and ready for predictions
+*  `running`: the analysis is running and not yet finished
+*  `succeeded`: the analysis is finished running, and ready for predictions
 *  `failed`: the analysis has failed
 
-The `links` entry will contain links to the related resources if available. The `last_learned` entry will be present after the analysis has been run at least once. You can compare this timestamp to the `last_updated` timestamp in the representation of the table state in order to make sure that the analysis reflects the latest data. (If not, just call the analysis's `run` method again.) 
+The `links` entry will contain links to the related resources if available. The `created_at` entry will record the time at which the analysis was run. You can compare this timestamp to the `last_updated` timestamp in the representation of the table state in order to make sure that the analysis reflects the latest data. (If not, just set up a new analysis.) 
 
 If the analysis status is `failed`, then an `error` entry will also be present, and will describe the reason for failure.
 
