@@ -518,7 +518,7 @@ class TestTableOps:
         self.t2.get_analysis_by_id("yummy_tummy")
 
     @attr('sync')
-    @raises(HTTPError)
+    @raises(ServerException)
     def test_get_analysis_by_url_fails(self):
         self.t2.get_analysis_by_url("grubble")
 
@@ -548,7 +548,7 @@ class TestTableOps:
         self.t2.delete_analysis_by_id("foobar")
 
     @attr('sync')
-    @raises(HTTPError)
+    @raises(ServerException)
     def test_delete_analysis_by_url_fails(self):
         self.t2.delete_analysis_by_url("grumble")
 
