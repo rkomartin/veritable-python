@@ -305,7 +305,6 @@ class TestTableOps:
     def test_create_analysis_malformed_schema_datatype_column_mismatch(self):
         schema = {'zim': {'type': 'real'}, 'wos': {'type': 'real'}}
         a = self.t.create_analysis(schema)
-        a.run()
         wait_for_analysis(a)
         assert a.status() == "failed"
 
@@ -370,7 +369,6 @@ class TestTableOps:
                   'wos': {'type': 'real'},
                   'krob': {'type': 'count'}}
         a = self.t.create_analysis(schema)
-        a.run()
         wait_for_analysis(a)
         assert a.status() == "failed"
 
@@ -382,7 +380,6 @@ class TestTableOps:
                   'bool': {'type': 'boolean'}
                   }
         a = self.t2.create_analysis(schema, analysis_id="test_analysis", force=True)
-        a.run()
         wait_for_analysis(a)        
         assert a.status() == "succeeded"
 
@@ -394,7 +391,6 @@ class TestTableOps:
                   'bool': {'type': 'boolean'}
                  }
         a = self.t2.create_analysis(schema)
-        a.run()
         wait_for_analysis(a)
         assert a.status() == "failed"
 
@@ -406,7 +402,6 @@ class TestTableOps:
                   'bool': {'type': 'boolean'}
                  }
         a = self.t2.create_analysis(schema)
-        a.run()
         wait_for_analysis(a)
         assert a.status() == "failed"
 
@@ -418,7 +413,6 @@ class TestTableOps:
                   'bool': {'type': 'boolean'}
                   }
         a = self.t2.create_analysis(schema)
-        a.run()
         wait_for_analysis(a)
         assert a.status() == "failed"
 
@@ -430,7 +424,6 @@ class TestTableOps:
                   'bool': {'type': 'real'}
                   }
         a = self.t2.create_analysis(schema)
-        a.run()
         wait_for_analysis(a)
         assert a.status() == "failed"
 
@@ -442,7 +435,6 @@ class TestTableOps:
                   'bool': {'type': 'count'}
                   }
         a = self.t2.create_analysis(schema)
-        a.run()
         wait_for_analysis(a)
         assert a.status() == "failed"
 
@@ -454,7 +446,6 @@ class TestTableOps:
                   'bool': {'type': 'boolean'}
                   }
         a = self.t2.create_analysis(schema)
-        a.run()
         wait_for_analysis(a)
         assert a.status() == "failed"
 
@@ -466,7 +457,6 @@ class TestTableOps:
                   'bool': {'type': 'boolean'}
                   }
         a = self.t2.create_analysis(schema)
-        a.run()
         wait_for_analysis(a)
         assert a.status() == "failed"
 
@@ -478,7 +468,6 @@ class TestTableOps:
                   'bool': {'type': 'boolean'}
                   }
         a = self.t2.create_analysis(schema)
-        a.run()
         wait_for_analysis(a)
         assert a.status() == "failed"
 
@@ -490,7 +479,6 @@ class TestTableOps:
                   'bool': {'type': 'boolean'}
                   }
         a = self.t2.create_analysis(schema)
-        a.run()
         wait_for_analysis(a)
         assert a.status() == "failed"
 
@@ -502,7 +490,6 @@ class TestTableOps:
                   'bool': {'type': 'boolean'}
                   }
         a = self.t2.create_analysis(schema)
-        a.run()
         wait_for_analysis(a)
         assert a.status() == "failed"
 

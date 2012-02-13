@@ -81,7 +81,6 @@ class TestMammals:
 		analysis = self.mammals.create_analysis(schema, description="""Full
 			mammals analysis, exotic coded as categorical""",
 			analysis_id="mammals_1")
-		analysis.run()
 		wait_for_analysis(analysis)
 	
 	def test_run_mammals_exotic_as_real(self):
@@ -91,7 +90,6 @@ class TestMammals:
 		analysis = self.mammals.create_analysis(schema, description="""Full
 			mammals analysis, exotic coded as categorical""",
 			analysis_id="mammals_1")
-		analysis.run()
 		wait_for_analysis(analysis)
 
 	def test_run_mammals_exotic_as_count(self):
@@ -101,7 +99,6 @@ class TestMammals:
 		analysis = self.mammals.create_analysis(schema, description="""Full
 			mammals analysis, exotic coded as categorical""",
 			analysis_id="mammals_1")
-		analysis.run()
 		wait_for_analysis(analysis)
 
 
@@ -111,7 +108,6 @@ class TestMammals:
 		analysis = self.mammals.create_analysis(schema, description="""Full
 			mammals analysis, exotic coded as categorical""",
 			analysis_id="mammals_1")
-		analysis.run()
 		wait_for_analysis(analysis)
 		analysis.predict(self.predictions_spec_1, 10)
 		analysis.predict(self.predictions_spec_2, 10)
@@ -124,7 +120,6 @@ class TestMammals:
 		analysis = self.mammals.create_analysis(schema, description="""Full
 			mammals analysis, exotic coded as categorical""",
 			analysis_id="mammals_1")
-		analysis.run()
 		wait_for_analysis(analysis)
 		analysis.predict(self.predictions_spec_1, 10)
 		analysis.predict(self.predictions_spec_2, 10)
@@ -137,7 +132,6 @@ class TestMammals:
 		analysis = self.mammals.create_analysis(schema, description="""Full
 			mammals analysis, exotic coded as categorical""",
 			analysis_id="mammals_1")
-		analysis.run()
 		wait_for_analysis(analysis)
 		analysis.predict(self.predictions_spec_1, 10)
 		analysis.predict(self.predictions_spec_2, 10)
