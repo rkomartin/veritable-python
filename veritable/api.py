@@ -211,7 +211,7 @@ class Table:
                         force=False):
         """Create a new analysis for the table."""
         self.still_alive()
-        if type is not "veritable":
+        if type != "veritable":
             raise InvalidAnalysisTypeException()
         if analysis_id is None:
             autogen = True
@@ -264,7 +264,7 @@ class Analysis:
 
     def did_not_fail(self):
         data = self.get_state()
-        if data["state"] is "failed":
+        if data["state"] == "failed":
             handle_api_error(data["error"])
     
     def ready_to_predict(self):
