@@ -165,7 +165,7 @@ class TestAPI:
     @attr('sync')
     def test_get_table_state(self):
         t = self.API.create_table("bugz_4", force=True)
-        t.add_row({'_id': 'fourbug', 'zim': 'fop', 'wos': 17.5}, force=True)
+        t.add_row({'_id': 'fourbug', 'zim': 'fop', 'wos': 17.5})
         t.get_state()
 
     @attr('sync')
