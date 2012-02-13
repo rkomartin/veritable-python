@@ -321,12 +321,11 @@ class TestTableOps:
         schema = 'wimmel'
         a = self.t.create_analysis(schema)
 
-    @attr('async')
+    @attr('sync')
+    @raises(ServerException)
     def test_create_analysis_malformed_schema_3(self):
         schema = {}
         a = self.t.create_analysis(schema)
-        wait_for_analysis(a)
-        assert a.status() == "failed"
 
     @attr('sync')
     @raises(ServerException)
