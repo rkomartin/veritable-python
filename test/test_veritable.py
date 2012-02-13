@@ -13,9 +13,8 @@ from veritable.utils import format_url
 TEST_API_KEY = "test"
 TEST_BASE_URL = "http://127.0.0.1:5000"
 
-
 def wait_for_analysis(a):
-    while a.status() in ["new", "pending"]:
+    while a.status() == "running":
         time.sleep(2)
 
 def test_create_api():
@@ -354,7 +353,7 @@ class TestTableOps:
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
         a = self.t.create_analysis(schema, analysis_id="zubble")
         wait_for_analysis(a)
-        assert a.status() == "finished"
+        assert a.status() == "succeeded"
 
     @attr('async')
     def test_wait_for_analysis_fails(self):
@@ -385,7 +384,7 @@ class TestTableOps:
         a = self.t2.create_analysis(schema, analysis_id="test_analysis", force=True)
         a.run()
         wait_for_analysis(a)        
-        assert a.status() == "finished"
+        assert a.status() == "succeeded"
 
     @attr('async')
     def test_create_analysis_with_mismatch_categorical_real(self):

@@ -8,10 +8,9 @@ DATA_FILE = "mammals.json"
 
 data = json.load(open(DATA_FILE, 'r'))
 
-
-def wait_for_analysis(a, poll=2):
-    while a.status() in ["new", "pending"]:
-        time.sleep(poll)
+def wait_for_analysis(a):
+    while a.status() == "running":
+        time.sleep(2)
 
 class TestMammals:
 	def setup(self):
