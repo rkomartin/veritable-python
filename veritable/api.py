@@ -5,9 +5,9 @@ from .utils import *
 BASE_URL = "https://api.priorknowledge.com/"
 
 def veritable_connect(api_key, api_base_url=BASE_URL, ssl_verify=True,
-                      disable_gzip=False, debug=False):
+        disable_gzip=False, debug=False):
     return API(Connection(api_key, api_base_url, ssl_verify,
-                          disable_gzip, debug))
+            disable_gzip, debug))
 
 def validate_schema(schema):
     for k in schema.keys():
@@ -48,7 +48,7 @@ class API:
             if not force:
                 if autogen:
                     return self.create_table(table_id=None,
-                        description=description, force=False)
+                            description=description, force=False)
                 else:
                     raise DuplicateTableException(table_id)
             else:
@@ -120,7 +120,7 @@ class Table:
         else:
             row_id = row["_id"]
         return self.connection.put(format_url(self.links["rows"], row_id),
-                                   row)
+                row)
         
     def add_rows(self, rows):
         """Batch add rows to the table."""
@@ -186,7 +186,8 @@ class Table:
     def delete_analysis_by_id(self, analysis_id):
         """Delete an analysis corresponding to the table by its id."""
         self.still_alive()
-        r = self.connection.get(format_url(self.links["analyses"], analysis_id))
+        r = self.connection.get(format_url(self.links["analyses"],
+                analysis_id))
         return Analysis(self.connection, r).delete()
 
     def delete_analysis_by_url(self, url):
@@ -196,6 +197,7 @@ class Table:
         return Analysis(self.connection, r).delete()
 
     def analysis_exists(self, analysis_id):
+        """Test if an analysis with a given id already exists."""
         try:
             self.get_analysis_by_id(analysis_id)
         except:
@@ -218,8 +220,9 @@ class Table:
         if self.analysis_exists(analysis_id):
             if not force:
                 if autogen:
-                    return self.create_analysis(schema=schema, description=description,
-                        analysis_id=None, type=type, force=False)
+                    return self.create_analysis(schema=schema,
+                            description=description, analysis_id=None,
+                            type=type, force=False)
                 else:
                     raise DuplicateAnalysisException(analysis_id)
             else:
