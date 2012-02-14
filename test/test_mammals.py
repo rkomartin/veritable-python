@@ -1,6 +1,7 @@
-from veritable.api import *
 import simplejson as json
 import time
+import veritable
+from veritable.api import *
 
 TEST_API_KEY = "test"
 TEST_BASE_URL = "http://127.0.0.1:5000"
@@ -14,7 +15,7 @@ def wait_for_analysis(a):
 
 class TestMammals:
 	def setup(self):
-		self.API = veritable_connect(TEST_API_KEY, TEST_BASE_URL)
+		self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
 		self.mammals = self.API.create_table("mammals", force=True)
 		self.mammals.add_rows(data)
 		self.schema = {

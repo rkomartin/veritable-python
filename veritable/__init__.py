@@ -1,1 +1,1 @@
-from .api import veritable_connect
+from .api import connect

@@ -2,11 +2,11 @@
 
 import time
 import simplejson as json
+import veritable
 from nose.plugins.attrib import attr
 from nose.tools import raises
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
-from veritable.api import veritable_connect
 from veritable.exceptions import *
 from veritable.utils import format_url
 
@@ -18,11 +18,11 @@ def wait_for_analysis(a):
         time.sleep(2)
 
 def test_create_api():
-    API = veritable_connect(TEST_API_KEY, TEST_BASE_URL)
+    API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
 
 class TestAPI:
     def setup(self):
-        self.API = veritable_connect(TEST_API_KEY, TEST_BASE_URL)
+        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
 
     @attr('sync')
     def test_get_tables(self):
@@ -188,7 +188,7 @@ class TestAPI:
 
 class TestTableOps:
     def setup(self):
-        self.API = veritable_connect(TEST_API_KEY, TEST_BASE_URL)
+        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
         self.t = self.API.create_table(table_id = "bugz", force=True)
         self.t.add_rows([{'_id': 'onebug', 'zim': 'zam', 'wos': 19.2},
                          {'_id': 'twobug', 'zim': 'vim', 'wos': 11.3},

@@ -17,15 +17,15 @@ This library distinguishes between _handles_ to API resources and the _state_ of
 
 
 ## Creating an instance of the API
-The `veritable_connect` method returns an instance of the Veritable API. This is the entry point for everything that follows. In general, the API key should be kept in an environment variable.
+The `connect` method returns an instance of the Veritable API. This is the entry point for everything that follows. In general, the API key should be kept in an environment variable.
 
     VERITABLE_API_KEY = os.getenv("VERITABLE_API_KEY")
-    API = veritable.veritable_connect(VERITABLE_API_KEY)
+    API = veritable.connect(VERITABLE_API_KEY)
 
-If your instance of the API doesn't live at the default URL, `https://api.priorknowledge.com/`, then you can pass the entry point of the API to `veritable_connect` as its second argument.
+If your instance of the API doesn't live at the default URL, `https://api.priorknowledge.com/`, then you can pass the entry point of the API to `connect` as its second argument.
 
     VERITABLE_API_BASE_URL = os.getenv("VERITABLE_API_BASE_URL")
-    API = veritable.veritable_connect(VERITABLE_API_KEY, VERITABLE_API_BASE_URL)
+    API = veritable.veritable.connect(VERITABLE_API_KEY, VERITABLE_API_BASE_URL)
 
 Attempting to instantiate the API without passing an API key, or with no base URL, will cause an `APIKeyException` or `APIBaseURLException`, respectively, to be raised.
 
