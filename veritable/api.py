@@ -4,7 +4,7 @@ from .utils import *
 
 BASE_URL = "https://api.priorknowledge.com/"
 
-def connect(api_key, api_base_url=BASE_URL, ssl_verify=True,
+def connect(api_key, api_base_url=BASE_URL, ssl_verify=False,
         disable_gzip=False, debug=False):
     return API(Connection(api_key, api_base_url, ssl_verify,
             disable_gzip, debug))
