@@ -1,11 +1,16 @@
+import os
 from .connection import Connection
 from .exceptions import *
 from .utils import *
 
 BASE_URL = "https://api.priorknowledge.com/"
 
-def connect(api_key, api_base_url=BASE_URL, ssl_verify=False,
+def connect(api_key=None, api_base_url=None, ssl_verify=False,
         disable_gzip=False, debug=False):
+    if api_key is None:
+        api_key = os.getenv("VERITABLE_KEY")
+    if api_base_url is None:
+        api_base_url = os.getenv("VERITABLE_URL") or BASE_URL
     return API(Connection(api_key, api_base_url, ssl_verify,
             disable_gzip, debug))
 
