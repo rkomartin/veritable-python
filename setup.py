@@ -8,6 +8,5 @@ setup(name='veritable',
 	  maintainer='Max Gasner',
 	  maintainer_email='max@priorknowledge.com',
 	  url='http://www.priorknowledge.com/',
-	  requires=['requests', 'simplejson'],
+	  install_requires=['requests', 'simplejson'],
 	  packages=['veritable'])
-	  
