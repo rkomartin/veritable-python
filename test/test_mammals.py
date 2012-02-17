@@ -1,10 +1,11 @@
 import simplejson as json
 import time
 import veritable
+import os
 from veritable.api import *
 
-TEST_API_KEY = "test"
-TEST_BASE_URL = "http://127.0.0.1:5000"
+TEST_API_KEY = os.getenv("VERITABLE_API_KEY") or "test"
+TEST_BASE_URL = os.getenv("VERITABLE_BASE_URL") or "https://api.priorknowledge.com"
 DATA_FILE = "mammals.json"
 
 data = json.load(open(DATA_FILE, 'r'))

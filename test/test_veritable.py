@@ -3,6 +3,7 @@
 import time
 import simplejson as json
 import veritable
+import os
 from nose.plugins.attrib import attr
 from nose.tools import raises
 from requests.auth import HTTPBasicAuth
@@ -10,8 +11,8 @@ from requests.exceptions import HTTPError
 from veritable.exceptions import *
 from veritable.utils import format_url
 
-TEST_API_KEY = "test"
-TEST_BASE_URL = "http://127.0.0.1:5000"
+TEST_API_KEY = os.getenv("VERITABLE_API_KEY") or "test"
+TEST_BASE_URL = os.getenv("VERITABLE_BASE_URL") or "https://api.priorknowledge.com"
 
 def wait_for_analysis(a):
     while a.status() == "running":
