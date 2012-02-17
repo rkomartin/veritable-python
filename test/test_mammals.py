@@ -7,8 +7,8 @@ import os
 from veritable.api import *
 from nose.tools import raises
 
-TEST_API_KEY = os.getenv("VERITABLE_API_KEY") or "test"
-TEST_BASE_URL = os.getenv("VERITABLE_BASE_URL") or "https://api.priorknowledge.com"
+TEST_API_KEY = os.getenv("VERITABLE_KEY") or "test"
+TEST_BASE_URL = os.getenv("VERITABLE_URL") or "https://api.priorknowledge.com"
 DATA_FILE = "mammals.json"
 
 data = json.load(open(DATA_FILE, 'r'))
