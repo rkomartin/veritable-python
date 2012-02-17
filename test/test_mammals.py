@@ -1,8 +1,11 @@
+#! usr/bin/python
+
 import simplejson as json
 import time
 import veritable
 import os
 from veritable.api import *
+from nose.tools import raises
 
 TEST_API_KEY = os.getenv("VERITABLE_API_KEY") or "test"
 TEST_BASE_URL = os.getenv("VERITABLE_BASE_URL") or "https://api.priorknowledge.com"
@@ -74,9 +77,8 @@ class TestMammals:
 			"lives_on_ground": True, "lives_in_water": False,
 			"lives_in_trees": False, "herd": False, "family": "canidae",
 			"order": "carnivora", "exotic": None}
-		self.predictions_spec_3 = [{'big': True, 'small': None},
-			{'big': False, 'small': None}]
 
+	@raises
 	def test_run_mammals_exotic_as_categorical(self):
 		schema = self.schema
 		validate_schema(schema)
@@ -103,7 +105,7 @@ class TestMammals:
 			analysis_id="mammals_1")
 		wait_for_analysis(analysis)
 
-
+	@raises
 	def test_predict_mammals_exotic_as_categorical(self):
 		schema = self.schema
 		validate_schema(schema)
@@ -113,7 +115,6 @@ class TestMammals:
 		wait_for_analysis(analysis)
 		analysis.predict(self.predictions_spec_1, 10)
 		analysis.predict(self.predictions_spec_2, 10)
-		analysis.predict(self.predictions_spec_3, 10)
 	
 	def test_predict_mammals_exotic_as_real(self):
 		schema = self.schema
@@ -125,7 +126,6 @@ class TestMammals:
 		wait_for_analysis(analysis)
 		analysis.predict(self.predictions_spec_1, 10)
 		analysis.predict(self.predictions_spec_2, 10)
-		analysis.predict(self.predictions_spec_3, 10)
 
 	def test_predict_mammals_exotic_as_count(self):
 		schema = self.schema
@@ -137,4 +137,3 @@ class TestMammals:
 		wait_for_analysis(analysis)
 		analysis.predict(self.predictions_spec_1, 10)
 		analysis.predict(self.predictions_spec_2, 10)
-		analysis.predict(self.predictions_spec_3, 10)
