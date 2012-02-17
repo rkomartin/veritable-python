@@ -146,6 +146,18 @@ class TestAPI:
         t = self.API.create_table("bugz", force=True)
         t.add_row({'_id': 'onebug', 'zim': 'zam', 'wos': 19.2})
 
+    @raises(TypeError)
+    @attr('sync')
+    def test_table_add_row_with_int_id(self):
+        t = self.API.create_table("bugz", force=True)
+        t.add_row({'_id': '3', 'zim': 'zam', 'wos': 19.2})
+
+    @raises(TypeError)
+    @attr('sync')
+    def test_table_add_row_with_float_id(self):
+        t = self.API.create_table("bugz", force=True)
+        t.add_row({'_id': '3.131455', 'zim': 'zam', 'wos': 19.2})
+
     # This should fail per https://app.asana.com/0/401264106780/436898020970
     # Our client does not autogenerate row IDs
     @attr('sync')
