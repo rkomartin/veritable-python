@@ -297,6 +297,5 @@ class Analysis:
         self.still_alive()
         self.did_not_fail()
         self.ready_to_predict()
-        request = {'rows': rows, 'count': count}
+        request = {'data': rows, 'count': count}
         return self.connection.post(self.links["predict"], data = request)
-        
