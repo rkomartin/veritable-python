@@ -1,3 +1,4 @@
+import time
 import uuid
 from urlparse import urlparse
 
@@ -13,3 +14,6 @@ def _format_url(*args):
 def _url_has_scheme(url):
 	return urlparse(url)[0] is not ""
 
+def wait_for_analysis(a, poll=2):
+	while a.status() == "running":
+		time.sleep(poll)
