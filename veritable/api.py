@@ -123,9 +123,9 @@ class Table:
         if "_id" not in row:
             raise MissingRowIDException()
         else:
+            row_id = row["_id"]
             if not isinstance(row_id, basestring):
                 raise TypeError("Row id must be a string")
-            row_id = row["_id"]
         return self.connection.put(_format_url(self.links["rows"], row_id),
                 row)
         
