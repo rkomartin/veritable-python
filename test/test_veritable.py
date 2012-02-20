@@ -9,7 +9,7 @@ from nose.tools import raises
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 from veritable.exceptions import *
-from veritable.utils import format_url
+from veritable.utils import _format_url
 
 TEST_API_KEY = os.getenv("VERITABLE_KEY") or "test"
 TEST_BASE_URL = os.getenv("VERITABLE_URL") or "https://api.priorknowledge.com"
@@ -238,7 +238,7 @@ class TestTableOps:
 
     @attr('sync')
     def test_get_row_by_url(self):
-        self.t.get_row_by_url(format_url(self.t.links["rows"], 'fivebug'))
+        self.t.get_row_by_url(_format_url(self.t.links["rows"], 'fivebug'))
 
     @attr('sync')
     def test_batch_get_rows(self):
@@ -250,7 +250,7 @@ class TestTableOps:
 
     @attr('sync')
     def test_delete_row_by_url(self):
-        self.t.delete_row_by_url(format_url(self.t.links["rows"], 'fourbug'))
+        self.t.delete_row_by_url(_format_url(self.t.links["rows"], 'fourbug'))
 
     @attr('sync')
     @raises(ServerException)
@@ -262,7 +262,7 @@ class TestTableOps:
     @raises(ServerException)
     def test_delete_deleted_row_by_url(self):
         self.t.delete_row_by_id("fivebug")
-        self.t.delete_row_by_url(format_url(self.t.links["rows"], 'fivebug'))
+        self.t.delete_row_by_url(_format_url(self.t.links["rows"], 'fivebug'))
 
     @attr('sync')
     def test_batch_delete_rows(self):
@@ -630,4 +630,7 @@ class TestTableOps:
         pass
         
     def test_predictions_ready(self):
+        pass
+
+    def test_make_too_many_predictions(self):
         pass
