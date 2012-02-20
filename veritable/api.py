@@ -1,7 +1,7 @@
 import os
 from .connection import Connection
 from .exceptions import *
-from .utils import *
+from .utils import _make_table_id, _make_analysis_id, _format_url
 
 BASE_URL = "https://api.priorknowledge.com/"
 
@@ -46,7 +46,7 @@ class API:
         """Create a table with the given id."""    
         if table_id is None:
             autogen = True
-            table_id = make_table_id()
+            table_id = _make_table_id()
         else:
             autogen = False
         if self.table_exists(table_id):
@@ -72,17 +72,17 @@ class API:
 
     def get_table_by_id(self, table_id):
         """Get a table from the collection by its id."""
-        r = self.connection.get(format_url("tables", table_id))
+        r = self.connection.get(_format_url("tables", table_id))
         return Table(self.connection, r)
     
     def get_table_by_url(self, url):
         """Get a table from the collection by its URL."""
-        r = self.connection.get(format_url(url))
+        r = self.connection.get(_format_url(url))
         return Table(self.connection, r)
 
     def delete_table_by_id(self, table_id):
         """Delete a table from the collection by its id."""
-        r = self.connection.get(format_url("tables", table_id))
+        r = self.connection.get(_format_url("tables", table_id))
         return Table(self.connection, r).delete()
 
     def delete_table_by_url(self, url):
@@ -126,7 +126,7 @@ class Table:
             if not isinstance(row_id, basestring):
                 raise TypeError("Row id must be a string")
             row_id = row["_id"]
-        return self.connection.put(format_url(self.links["rows"], row_id),
+        return self.connection.put(_format_url(self.links["rows"], row_id),
                 row)
         
     def add_rows(self, rows):
@@ -141,12 +141,12 @@ class Table:
     def get_row_by_id(self, row_id):
         """Get a row from the table by its id."""
         self.still_alive()
-        return self.connection.get(format_url(self.links["rows"], row_id))
+        return self.connection.get(_format_url(self.links["rows"], row_id))
 
     def get_row_by_url(self, url):
         """Get a row from the table by its url."""
         self.still_alive()
-        return self.connection.get(format_url(url))
+        return self.connection.get(_format_url(url))
 
     def get_rows(self):
         """Get the rows of the table."""
@@ -156,7 +156,7 @@ class Table:
     def delete_row_by_id(self, row_id):
         """Delete a row from the table by its id."""
         self.still_alive()
-        return self.connection.delete(format_url(self.links["rows"], row_id))
+        return self.connection.delete(_format_url(self.links["rows"], row_id))
 
     def delete_row_by_url(self, url):
         """Delete a row from the table by its url."""
@@ -181,7 +181,7 @@ class Table:
     def get_analysis_by_id(self, analysis_id):
         """Get an analysis corresponding to the table by its id."""
         self.still_alive()
-        r = self.connection.get(format_url(self.links["analyses"],
+        r = self.connection.get(_format_url(self.links["analyses"],
                 analysis_id))
         return Analysis(self.connection, r)
 
@@ -194,7 +194,7 @@ class Table:
     def delete_analysis_by_id(self, analysis_id):
         """Delete an analysis corresponding to the table by its id."""
         self.still_alive()
-        r = self.connection.get(format_url(self.links["analyses"],
+        r = self.connection.get(_format_url(self.links["analyses"],
                 analysis_id))
         return Analysis(self.connection, r).delete()
 
@@ -222,7 +222,7 @@ class Table:
             raise InvalidAnalysisTypeException()
         if analysis_id is None:
             autogen = True
-            analysis_id = make_analysis_id()
+            analysis_id = _make_analysis_id()
         else:
             autogen = False
         if self.analysis_exists(analysis_id):

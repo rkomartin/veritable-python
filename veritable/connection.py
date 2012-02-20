@@ -6,13 +6,13 @@ from io import BytesIO
 from requests.auth import HTTPBasicAuth
 from urlparse import urljoin
 from .exceptions import *
-from .utils import format_url, url_has_scheme
+from .utils import _format_url, _url_has_scheme
 
 def fully_qualify_url(f):
     def g(*args, **kwargs):
         url = args[1]
-        if not url_has_scheme(url):
-            url = format_url(args[0].api_base_url, url)
+        if not _url_has_scheme(url):
+            url = _format_url(args[0].api_base_url, url)
         return f(args[0], url, *args[2:], **kwargs)
     return g
 
@@ -64,7 +64,7 @@ class Connection:
         if api_base_url is None:
             raise APIBaseURLException()        
         self.api_key = api_key
-        self.api_base_url = format_url(api_base_url)
+        self.api_base_url = _format_url(api_base_url)
         self.auth = HTTPBasicAuth(self.api_key, self.api_key)
         self.ssl_verify = ssl_verify
         self.disable_gzip = disable_gzip
