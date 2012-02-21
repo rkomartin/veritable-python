@@ -5,6 +5,7 @@ import time
 import veritable
 import os
 from veritable.api import *
+from veritable.utils import _validate_schema, wait_for_analysis
 from nose.tools import raises
 
 TEST_API_KEY = os.getenv("VERITABLE_KEY") or "test"
@@ -13,9 +14,7 @@ DATA_FILE = "mammals.json"
 
 data = json.load(open(DATA_FILE, 'r'))
 
-def wait_for_analysis(a):
-    while a.status() == "running":
-        time.sleep(2)
+validate_schema = _validate_schema
 
 class TestMammals:
 	def setup(self):

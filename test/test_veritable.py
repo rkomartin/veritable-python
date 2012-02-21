@@ -9,14 +9,10 @@ from nose.tools import raises
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 from veritable.exceptions import *
-from veritable.utils import _format_url
+from veritable.utils import _format_url, wait_for_analysis
 
 TEST_API_KEY = os.getenv("VERITABLE_KEY") or "test"
 TEST_BASE_URL = os.getenv("VERITABLE_URL") or "https://api.priorknowledge.com"
-
-def wait_for_analysis(a):
-    while a.status() == "running":
-        time.sleep(2)
 
 def test_create_api():
     API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
