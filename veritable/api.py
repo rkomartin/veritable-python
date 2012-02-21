@@ -106,7 +106,7 @@ class Table:
         if self.has_been_deleted:
             raise DeletedTableException()
             
-    def get_state(self):
+    def _get_state(self):
         """Get the state of the table."""
         self.still_alive()
         return self.connection.get(self.links["self"])
@@ -257,19 +257,19 @@ class Analysis:
         if self.has_been_deleted:
             raise DeletedAnalysisException()
 
-    def get_state(self):
+    def _get_state(self):
         """Get the state of the analysis."""
         self.still_alive()
         return self.connection.get(self.links["self"])
     
     def update(self):
-        data = self.get_state()
+        data = self._get_state()
         for k in ["self", "schema", "run", "predict"]:
             if k in data["links"]:
                 self.links[k] = data["links"][k]
 
     def did_not_fail(self):
-        data = self.get_state()
+        data = self._get_state()
         if data["state"] == "failed":
             handle_api_error(data["error"])
     
@@ -279,7 +279,7 @@ class Analysis:
             raise AnalysisNotReadyException()
     
     def status(self):
-        data = self.get_state()
+        data = self._get_state()
         return data["state"]
     
     def delete(self):
