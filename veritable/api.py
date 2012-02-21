@@ -5,7 +5,7 @@ from .utils import _make_table_id, _make_analysis_id, _format_url
 
 BASE_URL = "https://api.priorknowledge.com/"
 
-def connect(api_key=None, api_base_url=None, ssl_verify=False,
+def connect(api_key=None, api_base_url=None, ssl_verify=True,
         disable_gzip=False, debug=False):
     if api_key is None:
         api_key = os.getenv("VERITABLE_KEY")
