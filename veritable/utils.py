@@ -28,3 +28,23 @@ def split_rows(rows, frac):
 	train_dataset = [rows[i] for i in inds[0:border_ind]]
 	test_dataset = [rows[i] for i in inds[border_ind:]]
 	return train_dataset, test_dataset
+
+def _validate_schema(schema):
+    for k in schema.keys():
+        if not isinstance(k, basestring):
+            raise InvalidSchemaException()
+    for v in schema.values():
+        if not v.keys() == ['type']:
+            raise InvalidSchemaException()
+        if not len(v.values()) == 1:
+            raise InvalidSchemaException()
+        if not v.values()[0] in ['boolean', 'categorical', 'real', 'count']:
+            raise InvalidSchemaException()
+
+def validate_schema(schema):
+	try:
+		_validate_schema(schema)
+	except:
+		return False
+	else:
+		return True

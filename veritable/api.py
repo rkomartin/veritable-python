@@ -14,18 +14,6 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
     return API(Connection(api_key, api_base_url, ssl_verify,
             disable_gzip, debug))
 
-def validate_schema(schema):
-    for k in schema.keys():
-        if not isinstance(k, basestring):
-            raise InvalidSchemaException()
-    for v in schema.values():
-        if not v.keys() == ['type']:
-            raise InvalidSchemaException()
-        if not len(v.values()) == 1:
-            raise InvalidSchemaException()
-        if not v.values()[0] in ['boolean', 'categorical', 'real', 'count']:
-            raise InvalidSchemaException()
-
 def handle_api_error(err):
     raise Exception(err)
 
