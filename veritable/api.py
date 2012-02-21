@@ -213,9 +213,8 @@ class Table:
         else:
             return True
 
-    def create_analysis(self, schema, description="",
-                        analysis_id=None, type="veritable",
-                        force=False):
+    def create_analysis(self, schema, analysis_id=None, description="",
+                        type="veritable", force=False):
         """Create a new analysis for the table."""
         self.still_alive()
         if type != "veritable":
