@@ -50,12 +50,11 @@ class API:
         else:
             autogen = False
         if self.table_exists(table_id):
-            if not force:
-                if autogen:
-                    return self.create_table(table_id=None,
+            if autogen:
+                return self.create_table(table_id=None,
                             description=description, force=False)
-                else:
-                    raise DuplicateTableException(table_id)
+            if not force:
+                raise DuplicateTableException(table_id)
             else:
                 self.delete_table_by_id(table_id)
         r = self.connection.post("tables",
@@ -226,13 +225,12 @@ class Table:
         else:
             autogen = False
         if self.analysis_exists(analysis_id):
+            if autogen:
+                return self.create_analysis(schema=schema,
+                        description=description, analysis_id=None,
+                        type=type, force=False)
             if not force:
-                if autogen:
-                    return self.create_analysis(schema=schema,
-                            description=description, analysis_id=None,
-                            type=type, force=False)
-                else:
-                    raise DuplicateAnalysisException(analysis_id)
+                raise DuplicateAnalysisException(analysis_id)
             else:
                 self.delete_analysis_by_id(analysis_id)
         r = self.connection.post(self.links["analyses"],
