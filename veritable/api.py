@@ -292,10 +292,12 @@ class Analysis:
         self.still_alive()
         return self.connection.get(self.links["schema"])
 
-    def predict(self, rows, count=10):
+    def predict(self, row, count=10):
         """Make predictions based on analysis results."""
         self.still_alive()
         self.did_not_fail()
         self.ready_to_predict()
+        if len(row) != 1:
+            raise InvalidPredictionRequest("Wrong number of rows to predict: " + len(row))
         request = {'data': rows, 'count': count}
         return self.connection.post(self.links["predict"], data = request)
