@@ -93,6 +93,7 @@ class Table:
     def __init__(self, connection, data):
         self.connection = connection
         self.has_been_deleted = False
+        self.id = data["_id"]
         self.links = {"self": data["links"]["self"],
                       "analyses": data["links"]["analyses"],
                       "rows": data["links"]["rows"]}    
@@ -243,6 +244,7 @@ class Analysis:
         self.connection = connection
         self.has_been_deleted = False
         self.type = data["type"]
+        self.id = data["_id"]
         self.links = {}
         for k in ["self", "schema", "run", "predict"]:
             if k in data["links"]:
