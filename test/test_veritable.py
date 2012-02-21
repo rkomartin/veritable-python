@@ -389,6 +389,13 @@ class TestTableOps:
         wait_for_analysis(a)
         assert a.status() == "failed"
 
+    @attr('async')
+    def test_error_analysis_failed(self):
+        schema = {'zim': {'type': 'boolean'}, 'wos': {'type': 'real'}}
+        a = self.t.create_analysis(schema, analysis_id="zubble")
+        wait_for_analysis(a)
+        a.error
+
     # This test should not error synchronously -- it should fail only after
     # scanning the data and finding no rows with column "krob"
     @attr('async')

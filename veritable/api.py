@@ -252,6 +252,14 @@ class Analysis:
     def __str__(self):
         return "Veritable analysis at " + self.links["self"]
 
+    @property
+    def error(self):
+        if self.status() != "failed":
+            return None
+        else:
+            data = self._get_state()
+            return data["error"]
+
     def still_alive(self):
         """Check to make sure the analysis still exists."""
         if self.has_been_deleted:
