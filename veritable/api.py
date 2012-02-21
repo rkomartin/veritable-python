@@ -299,5 +299,5 @@ class Analysis:
         self.ready_to_predict()
         if not isinstance(row, dict):
             raise InvalidPredictionRequest("Wrong number of rows to predict: " + len(row))
-        request = {'data': rows, 'count': count}
+        request = {'data': row, 'count': count}
         return self.connection.post(self.links["predict"], data = request)
