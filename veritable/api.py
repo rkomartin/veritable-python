@@ -89,25 +89,25 @@ class Table:
     def __str__(self):
         return "Veritable table at " + self.links["self"]
 
-    def still_alive(self):
+    def _still_alive(self):
         """Check to make sure the table still exists."""
         if self.has_been_deleted:
             raise DeletedTableException()
             
     def _get_state(self):
         """Get the state of the table."""
-        self.still_alive()
+        self._still_alive()
         return self.connection.get(self.links["self"])
         
     def delete(self):
         """Delete the table."""
-        self.still_alive()
+        self._still_alive()
         self.has_been_deleted = True
         return self.connection.delete(self.links["self"])
         
     def add_row(self, row):
         """Add a row to the table."""
-        self.still_alive()
+        self._still_alive()
         if "_id" not in row:
             raise MissingRowIDException()
         else:
@@ -119,7 +119,7 @@ class Table:
         
     def add_rows(self, rows):
         """Batch add rows to the table."""
-        self.still_alive()
+        self._still_alive()
         for i in range(len(rows)):
             if not "_id" in rows[i]:
                 raise MissingRowIDException()
@@ -128,32 +128,32 @@ class Table:
 
     def get_row_by_id(self, row_id):
         """Get a row from the table by its id."""
-        self.still_alive()
+        self._still_alive()
         return self.connection.get(_format_url(self.links["rows"], row_id))
 
     def get_row_by_url(self, url):
         """Get a row from the table by its url."""
-        self.still_alive()
+        self._still_alive()
         return self.connection.get(_format_url(url))
 
     def get_rows(self):
         """Get the rows of the table."""
-        self.still_alive()
+        self._still_alive()
         return self.connection.get(self.links["rows"])["rows"]
 
     def delete_row_by_id(self, row_id):
         """Delete a row from the table by its id."""
-        self.still_alive()
+        self._still_alive()
         return self.connection.delete(_format_url(self.links["rows"], row_id))
 
     def delete_row_by_url(self, url):
         """Delete a row from the table by its url."""
-        self.still_alive()
+        self._still_alive()
         return self.connection.delete(url)
 
     def delete_rows(self, rows):
         """Batch delete rows from the table."""
-        self.still_alive()
+        self._still_alive()
         for i in range(len(rows)):
             if not "_id" in rows[i]:
                 raise MissingRowIDException()
@@ -162,33 +162,33 @@ class Table:
 
     def get_analyses(self):
         """Get the analyses corresponding to the table."""
-        self.still_alive()
+        self._still_alive()
         r = self.connection.get(self.links["analyses"])
         return [Analysis(self.connection, a) for a in r["data"]]
 
     def get_analysis_by_id(self, analysis_id):
         """Get an analysis corresponding to the table by its id."""
-        self.still_alive()
+        self._still_alive()
         r = self.connection.get(_format_url(self.links["analyses"],
                 analysis_id))
         return Analysis(self.connection, r)
 
     def get_analysis_by_url(self, url):
         """Get an analysis by its URL."""
-        self.still_alive()
+        self._still_alive()
         r = self.connection.get(url)
         return Analysis(self.connection, r)
 
     def delete_analysis_by_id(self, analysis_id):
         """Delete an analysis corresponding to the table by its id."""
-        self.still_alive()
+        self._still_alive()
         r = self.connection.get(_format_url(self.links["analyses"],
                 analysis_id))
         return Analysis(self.connection, r).delete()
 
     def delete_analysis_by_url(self, url):
         """Delete an analysis corresponding to the table by its URL."""
-        self.still_alive()
+        self._still_alive()
         r = self.connection.get(url)
         return Analysis(self.connection, r).delete()
 
@@ -204,7 +204,7 @@ class Table:
     def create_analysis(self, schema, analysis_id=None, description="",
                         type="veritable", force=False):
         """Create a new analysis for the table."""
-        self.still_alive()
+        self._still_alive()
         if type != "veritable":
             raise InvalidAnalysisTypeException()
         if analysis_id is None:
@@ -248,14 +248,14 @@ class Analysis:
             data = self._get_state()
             return data["error"]
 
-    def still_alive(self):
+    def _still_alive(self):
         """Check to make sure the analysis still exists."""
         if self.has_been_deleted:
             raise DeletedAnalysisException()
 
     def _get_state(self):
         """Get the state of the analysis."""
-        self.still_alive()
+        self._still_alive()
         return self.connection.get(self.links["self"])
     
     def update(self):
@@ -264,12 +264,12 @@ class Analysis:
             if k in data["links"]:
                 self.links[k] = data["links"][k]
 
-    def did_not_fail(self):
+    def _did_not_fail(self):
         data = self._get_state()
         if data["state"] == "failed":
             handle_api_error(data["error"])
     
-    def ready_to_predict(self):
+    def _ready_to_predict(self):
         self.update()
         if "predict" not in self.links:
             raise AnalysisNotReadyException()
@@ -280,19 +280,19 @@ class Analysis:
     
     def delete(self):
         """"Delete the analysis."""
-        self.still_alive()
+        self._still_alive()
         return self.connection.delete(self.links["self"])
 
     def get_schema(self):
         """Get the schema corresponding to the analysis."""
-        self.still_alive()
+        self._still_alive()
         return self.connection.get(self.links["schema"])
 
     def predict(self, row, count=10):
         """Make predictions based on analysis results."""
-        self.still_alive()
-        self.did_not_fail()
-        self.ready_to_predict()
+        self._still_alive()
+        self._did_not_fail()
+        self._ready_to_predict()
         if not isinstance(row, dict):
             raise InvalidPredictionRequest("Wrong number of rows to predict: " + len(row))
         request = {'data': row, 'count': count}
