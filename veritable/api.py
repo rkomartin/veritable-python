@@ -297,7 +297,7 @@ class Analysis:
         self.still_alive()
         self.did_not_fail()
         self.ready_to_predict()
-        if len(row) != 1:
+        if not isinstance(row, dict):
             raise InvalidPredictionRequest("Wrong number of rows to predict: " + len(row))
         request = {'data': rows, 'count': count}
         return self.connection.post(self.links["predict"], data = request)
