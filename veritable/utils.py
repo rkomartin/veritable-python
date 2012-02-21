@@ -17,3 +17,12 @@ def _url_has_scheme(url):
 def wait_for_analysis(a, poll=2):
 	while a.status() == "running":
 		time.sleep(poll)
+
+def split_rows(rows, frac):
+	N = len(rows)
+	inds = range(N)
+	shuffle(inds)
+	border_ind = int(floor(N * frac))
+	train_dataset = [dataset[i] for i in inds[0:border_ind]]
+	test_dataset = [dataset[i] for i in inds[border_ind:]]
+	return train_dataset, test_dataset
