@@ -1,5 +1,7 @@
 import time
 import uuid
+from math import floor
+from random import shuffle
 from urlparse import urlparse
 
 def _make_table_id():
