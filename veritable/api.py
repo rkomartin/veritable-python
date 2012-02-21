@@ -282,12 +282,6 @@ class Analysis:
     def status(self):
         data = self.get_state()
         return data["state"]
-
-    def run(self):
-        """Run the analysis."""
-        self.still_alive()
-        self.did_not_fail()
-        return self.connection.post(self.links["run"], {})
     
     def delete(self):
         """"Delete the analysis."""
