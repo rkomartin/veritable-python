@@ -83,10 +83,11 @@ class Connection:
         
     @fully_qualify_url
     def get(self, url):
-        kwargs = {'headers': {'accept-encoding': 'gzip'},
-                  'auth': self.auth}
+        kwargs = {'auth': self.auth}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
+        if not self.disable_gzip:
+            kwargs['headers'] = {'accept-encoding': 'gzip'}
         if self.debug:
             kwargs['config'] = {'verbose': sys.stderr}
         r = requests.get(url, **kwargs)
@@ -94,13 +95,13 @@ class Connection:
     
     @fully_qualify_url
     def post(self, url, data):
-        kwargs = {'headers': {'content-type': 'application/json',
-                              'content-encoding': 'gzip'},
+        kwargs = {'headers': {'content-type': 'application/json'},
                   'auth': self.auth}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
         if not self.disable_gzip:
             kwargs['data'] = mgzip(json.dumps(data))
+            kwargs['headers']['content-encoding'] = 'gzip'
         else:
             kwargs['data'] = json.dumps(data)
         if self.debug:
@@ -110,13 +111,13 @@ class Connection:
     
     @fully_qualify_url
     def put(self, url, data):
-        kwargs = {'headers': {'content-type': 'application/json',
-                              'content-encoding': 'gzip'},
+        kwargs = {'headers': {'content-type': 'application/json'},
                   'auth': self.auth}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
         if not self.disable_gzip:
             kwargs['data'] = mgzip(json.dumps(data))
+            kwargs['headers']['content-encoding'] = 'gzip'
         else:
             kwargs['data'] = json.dumps(data)
         if self.debug:
