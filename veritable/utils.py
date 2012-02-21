@@ -25,6 +25,6 @@ def split_rows(rows, frac):
 	inds = range(N)
 	shuffle(inds)
 	border_ind = int(floor(N * frac))
-	train_dataset = [dataset[i] for i in inds[0:border_ind]]
-	test_dataset = [dataset[i] for i in inds[border_ind:]]
+	train_dataset = [rows[i] for i in inds[0:border_ind]]
+	test_dataset = [rows[i] for i in inds[border_ind:]]
 	return train_dataset, test_dataset
