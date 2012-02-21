@@ -47,6 +47,11 @@ class TestAPI:
         t = self.API.get_table_by_id("hoo")
 
     @attr('sync')
+    def test_get_table_by_id_2(self):
+        t = self.API.create_table("hoo", force=True)
+        t = self.API.get_table_by_id(t.id)
+
+    @attr('sync')
     def test_delete_table(self):
         t = self.API.create_table("woo", force=True)
         t = self.API.get_table_by_id("woo")
