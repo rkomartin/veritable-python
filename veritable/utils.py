@@ -5,6 +5,7 @@ from random import shuffle
 from urlparse import urlparse
 import csv
 import re
+from collections import Counter
 from .exceptions import *
 
 
@@ -221,3 +222,17 @@ def validate(rows,schema,convertTypes=False,nullInvalids=False,mapCategories=Fal
         if fill == 0:
             raise DataValidationException("Field '"+c+"' does not have non-empty values",field=c)
 
+
+def summarize(predictions, colName):
+    ctype = type(predictions[0][colName])
+    if ctype in (int,float):
+        e = sum([p[colName] for p in predictions]) / float(len(predictions))
+        c = 0 if len(predictions) == 1 else pow(sum([pow(p[colName]-e,2) for p in predictions])/float(len(predictions)-1),0.5)
+        if ctype == int:
+            return (int(round(e,0)),c)
+        else:
+            return (e,c)
+    elif ctype in (str,bool):
+        e,c = Counter([p[colName] for p in predictions]).most_common(1)[0]
+        c = c / float(len(predictions))
+        return (e,c)
