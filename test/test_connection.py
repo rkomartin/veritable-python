@@ -38,14 +38,14 @@ def test_delete():
     assert str(response) == str(content)
 
 def test_post():
-    content = { u'key': [u'val1', u'val2', 3, 4] }
+    content = { 'key': ['val1', 'val2', 3, 4] }
     response = conn.post(url_base+'/echopost', content)
-    assert str(response) == str(content)
+    assert response == content
     
 def test_put():
-    content = { u'key': [u'val1', u'val2', 3, 4] }
+    content = { 'key': ['val1', 'val2', 3, 4] }
     response = conn.put(url_base+'/echoput', content)
-    assert str(response) == str(content)
+    assert response == content
 
 def test_fq_url():
     content = 'jello'

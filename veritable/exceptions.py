@@ -71,3 +71,12 @@ class InvalidPredictionRequest(Exception):
         self.value = msg
     def __str__(self):
         return repr(self.value)
+
+class DataValidationException(Exception):
+    def __init__(self, msg, row=None, field=None):
+        self.value = msg
+        self.row = row
+        self.field = field
+    def __str__(self):
+        return repr(self.value)
+
