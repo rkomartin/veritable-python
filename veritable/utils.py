@@ -105,16 +105,17 @@ def read_csv(fileName,idCol=None,dialect=None):
             rowSet = {}
             for i in range(min(len(header),len(row))):
                 val = row[i].strip()
-                if(header[i] == idCol):
-                    rowSet['_id'] = val
-                else:
-                    rowSet[header[i]] = None if val == '' else val
+                if not(val == ''):
+                    if(header[i] == idCol):
+                        rowSet['_id'] = val
+                    else:
+                        rowSet[header[i]] = val
             if idCol == None:
                 rowSet['_id'] = str(rowCount)
             table.append(rowSet)
     return table;
 
-def validate(rows,schema,convertTypes=False,nullInvalids=False,mapCategories=False,assignIDs=False,removeExtraFields=False):
+def validate(rows,schema,convertTypes=False,removeNones=False,removeInvalids=False,mapCategories=False,assignIDs=False,removeExtraFields=False):
     for c in schema.keys():
         if not(schema[c].has_key('type')):
             raise DataValidationException("Field '"+c+"' does not have a 'type' specified. Please specify 'type' as one of ['count','real','boolean','categorical']",field=c)            
@@ -144,54 +145,66 @@ def validate(rows,schema,convertTypes=False,nullInvalids=False,mapCategories=Fal
                         r.pop(c)
                     else:
                         raise DataValidationException("Row:'"+str(i)+"' Field:'"+c+"' is not defined in schema",row=i,field=c)                    
+                elif r[c] == None:
+                    if removeNones:
+                        r.pop(c)
+                    else:
+                        raise DataValidationException("Row:'"+str(i)+"' Field:'"+c+"' should be removed because it has value None",row=i,field=c)                    
                 else:
-                    if not(r[c] == None):
-                        ctype = schema[c]['type']
-                        if(ctype == 'count'):
-                            if convertTypes:                            
-                                try:
-                                    r[c] = int(r[c])
-                                except:
-                                    if nullInvalids:
-                                        r[c] = None
-                            if not(r[c] == None):
-                                if not(type(r[c]) == int):
-                                    raise DataValidationException("Row:'"+str(i)+"' Field:'"+c+"' Value:'"+str(r[c])+"' is "+str(type(r[c]))+", not an int",row=i,field=c)
-                        elif(ctype == 'real'):
-                            if convertTypes:                            
-                                try:
-                                    r[c] = float(r[c])
-                                except:
-                                    if nullInvalids:
-                                        r[c] = None
-                            if not(r[c] == None):
-                                if not(type(r[c]) == float):
-                                    raise DataValidationException("Row:'"+str(i)+"' Field:'"+c+"' Value:'"+str(r[c])+"' is "+str(type(r[c]))+", not a float",row=i,field=c)
-                        elif(ctype == 'boolean'):
-                            if convertTypes:                            
-                                try:
-                                    r[c] = True if str(r[c]).strip().lower() in ['true','yes','y'] else False if str(r[c]).strip().lower() in ['false','no','n'] else bool(int(r[c]))
-                                except:
-                                    if nullInvalids:
-                                        r[c] = None
-                            if not(r[c] == None):
-                                if not(type(r[c]) == bool):
-                                    raise DataValidationException("Row:'"+str(i)+"' Field:'"+c+"' Value:'"+str(r[c])+"' is "+str(type(r[c]))+", not a bool",row=i,field=c)   
-                        elif(ctype == 'categorical'):
-                            if convertTypes:                            
-                                try:
-                                    r[c] = str(r[c])
-                                except:
-                                    if nullInvalids:
-                                        r[c] = None
-                            if not(r[c] == None):
-                                if not(type(r[c]) == str):
-                                    raise DataValidationException("Row:'"+str(i)+"' Field:'"+c+"' Value:'"+str(r[c])+"' is "+str(type(r[c]))+", not a str",row=i,field=c)
-                                if not(catCounts.has_key(c)):
-                                    catCounts[c] = {}
-                                if not(catCounts[c].has_key(r[c])):
-                                    catCounts[c][r[c]] = 0
-                                catCounts[c][r[c]] = catCounts[c][r[c]] + 1
+                    ctype = schema[c]['type']
+                    if(ctype == 'count'):
+                        if convertTypes:                            
+                            try:
+                                r[c] = int(r[c])
+                            except:
+                                if removeInvalids:
+                                    r[c] = None
+                        if r[c] == None:
+                            r.pop(c)
+                        else:
+                            if not(type(r[c]) == int):
+                                raise DataValidationException("Row:'"+str(i)+"' Field:'"+c+"' Value:'"+str(r[c])+"' is "+str(type(r[c]))+", not an int",row=i,field=c)                            
+                    elif(ctype == 'real'):
+                        if convertTypes:                            
+                            try:
+                                r[c] = float(r[c])
+                            except:
+                                if removeInvalids:
+                                    r[c] = None
+                        if r[c] == None:
+                            r.pop(c)
+                        else:
+                            if not(type(r[c]) == float):
+                                raise DataValidationException("Row:'"+str(i)+"' Field:'"+c+"' Value:'"+str(r[c])+"' is "+str(type(r[c]))+", not a float",row=i,field=c)
+                    elif(ctype == 'boolean'):
+                        if convertTypes:                            
+                            try:
+                                r[c] = True if str(r[c]).strip().lower() in ['true','yes','y'] else False if str(r[c]).strip().lower() in ['false','no','n'] else bool(int(r[c]))
+                            except:
+                                if removeInvalids:
+                                    r[c] = None
+                        if r[c] == None:
+                            r.pop(c)
+                        else:
+                            if not(type(r[c]) == bool):
+                                raise DataValidationException("Row:'"+str(i)+"' Field:'"+c+"' Value:'"+str(r[c])+"' is "+str(type(r[c]))+", not a bool",row=i,field=c)   
+                    elif(ctype == 'categorical'):
+                        if convertTypes:                            
+                            try:
+                                r[c] = str(r[c])
+                            except:
+                                if removeInvalids:
+                                    r[c] = None
+                        if r[c] == None:
+                            r.pop(c)
+                        else:
+                            if not(type(r[c]) == str):
+                                raise DataValidationException("Row:'"+str(i)+"' Field:'"+c+"' Value:'"+str(r[c])+"' is "+str(type(r[c]))+", not a str",row=i,field=c)
+                            if not(catCounts.has_key(c)):
+                                catCounts[c] = {}
+                            if not(catCounts[c].has_key(r[c])):
+                                catCounts[c][r[c]] = 0
+                            catCounts[c][r[c]] = catCounts[c][r[c]] + 1
     maxCats = 256
     for c in catCounts.keys():
         cats = catCounts[c].keys()
@@ -212,6 +225,8 @@ def validate(rows,schema,convertTypes=False,nullInvalids=False,mapCategories=Fal
             else:
                 raise DataValidationException("Categorical field '"+c+"' has "+str(len(catCounts[c].keys()))+" unique values which exceeds the limit of "+str(maxCats),field=c)
     fieldFill = {}
+    for c in schema.keys():
+        fieldFill[c] = 0
     for r in rows:
         for c in r.keys():
             if not(fieldFill.has_key(c)):
@@ -220,7 +235,7 @@ def validate(rows,schema,convertTypes=False,nullInvalids=False,mapCategories=Fal
                 fieldFill[c] = fieldFill[c]+1
     for (c,fill) in fieldFill.items():
         if fill == 0:
-            raise DataValidationException("Field '"+c+"' does not have non-empty values",field=c)
+            raise DataValidationException("Field '"+c+"' does not have any values",field=c)
 
 
 def summarize(predictions, colName):

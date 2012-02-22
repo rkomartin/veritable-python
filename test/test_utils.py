@@ -7,9 +7,9 @@ import os
 
 def test_write_read_csv():
     handle,filename = mkstemp()
-    refrows = [{'_id':'7', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
-                {'_id':'8', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
-                {'_id':'9', 'ColInt':None, 'ColFloat':None, 'ColCat':None, 'ColBool':None}]
+    refrows = [{'_id':'7', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a'},
+               {'_id':'8', 'ColInt':4, 'ColCat':'b', 'ColBool':False},
+               {'_id':'9'}]
     write_csv(refrows,filename,dialect=csv.excel)
     testrows = read_csv(filename,dialect=csv.excel)
     cschema = {
@@ -28,7 +28,7 @@ def test_read_csv_map_id():
     handle,filename = mkstemp()
     refrows = [{'myID':'7', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'myID':'8', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
-                {'myID':'9', 'ColInt':None, 'ColFloat':None, 'ColCat':None, 'ColBool':None}]
+                {'myID':'9'}]
     write_csv(refrows,filename,dialect=csv.excel)
     testrows = read_csv(filename,idCol='myID',dialect=csv.excel)
     cschema = {
@@ -49,7 +49,7 @@ def test_read_csv_assign_id():
     handle,filename = mkstemp()
     refrows = [{'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
-                {'ColInt':None, 'ColFloat':None, 'ColCat':None, 'ColBool':None}]
+                {}]
     write_csv(refrows,filename,dialect=csv.excel)
     testrows = read_csv(filename,dialect=csv.excel)
     cschema = {
@@ -127,22 +127,22 @@ vschema = {
 # Valid
 def test_valid_rows():
     refrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
-                {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
-                {'_id':'3', 'ColInt':None, 'ColFloat':None, 'ColCat':None, 'ColBool':None}]
+               {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
+               {'_id':'3'}]
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
-                {'_id':'3', 'ColInt':None, 'ColFloat':None, 'ColCat':None, 'ColBool':None}]
+                {'_id':'3'}]
     validate(testrows, vschema)
     assert testrows == refrows
 
 def test_valid_rows_fix():
     refrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
-                {'_id':'3', 'ColInt':None, 'ColFloat':None, 'ColCat':None, 'ColBool':None}]
+                {'_id':'3'}]
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
-                {'_id':'3', 'ColInt':None, 'ColFloat':None, 'ColCat':None, 'ColBool':None}]
-    validate(testrows, vschema, convertTypes=True, nullInvalids=True, mapCategories=True, removeExtraFields=True)
+                {'_id':'3'}]
+    validate(testrows, vschema, convertTypes=True, removeNones=True, removeInvalids=True, mapCategories=True, removeExtraFields=True)
     assert testrows == refrows
 
 # Missing ID
@@ -214,6 +214,27 @@ def test_extrafield_fix():
     assert not(testrows[1].has_key('ColEx'))
     validate(testrows, vschema)
 
+# Field value is None
+@raises(DataValidationException)
+def test_nonefield_fail():
+    testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
+                {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':None, 'ColBool':False}]
+    try:
+        validate(testrows, vschema)
+    except DataValidationException as e:
+        assert e.row == 1
+        assert e.field == 'ColCat'
+        raise
+
+def test_nonefield_fix():
+    testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
+                {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':None, 'ColBool':False}]
+    validate(testrows, vschema, removeNones=True)
+    assert not(testrows[1].has_key('ColCat'))
+    validate(testrows, vschema)
+
+
+
 # Non-int Count
 @raises(DataValidationException)
 def test_non_int_count_fail():
@@ -259,8 +280,8 @@ def test_nonvalid_int_count_fixfail():
 def test_nonvalid_int_count_fix():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':'jello', 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False}]
-    validate(testrows, vschema, convertTypes=True, nullInvalids=True)
-    assert testrows[1]['ColInt'] == None
+    validate(testrows, vschema, convertTypes=True, removeInvalids=True)
+    assert not(testrows[1].has_key('ColInt'))
     validate(testrows, vschema)
 
 
@@ -309,8 +330,8 @@ def test_nonvalid_float_real_fixfail():
 def test_nonvalid_float_real_fix():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':'jello', 'ColCat':'b', 'ColBool':False}]
-    validate(testrows, vschema, convertTypes=True, nullInvalids=True)
-    assert testrows[1]['ColFloat'] == None
+    validate(testrows, vschema, convertTypes=True, removeInvalids=True)
+    assert not(testrows[1].has_key('ColFloat'))
     validate(testrows, vschema)
 
 
@@ -400,13 +421,16 @@ def test_nonvalid_bool_boolean_fixfail():
 def test_nonvalid_bool_boolean_fix():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'jello'}]
-    validate(testrows, vschema, convertTypes=True, nullInvalids=True)
-    assert testrows[1]['ColBool'] == None
+    validate(testrows, vschema, convertTypes=True, removeInvalids=True)
+    assert not(testrows[1].has_key('ColBool'))
     validate(testrows, vschema)
 
 # Too many categories
 @raises(DataValidationException)
 def test_too_many_cats_fail():
+    eschema = {
+        'ColCat':{'type':'categorical'}
+    }
     testrows = []
     rid = 0
     maxCols = 256
@@ -417,12 +441,15 @@ def test_too_many_cats_fail():
     testrows.append({'_id':str(rid), 'ColCat':str(maxCols-1)})
     testrows.append({'_id':str(rid+1), 'ColCat':str(maxCols)})
     try:
-        validate(testrows, vschema, convertTypes=True)
+        validate(testrows, eschema, convertTypes=True)
     except DataValidationException as e:
         assert e.field == 'ColCat'
         raise
 
 def test_too_many_cats_fix():
+    eschema = {
+        'ColCat':{'type':'categorical'}
+    }
     testrows = []
     rid = 0
     maxCols = 256
@@ -432,16 +459,16 @@ def test_too_many_cats_fix():
         rid = rid + 2
     testrows.append({'_id':str(rid), 'ColCat':str(maxCols-1)})
     testrows.append({'_id':str(rid+1), 'ColCat':str(maxCols)})
-    validate(testrows, vschema, mapCategories=True)
+    validate(testrows, eschema, mapCategories=True)
     assert testrows[510]['ColCat'] == 'Other'
     assert testrows[511]['ColCat'] == 'Other'
-    validate(testrows, vschema)
+    validate(testrows, eschema)
 
 
 @raises(DataValidationException)
 def test_empty_col_fail():
-    testrows = [{'_id':'1', 'ColCat':None},
-                {'_id':'2', 'ColCat':None}]
+    testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColBool':True},
+                {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColBool':False}]
     try:
         validate(testrows, vschema)
     except DataValidationException as e:
