@@ -345,18 +345,33 @@ def test_non_bool_boolean_fail():
         assert e.field == 'ColBool'
         raise
 
-def test_non_bool_boolean_fix():
+def test_non_bool_boolean_truefix():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
-                {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'0'}]
+                {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'1'},
+                {'_id':'4', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'2'},
+                {'_id':'5', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'True'},
+                {'_id':'6', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'true'},
+                {'_id':'7', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'Yes'},
+                {'_id':'8', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'YES'},
+                {'_id':'9', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'Y'},
+                {'_id':'10', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'y'}]
     validate(testrows, vschema, convertTypes=True)
-    assert testrows[1]['ColBool'] == False
+    for r in testrows:
+        assert r['ColBool'] == True
     validate(testrows, vschema)
 
-def test_non_bool_boolean_wordfix():
-    testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
-                {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'False'}]
+def test_non_bool_boolean_falsefix():
+    testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':False},
+                {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'0'},
+                {'_id':'5', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'False'},
+                {'_id':'6', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'false'},
+                {'_id':'7', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'No'},
+                {'_id':'8', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'NO'},
+                {'_id':'9', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'N'},
+                {'_id':'10', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'n'}]
     validate(testrows, vschema, convertTypes=True)
-    assert testrows[1]['ColBool'] == False
+    for r in testrows:
+        assert r['ColBool'] == False
     validate(testrows, vschema)
 
 # Non-valid-bool boolean

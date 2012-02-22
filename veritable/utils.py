@@ -169,7 +169,7 @@ def validate(rows,schema,convertTypes=False,nullInvalids=False,mapCategories=Fal
                         elif(ctype == 'boolean'):
                             if convertTypes:                            
                                 try:
-                                    r[c] = True if str(r[c]).strip().lower() == 'true' else False if str(r[c]).strip().lower() == 'false' else bool(int(r[c]))
+                                    r[c] = True if str(r[c]).strip().lower() in ['true','yes','y'] else False if str(r[c]).strip().lower() in ['false','no','n'] else bool(int(r[c]))
                                 except:
                                     if nullInvalids:
                                         r[c] = None
