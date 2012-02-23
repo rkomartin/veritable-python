@@ -5,7 +5,6 @@ from random import shuffle
 from urlparse import urlparse
 import csv
 import re
-from collections import Counter
 from .exceptions import *
 
 
@@ -240,14 +239,16 @@ def validate(rows,schema,convertTypes=False,removeNones=False,removeInvalids=Fal
 
 def summarize(predictions, colName):
     ctype = type(predictions[0][colName])
+    vals = [p[colName] for p in predictions]
+    cnt = len(vals)
     if ctype in (int,float):
-        e = sum([p[colName] for p in predictions]) / float(len(predictions))
-        c = 0 if len(predictions) == 1 else pow(sum([pow(p[colName]-e,2) for p in predictions])/float(len(predictions)-1),0.5)
+        e = sum(vals) / float(cnt)
+        c = 0 if cnt == 1 else pow(sum([pow(v-e,2) for v in vals])/float(cnt-1),0.5)
         if ctype == int:
             return (int(round(e,0)),c)
         else:
             return (e,c)
     elif ctype in (str,bool):
-        e,c = Counter([p[colName] for p in predictions]).most_common(1)[0]
-        c = c / float(len(predictions))
+        e = max(vals, key=vals.count)
+        c = sum([1.0 for v in vals if v == e]) / float(cnt)
         return (e,c)
