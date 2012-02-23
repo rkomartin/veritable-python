@@ -1,4 +1,4 @@
-from veritable.utils import read_csv, write_csv, make_schema, validate, summarize
+from veritable.utils import read_csv, write_csv, make_schema, validate_data, validate_predictions, summarize
 from veritable.exceptions import DataValidationException
 from nose.tools import raises
 from tempfile import mkstemp
@@ -18,7 +18,7 @@ def test_write_read_csv():
         'ColCat':{'type':'categorical'},
         'ColBool':{'type':'boolean'}
         }
-    validate(testrows,cschema,convertTypes=True)
+    validate_data(testrows,cschema,convertTypes=True)
     assert len(testrows) == len(refrows)
     for i in range(len(testrows)):
         assert testrows[i] == refrows[i]
@@ -37,7 +37,7 @@ def test_read_csv_map_id():
         'ColCat':{'type':'categorical'},
         'ColBool':{'type':'boolean'}
         }
-    validate(testrows,cschema,convertTypes=True)
+    validate_data(testrows,cschema,convertTypes=True)
     assert len(testrows) == len(refrows)
     for i in range(len(testrows)):
         refrows[i]['_id'] = refrows[i]['myID']
@@ -58,7 +58,7 @@ def test_read_csv_assign_id():
         'ColCat':{'type':'categorical'},
         'ColBool':{'type':'boolean'}
         }
-    validate(testrows,cschema,convertTypes=True)
+    validate_data(testrows,cschema,convertTypes=True)
     assert len(testrows) == len(refrows)
     for i in range(len(testrows)):
         refrows[i]['_id'] = str(i+1)
@@ -101,7 +101,7 @@ def test_missing_schema_type_fail():
     bschema = {'ColInt':{},'ColFloat':{'type':'real'} }
     testrows = []
     try:
-        validate(testrows, bschema)
+        validate_data(testrows, bschema)
     except DataValidationException as e:
         assert e.field == 'ColInt'
         raise
@@ -111,7 +111,7 @@ def test_bad_schema_type_fail():
     bschema = {'ColInt':{'type':'jello'},'ColFloat':{'type':'real'} }
     testrows = []
     try:
-        validate(testrows, bschema)
+        validate_data(testrows, bschema)
     except DataValidationException as e:
         assert e.field == 'ColInt'
         raise
@@ -125,52 +125,74 @@ vschema = {
     }
 
 # Valid
-def test_valid_rows():
+def test_data_valid_rows():
     refrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
                {'_id':'3'}]
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
                 {'_id':'3'}]
-    validate(testrows, vschema)
+    validate_data(testrows, vschema)
     assert testrows == refrows
 
-def test_valid_rows_fix():
+def test_pred_valid_rows():
+    refrows = [{'ColInt':None, 'ColFloat':None, 'ColCat':'a', 'ColBool':True},
+               {'ColInt':None, 'ColFloat':4.1, 'ColCat':None, 'ColBool':False},
+               {'ColInt':None, 'ColFloat':None}]
+    testrows = [{'ColInt':None, 'ColFloat':None, 'ColCat':'a', 'ColBool':True},
+               {'ColInt':None, 'ColFloat':4.1, 'ColCat':None, 'ColBool':False},
+               {'ColInt':None, 'ColFloat':None}]
+    validate_predictions(testrows, vschema)
+    assert testrows == refrows
+
+
+def test_data_valid_rows_fix():
     refrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
                 {'_id':'3'}]
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
                 {'_id':'3'}]
-    validate(testrows, vschema, convertTypes=True, removeNones=True, removeInvalids=True, mapCategories=True, removeExtraFields=True)
+    validate_data(testrows, vschema, convertTypes=True, removeNones=True, removeInvalids=True, mapCategories=True, removeExtraFields=True)
     assert testrows == refrows
+
+def test_pred_valid_rows_fix():
+    refrows = [{'ColInt':None, 'ColFloat':None, 'ColCat':'a', 'ColBool':True},
+               {'ColInt':None, 'ColFloat':4.1, 'ColCat':None, 'ColBool':False},
+               {'ColInt':None, 'ColFloat':None}]
+    testrows = [{'ColInt':None, 'ColFloat':None, 'ColCat':'a', 'ColBool':True},
+               {'ColInt':None, 'ColFloat':4.1, 'ColCat':None, 'ColBool':False},
+               {'ColInt':None, 'ColFloat':None}]
+    validate_predictions(testrows, vschema, convertTypes=True, removeInvalids=True, removeExtraFields=True)
+    assert testrows == refrows
+
 
 # Missing ID
 @raises(DataValidationException)
-def test_missing_id_fail():
+def test_data_missing_id_fail():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False}]
     try:
-        validate(testrows, vschema)
+        validate_data(testrows, vschema)
     except DataValidationException as e:
         assert e.row == 1
         raise
         
-def test_missing_id_fix():
+def test_data_missing_id_fix():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False}]
-    validate(testrows, vschema, assignIDs=True)
+    validate_data(testrows, vschema, assignIDs=True)
     assert testrows[0]['_id'] != testrows[1]['_id']
-    validate(testrows, vschema)
+    validate_data(testrows, vschema)
     
 
 # Duplicate ID
 @raises(DataValidationException)
-def test_duplicate_id_fail():
+def test_data_duplicate_id_fail():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'1', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False}]
     try:
-        validate(testrows, vschema)
+        validate_data(testrows, vschema)
     except DataValidationException as e:
         assert e.row == 1
         assert e.field == '_id'
@@ -178,195 +200,351 @@ def test_duplicate_id_fail():
     
 # Non-string ID
 @raises(DataValidationException)
-def test_nonstring_id_fail():
+def test_data_nonstring_id_fail():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':2, 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False}]
     try:
-        validate(testrows, vschema)
+        validate_data(testrows, vschema)
     except DataValidationException as e:
         assert e.row == 1
         assert e.field == '_id'
         raise
 
-def test_nonstring_id_fix():
+def test_data_nonstring_id_fix():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':2, 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False}]
-    validate(testrows, vschema, convertTypes=True)
+    validate_data(testrows, vschema, convertTypes=True)
     assert testrows[1]['_id'] == '2'
-    validate(testrows, vschema)
+    validate_data(testrows, vschema)
 
 # Extra Field Not In Schema
 @raises(DataValidationException)
-def test_extrafield_fail():
+def test_data_extrafield_fail():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColEx':4, 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False}]
     try:
-        validate(testrows, vschema)
+        validate_data(testrows, vschema)
     except DataValidationException as e:
         assert e.row == 1
         assert e.field == 'ColEx'
         raise
 
-def test_extrafield_fix():
+@raises(DataValidationException)
+def test_pred_extrafield_fail():
+    testrows = [{'ColInt':3, 'ColFloat':None, 'ColCat':'a', 'ColBool':True},
+                {'ColEx':None, 'ColInt':4, 'ColFloat':None, 'ColCat':'b', 'ColBool':False}]
+    try:
+        validate_predictions(testrows, vschema)
+    except DataValidationException as e:
+        assert e.row == 1
+        assert e.field == 'ColEx'
+        raise
+
+@raises(DataValidationException)
+def test_pred_idfield_fail():
+    testrows = [{'ColInt':3, 'ColFloat':None, 'ColCat':'a', 'ColBool':True},
+                {'_id':'2', 'ColInt':4, 'ColFloat':None, 'ColCat':'b', 'ColBool':False}]
+    try:
+        validate_predictions(testrows, vschema)
+    except DataValidationException as e:
+        assert e.row == 1
+        assert e.field == '_id'
+        raise
+
+def test_data_extrafield_fix():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColEx':4, 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False}]
-    validate(testrows, vschema, removeExtraFields=True)
+    validate_data(testrows, vschema, removeExtraFields=True)
     assert not(testrows[1].has_key('ColEx'))
-    validate(testrows, vschema)
+    validate_data(testrows, vschema)
+
+def test_pred_extrafield_fix():
+    testrows = [{'_id':'1','ColInt':3, 'ColFloat':None, 'ColCat':'a', 'ColBool':True},
+                {'ColEx':None, 'ColInt':4, 'ColFloat':None, 'ColCat':'b', 'ColBool':False}]
+    validate_predictions(testrows, vschema, removeExtraFields=True)
+    assert not(testrows[0].has_key('_id'))
+    assert not(testrows[1].has_key('ColEx'))
+    validate_predictions(testrows, vschema)
 
 # Field value is None
 @raises(DataValidationException)
-def test_nonefield_fail():
+def test_data_nonefield_fail():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':None, 'ColBool':False}]
     try:
-        validate(testrows, vschema)
+        validate_data(testrows, vschema)
     except DataValidationException as e:
         assert e.row == 1
         assert e.field == 'ColCat'
         raise
 
-def test_nonefield_fix():
+def test_data_nonefield_fix():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':None, 'ColBool':False}]
-    validate(testrows, vschema, removeNones=True)
+    validate_data(testrows, vschema, removeNones=True)
     assert not(testrows[1].has_key('ColCat'))
-    validate(testrows, vschema)
-
+    validate_data(testrows, vschema)
 
 
 # Non-int Count
 @raises(DataValidationException)
-def test_non_int_count_fail():
+def test_data_non_int_count_fail():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':'4', 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False}]
     try:
-        validate(testrows, vschema)
+        validate_data(testrows, vschema)
     except DataValidationException as e:
         assert e.row == 1
         assert e.field == 'ColInt'
         raise
 
-def test_non_int_count_fix():
+@raises(DataValidationException)
+def test_pred_non_int_count_fail():
+    testrows = [{'ColInt':3, 'ColFloat':None, 'ColCat':'a', 'ColBool':True},
+                {'ColInt':'4', 'ColFloat':None, 'ColCat':'b', 'ColBool':False}]
+    try:
+        validate_predictions(testrows, vschema)
+    except DataValidationException as e:
+        assert e.row == 1
+        assert e.field == 'ColInt'
+        raise
+
+def test_data_non_int_count_fix():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':'4', 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False}]
-    validate(testrows, vschema, convertTypes=True)
+    validate_data(testrows, vschema, convertTypes=True)
     assert testrows[1]['ColInt'] == 4
-    validate(testrows, vschema)
+    validate_data(testrows, vschema)
+
+def test_pred_non_int_count_fix():
+    testrows = [{'ColInt':3, 'ColFloat':None, 'ColCat':'a', 'ColBool':True},
+                {'ColInt':'4', 'ColFloat':None, 'ColCat':'b', 'ColBool':False}]
+    validate_predictions(testrows, vschema, convertTypes=True)
+    assert testrows[1]['ColInt'] == 4
+    validate_predictions(testrows, vschema)
 
 # Non-valid-int Count
 @raises(DataValidationException)
-def test_nonvalid_int_count_fail():
+def test_data_nonvalid_int_count_fail():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':'jello', 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False}]
     try:
-        validate(testrows, vschema)
+        validate_data(testrows, vschema)
     except DataValidationException as e:
         assert e.row == 1
         assert e.field == 'ColInt'
         raise
 
 @raises(DataValidationException)
-def test_nonvalid_int_count_fixfail():
-    testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
-                {'_id':'2', 'ColInt':'jello', 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False}]
+def test_pred_nonvalid_int_count_fail():
+    testrows = [{'ColInt':3, 'ColFloat':None, 'ColCat':'a', 'ColBool':True},
+                {'ColInt':'jello', 'ColFloat':None, 'ColCat':'b', 'ColBool':False}]
     try:
-        validate(testrows, vschema, convertTypes=True)
+        validate_predictions(testrows, vschema)
     except DataValidationException as e:
         assert e.row == 1
         assert e.field == 'ColInt'
         raise
 
-def test_nonvalid_int_count_fix():
+
+@raises(DataValidationException)
+def test_data_nonvalid_int_count_fixfail():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':'jello', 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False}]
-    validate(testrows, vschema, convertTypes=True, removeInvalids=True)
+    try:
+        validate_data(testrows, vschema, convertTypes=True)
+    except DataValidationException as e:
+        assert e.row == 1
+        assert e.field == 'ColInt'
+        raise
+
+@raises(DataValidationException)
+def test_pred_nonvalid_int_count_fixfail():
+    testrows = [{'ColInt':3, 'ColFloat':None, 'ColCat':'a', 'ColBool':True},
+                {'ColInt':'jello', 'ColFloat':None, 'ColCat':'b', 'ColBool':False}]
+    try:
+        validate_predictions(testrows, vschema, convertTypes=True)
+    except DataValidationException as e:
+        assert e.row == 1
+        assert e.field == 'ColInt'
+        raise
+
+def test_data_nonvalid_int_count_fix():
+    testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
+                {'_id':'2', 'ColInt':'jello', 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False}]
+    validate_data(testrows, vschema, convertTypes=True, removeInvalids=True)
     assert not(testrows[1].has_key('ColInt'))
-    validate(testrows, vschema)
+    validate_data(testrows, vschema)
+
+def test_pred_nonvalid_int_count_fix():
+    testrows = [{'ColInt':3, 'ColFloat':None, 'ColCat':'a', 'ColBool':True},
+                {'ColInt':'jello', 'ColFloat':None, 'ColCat':'b', 'ColBool':False}]
+    validate_predictions(testrows, vschema, convertTypes=True, removeInvalids=True)
+    assert not(testrows[1].has_key('ColInt'))
+    validate_predictions(testrows, vschema)
+
 
 
 # Non-float Real
 @raises(DataValidationException)
-def test_non_float_real_fail():
+def test_data_non_float_real_fail():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':'4.1', 'ColCat':'b', 'ColBool':False}]
     try:
-        validate(testrows, vschema)
+        validate_data(testrows, vschema)
     except DataValidationException as e:
         assert e.row == 1
         assert e.field == 'ColFloat'
         raise
 
-def test_non_float_real_fix():
+@raises(DataValidationException)
+def test_pred_non_float_real_fail():
+    testrows = [{'ColInt':None, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
+                {'ColInt':None, 'ColFloat':'4.1', 'ColCat':'b', 'ColBool':False}]
+    try:
+        validate_predictions(testrows, vschema)
+    except DataValidationException as e:
+        assert e.row == 1
+        assert e.field == 'ColFloat'
+        raise
+
+def test_data_non_float_real_fix():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':'4.1', 'ColCat':'b', 'ColBool':False}]
-    validate(testrows, vschema, convertTypes=True)
+    validate_data(testrows, vschema, convertTypes=True)
     assert testrows[1]['ColFloat'] == 4.1
-    validate(testrows, vschema)
+    validate_data(testrows, vschema)
+
+def test_pred_non_float_real_fix():
+    testrows = [{'ColInt':None, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
+                {'ColInt':None, 'ColFloat':'4.1', 'ColCat':'b', 'ColBool':False}]
+    validate_predictions(testrows, vschema, convertTypes=True)
+    assert testrows[1]['ColFloat'] == 4.1
+    validate_predictions(testrows, vschema)
+
 
 # Non-valid-float Real
 @raises(DataValidationException)
-def test_nonvalid_float_real_fail():
+def test_data_nonvalid_float_real_fail():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':'jello', 'ColCat':'b', 'ColBool':False}]
     try:
-        validate(testrows, vschema)
+        validate_data(testrows, vschema)
     except DataValidationException as e:
         assert e.row == 1
         assert e.field == 'ColFloat'
         raise
 
 @raises(DataValidationException)
-def test_nonvalid_float_real_fixfail():
-    testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
-                {'_id':'2', 'ColInt':4, 'ColFloat':'jello', 'ColCat':'b', 'ColBool':False}]
+def test_pred_nonvalid_float_real_fail():
+    testrows = [{'ColInt':None, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
+                {'ColInt':None, 'ColFloat':'jello', 'ColCat':'b', 'ColBool':False}]
     try:
-        validate(testrows, vschema, convertTypes=True)
+        validate_predictions(testrows, vschema)
     except DataValidationException as e:
         assert e.row == 1
         assert e.field == 'ColFloat'
         raise
 
-def test_nonvalid_float_real_fix():
+@raises(DataValidationException)
+def test_data_nonvalid_float_real_fixfail():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':'jello', 'ColCat':'b', 'ColBool':False}]
-    validate(testrows, vschema, convertTypes=True, removeInvalids=True)
+    try:
+        validate_data(testrows, vschema, convertTypes=True)
+    except DataValidationException as e:
+        assert e.row == 1
+        assert e.field == 'ColFloat'
+        raise
+
+@raises(DataValidationException)
+def test_pred_nonvalid_float_real_fixfail():
+    testrows = [{'ColInt':None, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
+                {'ColInt':None, 'ColFloat':'jello', 'ColCat':'b', 'ColBool':False}]
+    try:
+        validate_predictions(testrows, vschema, convertTypes=True)
+    except DataValidationException as e:
+        assert e.row == 1
+        assert e.field == 'ColFloat'
+        raise
+
+def test_data_nonvalid_float_real_fix():
+    testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
+                {'_id':'2', 'ColInt':4, 'ColFloat':'jello', 'ColCat':'b', 'ColBool':False}]
+    validate_data(testrows, vschema, convertTypes=True, removeInvalids=True)
     assert not(testrows[1].has_key('ColFloat'))
-    validate(testrows, vschema)
+    validate_data(testrows, vschema)
+
+def test_pred_nonvalid_float_real_fix():
+    testrows = [{'ColInt':None, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
+                {'ColInt':None, 'ColFloat':'jello', 'ColCat':'b', 'ColBool':False}]
+    validate_predictions(testrows, vschema, convertTypes=True, removeInvalids=True)
+    assert not(testrows[1].has_key('ColFloat'))
+    validate_predictions(testrows, vschema)
 
 
 # Non-str Category
 @raises(DataValidationException)
-def test_non_str_cat_fail():
+def test_data_non_str_cat_fail():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':3, 'ColBool':False}]
     try:
-        validate(testrows, vschema)
+        validate_data(testrows, vschema)
     except DataValidationException as e:
         assert e.row == 1
         assert e.field == 'ColCat'
         raise
 
-def test_non_str_cat_fix():
+@raises(DataValidationException)
+def test_pred_non_str_cat_fail():
+    testrows = [{'ColInt':None, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':3, 'ColBool':False}]
+    try:
+        validate_predictions(testrows, vschema)
+    except DataValidationException as e:
+        assert e.row == 1
+        assert e.field == 'ColCat'
+        raise
+
+def test_data_non_str_cat_fix():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':3, 'ColBool':False}]
-    validate(testrows, vschema, convertTypes=True)
+    validate_data(testrows, vschema, convertTypes=True)
     assert testrows[1]['ColCat'] == '3'
-    validate(testrows, vschema)
+    validate_data(testrows, vschema)
+
+def test_pred_non_str_cat_fix():
+    testrows = [{'ColInt':None, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':3, 'ColBool':False}]
+    validate_predictions(testrows, vschema, convertTypes=True)
+    assert testrows[1]['ColCat'] == '3'
+    validate_predictions(testrows, vschema)
 
 # Non-bool boolean
 @raises(DataValidationException)
-def test_non_bool_boolean_fail():
+def test_data_non_bool_boolean_fail():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'0'}]
     try:
-        validate(testrows, vschema)
+        validate_data(testrows, vschema)
     except DataValidationException as e:
         assert e.row == 1
         assert e.field == 'ColBool'
         raise
 
-def test_non_bool_boolean_truefix():
+@raises(DataValidationException)
+def test_pred_non_bool_boolean_fail():
+    testrows = [{'ColInt':None, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'0'}]
+    try:
+        validate_predictions(testrows, vschema)
+    except DataValidationException as e:
+        assert e.row == 1
+        assert e.field == 'ColBool'
+        raise
+
+
+def test_data_non_bool_boolean_truefix():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'1'},
                 {'_id':'4', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'2'},
@@ -376,12 +554,28 @@ def test_non_bool_boolean_truefix():
                 {'_id':'8', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'YES'},
                 {'_id':'9', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'Y'},
                 {'_id':'10', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'y'}]
-    validate(testrows, vschema, convertTypes=True)
+    validate_data(testrows, vschema, convertTypes=True)
     for r in testrows:
         assert r['ColBool'] == True
-    validate(testrows, vschema)
+    validate_data(testrows, vschema)
 
-def test_non_bool_boolean_falsefix():
+def test_pred_non_bool_boolean_truefix():
+    testrows = [{'ColInt':None, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'1'},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'2'},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'True'},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'true'},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'Yes'},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'YES'},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'Y'},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'y'}]
+    validate_predictions(testrows, vschema, convertTypes=True)
+    for r in testrows:
+        assert r['ColBool'] == True
+    validate_predictions(testrows, vschema)
+
+
+def test_data_non_bool_boolean_falsefix():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':False},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'0'},
                 {'_id':'5', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'False'},
@@ -390,44 +584,88 @@ def test_non_bool_boolean_falsefix():
                 {'_id':'8', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'NO'},
                 {'_id':'9', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'N'},
                 {'_id':'10', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'n'}]
-    validate(testrows, vschema, convertTypes=True)
+    validate_data(testrows, vschema, convertTypes=True)
     for r in testrows:
         assert r['ColBool'] == False
-    validate(testrows, vschema)
+    validate_data(testrows, vschema)
+
+def test_pred_non_bool_boolean_falsefix():
+    testrows = [{'ColInt':None, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':False},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'0'},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'False'},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'false'},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'No'},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'NO'},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'N'},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'n'}]
+    validate_predictions(testrows, vschema, convertTypes=True)
+    for r in testrows:
+        assert r['ColBool'] == False
+    validate_predictions(testrows, vschema)
 
 # Non-valid-bool boolean
 @raises(DataValidationException)
-def test_nonvalid_bool_boolean_fail():
+def test_data_nonvalid_bool_boolean_fail():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'jello'}]
     try:
-        validate(testrows, vschema)
+        validate_data(testrows, vschema)
     except DataValidationException as e:
         assert e.row == 1
         assert e.field == 'ColBool'
         raise
 
 @raises(DataValidationException)
-def test_nonvalid_bool_boolean_fixfail():
+def test_pred_nonvalid_bool_boolean_fail():
+    testrows = [{'ColInt':None, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'jello'}]
+    try:
+        validate_predictions(testrows, vschema)
+    except DataValidationException as e:
+        assert e.row == 1
+        assert e.field == 'ColBool'
+        raise
+    
+@raises(DataValidationException)
+def test_data_nonvalid_bool_boolean_fixfail():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'jello'}]
     try:
-        validate(testrows, vschema, convertTypes=True)
+        validate_data(testrows, vschema, convertTypes=True)
     except DataValidationException as e:
         assert e.row == 1
         assert e.field == 'ColBool'
         raise
 
-def test_nonvalid_bool_boolean_fix():
+@raises(DataValidationException)
+def test_pred_nonvalid_bool_boolean_fixfail():
+    testrows = [{'ColInt':None, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'jello'}]
+    try:
+        validate_predictions(testrows, vschema, convertTypes=True)
+    except DataValidationException as e:
+        assert e.row == 1
+        assert e.field == 'ColBool'
+        raise
+
+def test_data_nonvalid_bool_boolean_fix():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'jello'}]
-    validate(testrows, vschema, convertTypes=True, removeInvalids=True)
+    validate_data(testrows, vschema, convertTypes=True, removeInvalids=True)
     assert not(testrows[1].has_key('ColBool'))
-    validate(testrows, vschema)
+    validate_data(testrows, vschema)
+
+def test_pred_nonvalid_bool_boolean_fix():
+    testrows = [{'ColInt':None, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
+                {'ColInt':None, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'jello'}]
+    validate_predictions(testrows, vschema, convertTypes=True, removeInvalids=True)
+    assert not(testrows[1].has_key('ColBool'))
+    validate_predictions(testrows, vschema)
+
 
 # Too many categories
 @raises(DataValidationException)
-def test_too_many_cats_fail():
+def test_data_too_many_cats_fail():
     eschema = {
         'ColCat':{'type':'categorical'}
     }
@@ -441,12 +679,33 @@ def test_too_many_cats_fail():
     testrows.append({'_id':str(rid), 'ColCat':str(maxCols-1)})
     testrows.append({'_id':str(rid+1), 'ColCat':str(maxCols)})
     try:
-        validate(testrows, eschema, convertTypes=True)
+        validate_data(testrows, eschema, convertTypes=True)
     except DataValidationException as e:
         assert e.field == 'ColCat'
         raise
 
-def test_too_many_cats_fix():
+@raises(DataValidationException)
+def test_pred_too_many_cats_fail():
+    eschema = {
+        'ColCat':{'type':'categorical'}
+    }
+    testrows = []
+    rid = 0
+    maxCols = 256
+    for i in range(maxCols-1):
+        testrows.append({'ColCat':str(i)})
+        testrows.append({'ColCat':str(i)})
+        rid = rid + 2
+    testrows.append({'ColCat':str(maxCols-1)})
+    testrows.append({'ColCat':str(maxCols)})
+    try:
+        validate_predictions(testrows, eschema, convertTypes=True)
+    except DataValidationException as e:
+        assert e.field == 'ColCat'
+        raise
+
+
+def test_data_too_many_cats_fix():
     eschema = {
         'ColCat':{'type':'categorical'}
     }
@@ -459,18 +718,18 @@ def test_too_many_cats_fix():
         rid = rid + 2
     testrows.append({'_id':str(rid), 'ColCat':str(maxCols-1)})
     testrows.append({'_id':str(rid+1), 'ColCat':str(maxCols)})
-    validate(testrows, eschema, mapCategories=True)
+    validate_data(testrows, eschema, mapCategories=True)
     assert testrows[510]['ColCat'] == 'Other'
     assert testrows[511]['ColCat'] == 'Other'
-    validate(testrows, eschema)
+    validate_data(testrows, eschema)
 
 
 @raises(DataValidationException)
-def test_empty_col_fail():
+def test_data_empty_col_fail():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColBool':False}]
     try:
-        validate(testrows, vschema)
+        validate_data(testrows, vschema)
     except DataValidationException as e:
         assert e.field == 'ColCat'
         raise

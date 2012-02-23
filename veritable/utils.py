@@ -114,7 +114,13 @@ def read_csv(fileName,idCol=None,dialect=None):
             table.append(rowSet)
     return table;
 
-def validate(rows,schema,convertTypes=False,removeNones=False,removeInvalids=False,mapCategories=False,assignIDs=False,removeExtraFields=False):
+def validate_data(rows,schema,convertTypes=False,removeNones=False,removeInvalids=False,mapCategories=False,assignIDs=False,removeExtraFields=False):
+    return _validate(rows,schema,convertTypes=convertTypes,ignoreNones=False,removeNones=removeNones,removeInvalids=removeInvalids,mapCategories=mapCategories,ignoreIDs=False,assignIDs=assignIDs,removeExtraFields=removeExtraFields)
+
+def validate_predictions(predictions,schema,convertTypes=False,removeInvalids=False,removeExtraFields=False):
+    return _validate(predictions,schema,convertTypes=convertTypes,ignoreNones=True,removeNones=False,removeInvalids=removeInvalids,mapCategories=False,ignoreIDs=True,assignIDs=False,removeExtraFields=removeExtraFields)
+
+def _validate(rows,schema,convertTypes,ignoreNones,removeNones,removeInvalids,mapCategories,ignoreIDs,assignIDs,removeExtraFields):
     for c in schema.keys():
         if not(schema[c].has_key('type')):
             raise DataValidationException("Field '"+c+"' does not have a 'type' specified. Please specify 'type' as one of ['count','real','boolean','categorical']",field=c)            
@@ -127,7 +133,7 @@ def validate(rows,schema,convertTypes=False,removeNones=False,removeInvalids=Fal
         r = rows[i]
         if assignIDs:
             r['_id'] = str(i)
-        else:
+        elif not(ignoreIDs):
             if not(r.has_key('_id')):
                 raise DataValidationException("Row:'"+str(i)+"' is missing Field:'_id'",row=i,field='_id')
             if convertTypes:
@@ -137,6 +143,12 @@ def validate(rows,schema,convertTypes=False,removeNones=False,removeInvalids=Fal
             if prevIDs.has_key(r['_id']):
                 raise DataValidationException("Row:'"+str(i)+"' Field:'_id' Value:'"+str(r['_id'])+"' is not unique, conflicts with Row:'"+str(prevIDs[r['_id']])+"'",row=i,field='_id')
             prevIDs[r['_id']] = i
+        elif r.has_key('_id'):
+            if removeExtraFields:
+                r.pop('_id')
+            else:
+                raise DataValidationException("Row:'"+str(i)+"' Field:'_id' should not be included",row=i,field='_id')                    
+                
         for c in r.keys():
             if not(c == '_id'):
                 if not(schema.has_key(c)):
@@ -148,7 +160,8 @@ def validate(rows,schema,convertTypes=False,removeNones=False,removeInvalids=Fal
                     if removeNones:
                         r.pop(c)
                     else:
-                        raise DataValidationException("Row:'"+str(i)+"' Field:'"+c+"' should be removed because it has value None",row=i,field=c)                    
+                        if not(ignoreNones):
+                            raise DataValidationException("Row:'"+str(i)+"' Field:'"+c+"' should be removed because it has value None",row=i,field=c)                    
                 else:
                     ctype = schema[c]['type']
                     if(ctype == 'count'):
@@ -233,7 +246,7 @@ def validate(rows,schema,convertTypes=False,removeNones=False,removeInvalids=Fal
             if not(r[c] == None):
                 fieldFill[c] = fieldFill[c]+1
     for (c,fill) in fieldFill.items():
-        if fill == 0:
+        if (fill == 0 and not(ignoreNones)):
             raise DataValidationException("Field '"+c+"' does not have any values",field=c)
 
 
