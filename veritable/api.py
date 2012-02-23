@@ -25,7 +25,7 @@ class API:
     def __str__(self):
         return "Veritable API at " + self.url
 
-    def _table_exists(self, table_id):
+    def table_exists(self, table_id):
         try:
             self.get_table(table_id)
         except:
