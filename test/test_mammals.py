@@ -20,7 +20,7 @@ class TestMammals:
 	def setup(self):
 		self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
 		self.mammals = self.API.create_table("mammals", force=True)
-		self.mammals.add_rows(data)
+		self.mammals.batch_upload_rows(data)
 		self.schema = {
 			'furry': {'type': 'boolean'},
 			'hairless': {'type': 'boolean'},

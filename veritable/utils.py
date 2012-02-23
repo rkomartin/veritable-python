@@ -21,7 +21,7 @@ def _url_has_scheme(url):
 	return urlparse(url)[0] is not ""
 
 def wait_for_analysis(a, poll=2):
-	while a.status() == "running":
+	while a.state() == "running":
 		time.sleep(poll)
 
 def split_rows(rows, frac):

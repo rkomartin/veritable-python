@@ -21,15 +21,28 @@ class API:
     def __init__(self, connection):
         self.connection = connection
         self.url = connection.api_base_url
-    
+
     def __str__(self):
         return "Veritable API at " + self.url
-        
+
+    def _table_exists(self, table_id):
+        try:
+            self.get_table(table_id)
+        except:
+            return False
+        else:
+            return True
+
     def get_tables(self):
         """Return the Veritable tables available to the user."""
         r = self.connection.get("tables")
         return [Table(self.connection, t) for t in r["tables"]]
 
+    def get_table(self, table_id):
+        """Get a table from the collection by its id."""
+        r = self.connection.get(_format_url("tables", table_id))
+        return Table(self.connection, r)
+    
     def create_table(self, table_id=None, description="", force=False):
         """Create a table with the given id."""    
         if table_id is None:
@@ -37,44 +50,21 @@ class API:
             table_id = _make_table_id()
         else:
             autogen = False
-        if self.table_exists(table_id):
+        if self._table_exists(table_id):
             if autogen:
                 return self.create_table(table_id=None,
                             description=description, force=False)
             if not force:
                 raise DuplicateTableException(table_id)
             else:
-                self.delete_table_by_id(table_id)
+                self.delete_table(table_id)
         r = self.connection.post("tables",
                 data = {"_id": table_id, "description": description})
         return Table(self.connection, r)
     
-    def table_exists(self, table_id):
-        try:
-            self.get_table_by_id(table_id)
-        except:
-            return False
-        else:
-            return True
-
-    def get_table_by_id(self, table_id):
-        """Get a table from the collection by its id."""
-        r = self.connection.get(_format_url("tables", table_id))
-        return Table(self.connection, r)
-    
-    def get_table_by_url(self, url):
-        """Get a table from the collection by its URL."""
-        r = self.connection.get(_format_url(url))
-        return Table(self.connection, r)
-
-    def delete_table_by_id(self, table_id):
+    def delete_table(self, table_id):
         """Delete a table from the collection by its id."""
         r = self.connection.get(_format_url("tables", table_id))
-        return Table(self.connection, r).delete()
-
-    def delete_table_by_url(self, url):
-        """Delete a table from the collection by its id."""
-        r = self.connection.get(url)
         return Table(self.connection, r).delete()
 
 class Table:
@@ -105,7 +95,7 @@ class Table:
         self.has_been_deleted = True
         return self.connection.delete(self.links["self"])
         
-    def add_row(self, row):
+    def upload_row(self, row):
         """Add a row to the table."""
         self._still_alive()
         if "_id" not in row:
@@ -117,7 +107,7 @@ class Table:
         return self.connection.put(_format_url(self.links["rows"], row_id),
                 row)
         
-    def add_rows(self, rows):
+    def batch_upload_rows(self, rows):
         """Batch add rows to the table."""
         self._still_alive()
         for i in range(len(rows)):
@@ -126,30 +116,20 @@ class Table:
         data = {'action': 'put', 'rows': rows}
         return self.connection.post(self.links["rows"], data)
 
-    def get_row_by_id(self, row_id):
+    def get_row(self, row_id):
         """Get a row from the table by its id."""
         self._still_alive()
         return self.connection.get(_format_url(self.links["rows"], row_id))
-
-    def get_row_by_url(self, url):
-        """Get a row from the table by its url."""
-        self._still_alive()
-        return self.connection.get(_format_url(url))
 
     def get_rows(self):
         """Get the rows of the table."""
         self._still_alive()
         return self.connection.get(self.links["rows"])["rows"]
 
-    def delete_row_by_id(self, row_id):
+    def delete_row(self, row_id):
         """Delete a row from the table by its id."""
         self._still_alive()
         return self.connection.delete(_format_url(self.links["rows"], row_id))
-
-    def delete_row_by_url(self, url):
-        """Delete a row from the table by its url."""
-        self._still_alive()
-        return self.connection.delete(url)
 
     def delete_rows(self, rows):
         """Batch delete rows from the table."""
@@ -166,36 +146,24 @@ class Table:
         r = self.connection.get(self.links["analyses"])
         return [Analysis(self.connection, a) for a in r["data"]]
 
-    def get_analysis_by_id(self, analysis_id):
+    def get_analysis(self, analysis_id):
         """Get an analysis corresponding to the table by its id."""
         self._still_alive()
         r = self.connection.get(_format_url(self.links["analyses"],
                 analysis_id))
         return Analysis(self.connection, r)
 
-    def get_analysis_by_url(self, url):
-        """Get an analysis by its URL."""
-        self._still_alive()
-        r = self.connection.get(url)
-        return Analysis(self.connection, r)
-
-    def delete_analysis_by_id(self, analysis_id):
+    def delete_analysis(self, analysis_id):
         """Delete an analysis corresponding to the table by its id."""
         self._still_alive()
         r = self.connection.get(_format_url(self.links["analyses"],
                 analysis_id))
         return Analysis(self.connection, r).delete()
 
-    def delete_analysis_by_url(self, url):
-        """Delete an analysis corresponding to the table by its URL."""
-        self._still_alive()
-        r = self.connection.get(url)
-        return Analysis(self.connection, r).delete()
-
-    def analysis_exists(self, analysis_id):
+    def _analysis_exists(self, analysis_id):
         """Test if an analysis with a given id already exists."""
         try:
-            self.get_analysis_by_id(analysis_id)
+            self.get_analysis(analysis_id)
         except:
             return False
         else:
@@ -212,7 +180,7 @@ class Table:
             analysis_id = _make_analysis_id()
         else:
             autogen = False
-        if self.analysis_exists(analysis_id):
+        if self._analysis_exists(analysis_id):
             if autogen:
                 return self.create_analysis(schema=schema,
                         description=description, analysis_id=None,
@@ -220,7 +188,7 @@ class Table:
             if not force:
                 raise DuplicateAnalysisException(analysis_id)
             else:
-                self.delete_analysis_by_id(analysis_id)
+                self.delete_analysis(analysis_id)
         r = self.connection.post(self.links["analyses"],
                 data = {"_id": analysis_id, "description": description,
                         "type": type, "schema": schema})
@@ -242,7 +210,7 @@ class Analysis:
 
     @property
     def error(self):
-        if self.status() != "failed":
+        if self.state() != "failed":
             return None
         else:
             data = self._get_state()
@@ -274,7 +242,7 @@ class Analysis:
         if "predict" not in self.links:
             raise AnalysisNotReadyException()
     
-    def status(self):
+    def state(self):
         data = self._get_state()
         return data["state"]
     

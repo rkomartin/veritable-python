@@ -38,19 +38,19 @@ class TestAPI:
         t = self.API.create_table("bar", "A table of humbuggery", force=True)
 
     @attr('sync')
-    def test_get_table_by_id(self):
+    def test_get_table(self):
         t = self.API.create_table("hoo", force=True)
-        t = self.API.get_table_by_id("hoo")
+        t = self.API.get_table("hoo")
 
     @attr('sync')
-    def test_get_table_by_id_2(self):
+    def test_get_table(self):
         t = self.API.create_table("hoo", force=True)
-        t = self.API.get_table_by_id(t.id)
+        t = self.API.get_table(t.id)
 
     @attr('sync')
     def test_delete_table(self):
         t = self.API.create_table("woo", force=True)
-        t = self.API.get_table_by_id("woo")
+        t = self.API.get_table("woo")
         t.delete()
 
     @attr('sync')
@@ -67,23 +67,11 @@ class TestAPI:
         t = self.API.create_table("pumm")
 
     @attr('sync')
-    def test_get_table_by_url(self):
-        t = self.API.create_table()
-        self.API.get_table_by_url(t.links["self"])
-
-    @attr('sync')
     @raises(ServerException)
-    def test_get_deleted_table_by_id(self):
+    def test_get_deleted_table(self):
         t = self.API.create_table("rum", force=True)
         t.delete()
-        self.API.get_table_by_id("rum")
-
-    @attr('sync')
-    @raises(ServerException)
-    def test_get_deleted_table_by_url(self):
-        t = self.API.create_table()
-        t.delete()
-        self.API.get_table_by_url(t.links["self"])
+        self.API.get_table("rum")
 
     @attr('sync')
     def test_tables_still_alive(self):
@@ -105,98 +93,65 @@ class TestAPI:
         t = self.API.create_table("grimble", force=True)
 
     @attr('sync')
-    def test_delete_table_by_url(self):
-        t = self.API.create_table("grumble", force=True)
-        self.API.delete_table_by_url(t.links["self"])
-
-    @attr('sync')
-    def test_delete_table_by_id(self):
+    def test_delete_table(self):
         t = self.API.create_table("gramble", force=True)
-        self.API.delete_table_by_id("gramble")
+        self.API.delete_table("gramble")
 
     @attr('sync')
-    @raises(ServerException)
-    def test_delete_table_by_url_then_get_by_url(self):
-        t = self.API.create_table("bramble", force=True)
-        self.API.delete_table_by_url(t.links["self"])
-        self.API.get_table_by_url(t.links["self"])
-
-    @attr('sync')
-    @raises(ServerException)
-    def test_delete_table_by_id_then_get_by_url(self):
-        t = self.API.create_table("fumble", force=True)
-        self.API.delete_table_by_id("fumble")
-        self.API.get_table_by_url(t.links["self"])
-
-    @attr('sync')
-    @raises(ServerException)
-    def test_delete_table_by_url_then_get_by_id(self):
-        t = self.API.create_table("dapple", force=True)
-        self.API.delete_table_by_url(t.links["self"])
-        self.API.get_table_by_id("dapple")
-
-    @attr('sync')
-    @raises(ServerException)
-    def test_delete_table_by_url_then_get_by_url(self):
-        t = self.API.create_table("dapple", force=True)
-        self.API.delete_table_by_url(t.links["self"])
-        self.API.get_table_by_url(t.links["self"])
-
-    @attr('sync')
-    def test_table_add_row_with_id(self):
+    def test_table_upload_row_with_id(self):
         t = self.API.create_table("bugz", force=True)
-        t.add_row({'_id': 'onebug', 'zim': 'zam', 'wos': 19.2})
+        t.upload_row({'_id': 'onebug', 'zim': 'zam', 'wos': 19.2})
 
     @attr('sync')
-    def test_table_add_row_with_int_id_as_string(self):
+    def test_table_upload_row_with_int_id_as_string(self):
         t = self.API.create_table("bugz", force=True)
-        t.add_row({'_id': '3', 'zim': 'zam', 'wos': 19.2})
+        t.upload_row({'_id': '3', 'zim': 'zam', 'wos': 19.2})
 
     @attr('sync')
-    def test_table_add_row_with_float_id_as_string(self):
+    def test_table_upload_row_with_float_id_as_string(self):
         t = self.API.create_table("bugz", force=True)
-        t.add_row({'_id': '3.131455', 'zim': 'zam', 'wos': 19.2})
+        t.upload_row({'_id': '3.131455', 'zim': 'zam', 'wos': 19.2})
 
     @raises(TypeError)
     @attr('sync')
-    def test_table_add_row_with_int_id(self):
+    def test_table_upload_row_with_int_id(self):
         t = self.API.create_table("bugz", force=True)
-        t.add_row({'_id': 3, 'zim': 'zam', 'wos': 19.2})
+        t.upload_row({'_id': 3, 'zim': 'zam', 'wos': 19.2})
 
     @raises(TypeError)
     @attr('sync')
-    def test_table_add_row_with_float_id(self):
+    def test_table_upload_row_with_float_id(self):
         t = self.API.create_table("bugz", force=True)
-        t.add_row({'_id': 3.131455, 'zim': 'zam', 'wos': 19.2})
+        t.upload_row({'_id': 3.131455, 'zim': 'zam', 'wos': 19.2})
 
 
     # This should fail per https://app.asana.com/0/401264106780/436898020970
     # Our client does not autogenerate row IDs
     @attr('sync')
     @raises(MissingRowIDException)
-    def test_table_add_row_with_autogen_id(self):
+    def test_table_upload_row_with_autogen_id(self):
         t = self.API.create_table("bugz_2", force=True)
-        t.add_row({'_id': 'onebug', 'zim': 'zam', 'wos': 19.2})
-        t.add_row({'zim': 'zom', 'wos': 21.1})
+        t.upload_row({'_id': 'onebug', 'zim': 'zam', 'wos': 19.2})
+        t.upload_row({'zim': 'zom', 'wos': 21.1})
 
     # Should pass silently
     # It's now up to the user to check they aren't overwriting rows
     @attr('sync')
     def test_table_add_duplicate_rows(self):
         t = self.API.create_table("bugz_3", force=True)
-        t.add_row({'_id': 'twobug', 'zim': 'vim', 'wos': 11.3})
-        t.add_row({'_id': 'twobug', 'zim': 'fop', 'wos': 17.5})
+        t.upload_row({'_id': 'twobug', 'zim': 'vim', 'wos': 11.3})
+        t.upload_row({'_id': 'twobug', 'zim': 'fop', 'wos': 17.5})
 
     @attr('sync')
     def test_get_table_state(self):
         t = self.API.create_table("bugz_4", force=True)
-        t.add_row({'_id': 'fourbug', 'zim': 'fop', 'wos': 17.5})
+        t.upload_row({'_id': 'fourbug', 'zim': 'fop', 'wos': 17.5})
         t._get_state()
 
     @attr('sync')
-    def test_batch_add_rows(self):
+    def test_batch_upload_rows(self):
         t = self.API.create_table("bugz_5", force=True)
-        t.add_rows([{'_id': 'fourbug', 'zim': 'zop', 'wos': 10.3},
+        t.batch_upload_rows([{'_id': 'fourbug', 'zim': 'zop', 'wos': 10.3},
                     {'_id': 'fivebug', 'zim': 'zam', 'wos': 9.3},
                     {'_id': 'sixbug', 'zim': 'zop', 'wos': 18.9}])
 
@@ -204,9 +159,9 @@ class TestAPI:
     # Our client does not autogenerate row IDs
     @attr('sync')
     @raises(MissingRowIDException)
-    def test_batch_add_rows_with_missing_ids_fails(self):
+    def test_batch_upload_rows_with_missing_ids_fails(self):
         t = self.API.create_table("bugz_6", force=True)
-        t.add_rows([{'zim': 'zop', 'wos': 10.3},
+        t.batch_upload_rows([{'zim': 'zop', 'wos': 10.3},
                     {'zim': 'zam', 'wos': 9.3},
                     {'zim': 'zop', 'wos': 18.9},
                     {'_id': 'sixbug', 'zim': 'fop', 'wos': 18.3}])
@@ -215,7 +170,7 @@ class TestTableOps:
     def setup(self):
         self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
         self.t = self.API.create_table(table_id = "bugz", force=True)
-        self.t.add_rows([{'_id': 'onebug', 'zim': 'zam', 'wos': 19.2},
+        self.t.batch_upload_rows([{'_id': 'onebug', 'zim': 'zam', 'wos': 19.2},
                          {'_id': 'twobug', 'zim': 'vim', 'wos': 11.3},
                          {'_id': 'threebug', 'zim': 'fop', 'wos': 17.5},
                          {'_id': 'fourbug', 'zim': 'zop', 'wos': 10.3},
@@ -224,7 +179,7 @@ class TestTableOps:
         self.t2 = self.API.create_table(table_id="test_all_types",
                              description="Test dataset with all datatypes",
                              force=True)
-        self.t2.add_rows(
+        self.t2.batch_upload_rows(
           [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
            {'_id': 'row2', 'cat': 'b', 'ct': 0, 'real': 0.92131, 'bool': False},
            {'_id': 'row3', 'cat': 'c', 'ct': 1, 'real': 1.82812, 'bool': True},
@@ -234,47 +189,37 @@ class TestTableOps:
           ])
 
     @attr('sync')
-    def test_get_row_by_id(self):
-        self.t.get_row_by_id("sixbug")
+    def test_get_row(self):
+        self.t.get_row("sixbug")
 
     @attr('sync')
-    def test_get_multiple_rows_by_id(self):
-        self.t.get_row_by_id("sixbug")
-        self.t.get_row_by_id("fivebug")
+    def test_get_multiple_rows(self):
+        self.t.get_row("sixbug")
+        self.t.get_row("fivebug")
 
     @attr('sync')
     def test_table_add_duplicate_rows_succeeded(self):
-        self.t.add_row({'_id': 'threebug', 'zim': 'fop', 'wos': 17.5})
-        self.t.add_row({'_id': 'threebug', 'zim': 'vim', 'wos': 11.3})
-        assert self.t.get_row_by_id("threebug") == {'_id': 'threebug', 'zim': 'vim', 'wos': 11.3}
-
-    @attr('sync')
-    def test_get_row_by_url(self):
-        self.t.get_row_by_url(_format_url(self.t.links["rows"], 'fivebug'))
+        self.t.upload_row({'_id': 'threebug', 'zim': 'fop', 'wos': 17.5})
+        self.t.upload_row({'_id': 'threebug', 'zim': 'vim', 'wos': 11.3})
+        assert self.t.get_row("threebug") == {'_id': 'threebug', 'zim': 'vim', 'wos': 11.3}
 
     @attr('sync')
     def test_batch_get_rows(self):
         self.t.get_rows()
 
     @attr('sync')
-    def test_delete_row_by_id(self):
-        self.t.delete_row_by_id("fivebug")
+    def test_delete_row(self):
+        self.t.delete_row("fivebug")
 
     @attr('sync')
-    def test_delete_row_by_url(self):
-        self.t.delete_row_by_url(_format_url(self.t.links["rows"], 'fourbug'))
-
-    @attr('sync')
-    @raises(ServerException)
-    def test_delete_deleted_row_by_id(self):
-        self.t.delete_row_by_id("fivebug")
-        self.t.delete_row_by_id("fivebug")
+    def test_delete_row(self):
+        self.t.delete_row(_format_url(self.t.links["rows"], 'fourbug'))
 
     @attr('sync')
     @raises(ServerException)
-    def test_delete_deleted_row_by_url(self):
-        self.t.delete_row_by_id("fivebug")
-        self.t.delete_row_by_url(_format_url(self.t.links["rows"], 'fivebug'))
+    def test_delete_deleted_row(self):
+        self.t.delete_row("fivebug")
+        self.t.delete_row("fivebug")
 
     @attr('sync')
     def test_batch_delete_rows(self):
@@ -331,7 +276,7 @@ class TestTableOps:
         schema = {'zim': {'type': 'real'}, 'wos': {'type': 'real'}}
         a = self.t.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.status() == "failed"
+        assert a.state() == "failed"
 
     # Unpossible datatypes are identified synchronously
     @attr('sync')
@@ -376,14 +321,14 @@ class TestTableOps:
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
         a = self.t.create_analysis(schema, analysis_id="zubble")
         wait_for_analysis(a)
-        assert a.status() == "succeeded"
+        assert a.state() == "succeeded"
 
     @attr('async')
     def test_wait_for_analysis_fails(self):
         schema = {'zim': {'type': 'boolean'}, 'wos': {'type': 'real'}}
         a = self.t.create_analysis(schema, analysis_id="zubble")
         wait_for_analysis(a)
-        assert a.status() == "failed"
+        assert a.state() == "failed"
 
     @attr('async')
     def test_error_analysis_failed(self):
@@ -401,7 +346,7 @@ class TestTableOps:
                   'krob': {'type': 'count'}}
         a = self.t.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.status() == "failed"
+        assert a.state() == "failed"
 
     @attr('sync')
     def test_create_analysis_with_all_datatypes(self):
@@ -412,7 +357,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema, analysis_id="test_analysis", force=True)
         wait_for_analysis(a)        
-        assert a.status() == "succeeded"
+        assert a.state() == "succeeded"
 
     @attr('async')
     def test_create_analysis_with_mismatch_categorical_real(self):
@@ -423,7 +368,7 @@ class TestTableOps:
                  }
         a = self.t2.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.status() == "failed"
+        assert a.state() == "failed"
 
     @attr('async')
     def test_create_analysis_with_mismatch_categorical_count(self):
@@ -434,7 +379,7 @@ class TestTableOps:
                  }
         a = self.t2.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.status() == "failed"
+        assert a.state() == "failed"
 
     @attr('async')
     def test_create_analysis_with_mismatch_categorical_boolean(self):
@@ -445,7 +390,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.status() == "failed"
+        assert a.state() == "failed"
 
     @attr('async')
     def test_create_analysis_with_mismatch_boolean_real(self):
@@ -456,7 +401,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.status() == "failed"
+        assert a.state() == "failed"
 
     @attr('async')
     def test_create_analysis_with_mismatch_boolean_count(self):
@@ -467,7 +412,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.status() == "failed"
+        assert a.state() == "failed"
 
     @attr('async')
     def test_create_analysis_with_mismatch_real_count(self):
@@ -478,7 +423,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.status() == "failed"
+        assert a.state() == "failed"
 
     @attr('async')
     def test_create_analysis_with_mismatch_real_categorical(self):
@@ -489,7 +434,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.status() == "failed"
+        assert a.state() == "failed"
 
     @attr('async')
     def test_create_analysis_with_mismatch_real_boolean(self):
@@ -500,7 +445,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.status() == "failed"
+        assert a.state() == "failed"
 
     @attr('async')
     def test_create_analysis_with_mismatch_count_boolean(self):
@@ -511,7 +456,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.status() == "failed"
+        assert a.state() == "failed"
 
     @attr('async')
     def test_create_analysis_with_mismatch_count_categorical(self):
@@ -522,67 +467,37 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.status() == "failed"
+        assert a.state() == "failed"
 
     @attr('sync')
-    def test_get_analysis_by_id(self):
+    def test_get_analysis(self):
         schema = {'cat': {'type': 'categorical'},
                   'ct': {'type': 'count'},
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
         self.t2.create_analysis(schema, analysis_id="test_analysis", force=True)
-        self.t2.get_analysis_by_id("test_analysis")
-
-    @attr('sync')
-    def test_get_analysis_by_url(self):
-        schema = {'cat': {'type': 'categorical'},
-                  'ct': {'type': 'count'},
-                  'real': {'type': 'real'},
-                  'bool': {'type': 'boolean'}
-                  }
-        a = self.t2.create_analysis(schema, analysis_id="test_analysis", force=True)
-        self.t2.get_analysis_by_url(a.links["self"])
+        self.t2.get_analysis("test_analysis")
       
     @attr('sync')
     @raises(ServerException)
-    def test_get_analysis_by_id_fails(self):
-        self.t2.get_analysis_by_id("yummy_tummy")
+    def test_get_analysis_fails(self):
+        self.t2.get_analysis("yummy_tummy")
 
     @attr('sync')
-    @raises(ServerException)
-    def test_get_analysis_by_url_fails(self):
-        self.t2.get_analysis_by_url("grubble")
-
-    @attr('sync')
-    def test_delete_analysis_by_id(self):
+    def test_delete_analysis(self):
         schema = {'cat': {'type': 'categorical'},
                   'ct': {'type': 'count'},
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
         self.t2.create_analysis(schema, analysis_id="delete_me", force=True)
-        self.t2.delete_analysis_by_id("delete_me")
-
-    @attr('sync')
-    def test_delete_analysis_by_url(self):
-        schema = {'cat': {'type': 'categorical'},
-                  'ct': {'type': 'count'},
-                  'real': {'type': 'real'},
-                  'bool': {'type': 'boolean'}
-                  }
-        a = self.t2.create_analysis(schema, analysis_id="delete_me", force=True)
-        self.t2.delete_analysis_by_url(a.links["self"])
+        self.t2.delete_analysis("delete_me")
 
     @attr('sync')
     @raises(ServerException)
-    def test_delete_analysis_by_id_fails(self):
-        self.t2.delete_analysis_by_id("foobar")
-
-    @attr('sync')
-    @raises(ServerException)
-    def test_delete_analysis_by_url_fails(self):
-        self.t2.delete_analysis_by_url("grumble")
+    def test_delete_analysis_fails(self):
+        self.t2.delete_analysis("foobar")
 
     @attr('sync')
     @raises(DuplicateAnalysisException)
@@ -618,32 +533,38 @@ class TestTableOps:
         a = self.t2.create_analysis(schema, analysis_id="a", force=True)
         assert schema == a.get_schema()
 
-    # def test_get_analysis_schema_fails(self):
-    #     pass
+    def test_get_analysis_schema_fails(self):
+        pass
 
-    # def test_make_prediction(self):
-    #     pass
+    def test_make_prediction(self):
+        pass
 
-    # def test_make_prediction_fails(self):
-    #     pass
+    def test_make_prediction_fails(self):
+        pass
 
-    # def test_delete_analysis(self):
-    #     pass
+    def test_make_prediction_with_no_rows_fails(self):
+        pass    
+    
+    def test_make_prediction_with_too_many_rows_fails(self):
+        pass
 
-    # def test_learn_analysis(self):
-    #     pass
+    def test_delete_analysis(self):
+        pass
 
-    # def test_get_analysis(self):
-    #     pass
+    def test_learn_analysis(self):
+        pass
 
-    # def test_delete_analysis_fails(self):
-    #     pass
+    def test_get_analysis(self):
+        pass
 
-    # def test_learn_analysis_fails(self):
-    #     pass
+    def test_delete_analysis_fails(self):
+        pass
 
-    # def test_get_anlysis_fails(self):
-    #     pass
+    def test_learn_analysis_fails(self):
+        pass
+
+    def test_get_anlysis_fails(self):
+        pass
 
     def test_predict_link_is_present(self):
         pass
@@ -652,4 +573,7 @@ class TestTableOps:
         pass
 
     def test_make_too_many_predictions(self):
+        pass
+    
+    def test_utils_split_rows(self):
         pass
