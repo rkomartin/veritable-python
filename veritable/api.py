@@ -226,7 +226,7 @@ class Analysis:
         self._still_alive()
         return self.connection.get(self.links["self"])
     
-    def update(self):
+    def _update(self):
         data = self._get_state()
         for k in ["self", "schema", "run", "predict"]:
             if k in data["links"]:
@@ -238,7 +238,7 @@ class Analysis:
             handle_api_error(data["error"])
     
     def _ready_to_predict(self):
-        self.update()
+        self._update()
         if "predict" not in self.links:
             raise AnalysisNotReadyException()
     
