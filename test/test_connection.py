@@ -6,7 +6,7 @@ from multiprocessing import Process
 from nose.tools import raises
 
 
-port = int(os.environ.get("PORT", 5000))
+port = int(os.environ.get("PORT", 5348))
 host = "127.0.0.1"
 apikey = "jellokey"
 
