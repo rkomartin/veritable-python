@@ -7,8 +7,9 @@ from requests.auth import HTTPBasicAuth
 from urlparse import urljoin
 from .exceptions import *
 from .utils import _format_url, _url_has_scheme
+from .version import __version__
 
-USER_AGENT = "veritable-python"
+USER_AGENT = "veritable-python "+__version__
 
 def fully_qualify_url(f):
     def g(*args, **kwargs):
