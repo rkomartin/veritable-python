@@ -8,6 +8,9 @@ from requests.auth import HTTPBasicAuth
 from urlparse import urljoin
 from .exceptions import *
 from .utils import _format_url, _url_has_scheme
+from .version import __version__
+
+USER_AGENT = "veritable-python "+__version__
 
 def fully_qualify_url(f):
     def g(*args, **kwargs):
@@ -84,11 +87,12 @@ class Connection:
         
     @fully_qualify_url
     def get(self, url):
-        kwargs = {'auth': self.auth}
+        kwargs = {'headers': {'User-Agent':USER_AGENT},
+                  'auth': self.auth}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
         if not self.disable_gzip:
-            kwargs['headers'] = {'accept-encoding': 'gzip'}
+            kwargs['headers']['Accept-Encoding'] = 'gzip'
         if self.debug:
             kwargs['config'] = {'verbose': sys.stderr}
         r = requests.get(url, **kwargs)
@@ -96,13 +100,13 @@ class Connection:
     
     @fully_qualify_url
     def post(self, url, data):
-        kwargs = {'headers': {'content-type': 'application/json'},
+        kwargs = {'headers': {'User-Agent':USER_AGENT,'Content-Type': 'application/json'},
                   'auth': self.auth}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
         if not self.disable_gzip:
             kwargs['data'] = mgzip(json.dumps(data))
-            kwargs['headers']['content-encoding'] = 'gzip'
+            kwargs['headers']['Content-Encoding'] = 'gzip'
         else:
             kwargs['data'] = json.dumps(data)
         if self.debug:
@@ -112,13 +116,13 @@ class Connection:
     
     @fully_qualify_url
     def put(self, url, data):
-        kwargs = {'headers': {'content-type': 'application/json'},
+        kwargs = {'headers': {'User-Agent':USER_AGENT,'Content-Type': 'application/json'},
                   'auth': self.auth}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
         if not self.disable_gzip:
             kwargs['data'] = mgzip(json.dumps(data))
-            kwargs['headers']['content-encoding'] = 'gzip'
+            kwargs['headers']['Content-Encoding'] = 'gzip'
         else:
             kwargs['data'] = json.dumps(data)
         if self.debug:
@@ -128,7 +132,8 @@ class Connection:
     
     @fully_qualify_url
     def delete(self, url):
-        kwargs = {'auth': self.auth}
+        kwargs = {'headers': {'User-Agent':USER_AGENT},
+                  'auth': self.auth}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
         if self.debug:
