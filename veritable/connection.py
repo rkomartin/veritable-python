@@ -1,6 +1,7 @@
 import logging
 import requests
 import simplejson as json
+import sys
 from gzip import GzipFile
 from io import BytesIO
 from requests.auth import HTTPBasicAuth
