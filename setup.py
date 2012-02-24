@@ -1,8 +1,7 @@
 from distutils.core import setup
-from veritable.version import __version__
 
 setup(name='veritable',
-	  version=__version__,
+	  version='1.0.0',
 	  description='Python Client Library for Veritable API',
 	  author='Prior Knowledge, Inc.',
 	  author_email='developers@priorknowledge.com',
