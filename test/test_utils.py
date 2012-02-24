@@ -740,37 +740,37 @@ def test_summarize_count():
                 {'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
                 {'ColInt':8, 'ColFloat':8.1, 'ColCat':'b', 'ColBool':False},
                 {'ColInt':11, 'ColFloat':2.1, 'ColCat':'c', 'ColBool':True}]
-    expected,confidence = summarize(testpreds,'ColInt')
+    expected,uncertainty = summarize(testpreds,'ColInt')
     assert type(expected) == int
     assert expected == 7
-    assert abs(confidence - 3.6968) < 0.001
+    assert abs(uncertainty - 3.6968) < 0.001
 
 def test_summarize_real():
     testpreds = [{'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':False},
                 {'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
                 {'ColInt':8, 'ColFloat':8.1, 'ColCat':'b', 'ColBool':False},
                 {'ColInt':11, 'ColFloat':2.1, 'ColCat':'c', 'ColBool':True}]
-    expected,confidence = summarize(testpreds,'ColFloat')
+    expected,uncertainty = summarize(testpreds,'ColFloat')
     assert type(expected) == float
     assert abs(expected - 4.35) < 0.001
-    assert abs(confidence - 2.6299) < 0.001
+    assert abs(uncertainty - 2.6299) < 0.001
 
 def test_summarize_cat():
     testpreds = [{'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':False},
                 {'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
                 {'ColInt':8, 'ColFloat':8.1, 'ColCat':'b', 'ColBool':False},
                 {'ColInt':11, 'ColFloat':2.1, 'ColCat':'c', 'ColBool':True}]
-    expected,confidence = summarize(testpreds,'ColCat')
+    expected,uncertainty = summarize(testpreds,'ColCat')
     assert type(expected) == str
     assert expected == 'b'
-    assert abs(confidence - 0.5) < 0.001
+    assert abs(uncertainty - 0.5) < 0.001
 
 def test_summarize_bool():
     testpreds = [{'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':False},
                 {'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
                 {'ColInt':8, 'ColFloat':8.1, 'ColCat':'b', 'ColBool':False},
                 {'ColInt':11, 'ColFloat':2.1, 'ColCat':'c', 'ColBool':True}]
-    expected,confidence = summarize(testpreds,'ColBool')
+    expected,uncertainty = summarize(testpreds,'ColBool')
     assert type(expected) == bool
     assert expected == False
-    assert abs(confidence - 0.75) < 0.001
+    assert abs(uncertainty - 0.25) < 0.001

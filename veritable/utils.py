@@ -264,5 +264,5 @@ def summarize(predictions, col):
             return (e,c)
     elif ctype in (str,bool):
         e = max(vals, key=vals.count)
-        c = sum([1.0 for v in vals if v == e]) / float(cnt)
+        c = 1 - (sum([1.0 for v in vals if v == e]) / float(cnt))
         return (e,c)
