@@ -12,6 +12,12 @@ class APIBaseURLException(Exception):
     def __str__(self):
         return repr(self.value)
 
+class APIConnectionException(Exception):
+    def __init__(self, url):
+        self.value = """No Veritable server at """ + url
+    def __str__(self):
+        return repr(self.value)
+
 class DeletedTableException(Exception):
     def __init__(self):
         self.value = """"Cannot perform operations on a table that has already been deleted"""

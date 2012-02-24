@@ -1,4 +1,5 @@
 import os
+import simplejson
 from .connection import Connection
 from .exceptions import *
 from .utils import _make_table_id, _make_analysis_id, _format_url
@@ -11,8 +12,16 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
         api_key = os.getenv("VERITABLE_KEY")
     if api_base_url is None:
         api_base_url = os.getenv("VERITABLE_URL") or BASE_URL
-    return API(Connection(api_key, api_base_url, ssl_verify,
-            disable_gzip, debug))
+    connection = Connection(api_key, api_base_url, ssl_verify,
+            disable_gzip, debug)
+    try:
+        connection_test = connection.get("/")
+    except simplejson.JSONDecodeError:
+        raise(APIConnectionException(api_base_url))
+
+    if not connection_test['status'] == "SUCCESS" or not isinstance(connection_test['entropy'], float):
+        raise(APIConnectionException(api_base_url))
+    return API(connection)
 
 def handle_api_error(err):
     raise Exception(err)

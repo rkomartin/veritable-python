@@ -14,8 +14,20 @@ from veritable.utils import _format_url, wait_for_analysis
 TEST_API_KEY = os.getenv("VERITABLE_KEY") or "test"
 TEST_BASE_URL = os.getenv("VERITABLE_URL") or "https://api.priorknowledge.com"
 
-def test_create_api():
-    API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
+class TestConnection:
+    def test_create_api():
+        API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
+
+    def test_create_api_with_debug():
+        API = veritable.connect(TEST_API_KEY, TEST_BASE_URL, debug=True)
+
+    @raises(HTTPError)
+    def test_create_api_with_invalid_user():
+        API = veritable.connect("completely_invalid_user_id_3426", TEST_BASE_URL)
+
+    @raises(APIConnectionException)
+    def test_create_api_with_invalid_server():
+        API = veritable.connect("foo", "http://www.google.com")
 
 class TestAPI:
     def setup(self):
