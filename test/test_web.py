@@ -2,6 +2,7 @@ from gzip import GzipFile
 from io import BytesIO
 from flask import Flask, request
 import os
+from veritable.connection import USER_AGENT
 
 class GzipMiddleware(object):
     def __init__(self,
@@ -74,22 +75,27 @@ app.wsgi_app = GzipMiddleware(app.wsgi_app)
 
 @app.route("/echopost", methods=['POST'])
 def echopost():
+    assert request.headers['User-Agent'] == USER_AGENT
     return request.data
 
 @app.route("/echoput", methods=['PUT'])
 def echoput():
+    assert request.headers['User-Agent'] == USER_AGENT
     return request.data
 
 @app.route("/echoget/<content>", methods=['GET'])
 def echoget(content):
+    assert request.headers['User-Agent'] == USER_AGENT
     return '"'+content+'"'
 
 @app.route("/echodelete/<content>", methods=['DELETE'])
 def echodelete(content):
+    assert request.headers['User-Agent'] == USER_AGENT
     return '"'+content+'"'
 
 @app.route("/inst/echoget2/<content>", methods=['GET'])
 def echoget(content):
+    assert request.headers['User-Agent'] == USER_AGENT
     return '"'+content+'"'
 
 if __name__ == "__main__":
