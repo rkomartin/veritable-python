@@ -15,18 +15,18 @@ TEST_API_KEY = os.getenv("VERITABLE_KEY") or "test"
 TEST_BASE_URL = os.getenv("VERITABLE_URL") or "https://api.priorknowledge.com"
 
 class TestConnection:
-    def test_create_api():
+    def test_create_api(self):
         API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
 
-    def test_create_api_with_debug():
+    def test_create_api_with_debug(self):
         API = veritable.connect(TEST_API_KEY, TEST_BASE_URL, debug=True)
 
     @raises(HTTPError)
-    def test_create_api_with_invalid_user():
+    def test_create_api_with_invalid_user(self):
         API = veritable.connect("completely_invalid_user_id_3426", TEST_BASE_URL)
 
     @raises(APIConnectionException)
-    def test_create_api_with_invalid_server():
+    def test_create_api_with_invalid_server(self):
         API = veritable.connect("foo", "http://www.google.com")
 
 class TestAPI:
@@ -91,7 +91,7 @@ class TestAPI:
         self.API.create_table()
         self.API.create_table()
         ts = self.API.get_tables()
-        [t.still_alive() for t in ts]
+        [t._still_alive() for t in ts]
 
     @attr('sync')
     @raises(DuplicateTableException)
@@ -222,10 +222,6 @@ class TestTableOps:
     @attr('sync')
     def test_delete_row(self):
         self.t.delete_row("fivebug")
-
-    @attr('sync')
-    def test_delete_row(self):
-        self.t.delete_row(_format_url(self.t.links["rows"], 'fourbug'))
 
     @attr('sync')
     @raises(ServerException)
@@ -533,7 +529,7 @@ class TestTableOps:
         self.t2.create_analysis(schema, analysis_id="b", force=True)
         self.t2.create_analysis(schema, analysis_id="c", force=True)
         aa = self.t2.get_analyses()
-        [a.still_alive() for a in aa]
+        [a._still_alive() for a in aa]
 
     @attr('sync')
     def test_get_analysis_schema(self):
