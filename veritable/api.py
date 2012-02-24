@@ -50,7 +50,7 @@ class API:
             table_id = _make_table_id()
         else:
             autogen = False
-        if self._table_exists(table_id):
+        if self.table_exists(table_id):
             if autogen:
                 return self.create_table(table_id=None,
                             description=description, force=False)
