@@ -62,7 +62,7 @@ def mgzip(buf):
 
 class Connection:
     def __init__(self, api_key, api_base_url, ssl_verify=None,
-                 disable_gzip=False, debug=False):
+                 enable_gzip=True, debug=False):
         if api_key is None:
             raise APIKeyException()
         if api_base_url is None:
@@ -71,7 +71,7 @@ class Connection:
         self.api_base_url = _format_url(api_base_url)
         self.auth = HTTPBasicAuth(self.api_key, self.api_key)
         self.ssl_verify = ssl_verify
-        self.disable_gzip = disable_gzip
+        self.disable_gzip = not(enable_gzip)
         self.debug = debug
         if self.debug:
             self.logger = logging.getLogger(__name__)

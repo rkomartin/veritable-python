@@ -7,13 +7,13 @@ from .utils import _make_table_id, _make_analysis_id, _format_url
 BASE_URL = "https://api.priorknowledge.com/"
 
 def connect(api_key=None, api_base_url=None, ssl_verify=True,
-        disable_gzip=False, debug=False):
+        enable_gzip=True, debug=False):
     if api_key is None:
         api_key = os.getenv("VERITABLE_KEY")
     if api_base_url is None:
         api_base_url = os.getenv("VERITABLE_URL") or BASE_URL
-    connection = Connection(api_key, api_base_url, ssl_verify,
-            disable_gzip, debug)
+    connection = Connection(api_key=api_key, api_base_url=api_base_url, ssl_verify=ssl_verify,
+            enable_gzip=enable_gzip, debug=debug)
     try:
         connection_test = connection.get("/")
     except simplejson.JSONDecodeError:
