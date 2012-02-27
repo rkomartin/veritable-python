@@ -32,7 +32,10 @@ class API:
         self.url = connection.api_base_url
 
     def __str__(self):
-        return "Veritable API at " + self.url
+        return "<veritable.API url='" + self.url +"'>"
+
+    def __repr__(self):
+        return self.__str__()
 
     def table_exists(self, table_id):
         try:
@@ -86,7 +89,10 @@ class Table:
                       "rows": data["links"]["rows"]}    
                       
     def __str__(self):
-        return "Veritable table at " + self.links["self"]
+        return "<veritable.Table id='"+self.id+"'>"
+
+    def __repr__(self):
+        return self.__str__()
 
     def _still_alive(self):
         """Check to make sure the table still exists."""
@@ -215,7 +221,10 @@ class Analysis:
                 self.links[k] = data["links"][k]
     
     def __str__(self):
-        return "Veritable analysis at " + self.links["self"]
+        return "<veritable.Analysis id='"+self.id+"'>"
+
+    def __repr__(self):
+        return self.__str__()
 
     @property
     def error(self):
