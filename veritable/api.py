@@ -2,7 +2,8 @@ import os
 import simplejson
 from .connection import Connection
 from .exceptions import *
-from .utils import _make_table_id, _make_analysis_id, _format_url
+from urllib import quote_plus
+from .utils import _make_table_id, _make_analysis_id
 
 BASE_URL = "https://api.priorknowledge.com/"
 
@@ -52,7 +53,7 @@ class API:
 
     def get_table(self, table_id):
         """Get a table from the collection by its id."""
-        r = self.connection.get(_format_url("tables", table_id))
+        r = self.connection.get("/tables/{0}".format(quote_plus(table_id)))
         return Table(self.connection, r)
     
     def create_table(self, table_id=None, description="", force=False):
@@ -70,14 +71,13 @@ class API:
                 raise DuplicateTableException(table_id)
             else:
                 self.delete_table(table_id)
-        r = self.connection.post("tables",
+        r = self.connection.post("/tables",
                 data = {"_id": table_id, "description": description})
         return Table(self.connection, r)
     
     def delete_table(self, table_id):
         """Delete a table from the collection by its id."""
-        r = self.connection.get(_format_url("tables", table_id))
-        return Table(self.connection, r).delete()
+        self.connection.delete("/tables/{0}".format(quote_plus(table_id)))
 
 class Table:
     def __init__(self, connection, data):
@@ -119,7 +119,7 @@ class Table:
             row_id = row["_id"]
             if not isinstance(row_id, basestring):
                 raise TypeError("Row id must be a string")
-        return self.connection.put(_format_url(self.links["rows"], row_id),
+        return self.connection.put("{0}/{1}".format(self.links["rows"].rstrip("/"), quote_plus(row_id)),
                 row)
         
     def batch_upload_rows(self, rows):
@@ -134,7 +134,7 @@ class Table:
     def get_row(self, row_id):
         """Get a row from the table by its id."""
         self._still_alive()
-        return self.connection.get(_format_url(self.links["rows"], row_id))
+        return self.connection.get("{0}/{1}".format(self.links["rows"].rstrip("/"), quote_plus(row_id)))
 
     def get_rows(self):
         """Get the rows of the table."""
@@ -144,7 +144,7 @@ class Table:
     def delete_row(self, row_id):
         """Delete a row from the table by its id."""
         self._still_alive()
-        return self.connection.delete(_format_url(self.links["rows"], row_id))
+        return self.connection.delete("{0}/{1}".format(self.links["rows"].rstrip("/"), quote_plus(row_id)))
 
     def batch_delete_rows(self, rows):
         """Batch delete rows from the table."""
@@ -164,16 +164,13 @@ class Table:
     def get_analysis(self, analysis_id):
         """Get an analysis corresponding to the table by its id."""
         self._still_alive()
-        r = self.connection.get(_format_url(self.links["analyses"],
-                analysis_id))
+        r = self.connection.get("{0}/{1}".format(self.links["analyses"].rstrip("/"), quote_plus(analysis_id)))
         return Analysis(self.connection, r)
 
     def delete_analysis(self, analysis_id):
         """Delete an analysis corresponding to the table by its id."""
         self._still_alive()
-        r = self.connection.get(_format_url(self.links["analyses"],
-                analysis_id))
-        return Analysis(self.connection, r).delete()
+        self.connection.delete("{0}/{1}".format(self.links["analyses"].rstrip("/"), quote_plus(analysis_id)))
 
     def _analysis_exists(self, analysis_id):
         """Test if an analysis with a given id already exists."""
