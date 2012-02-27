@@ -1,7 +1,7 @@
 from nose import with_setup
 from veritable.connection import Connection, APIKeyException, APIBaseURLException
 import os
-from test_web import app
+from simple_web import app
 from multiprocessing import Process
 from nose.tools import raises
 

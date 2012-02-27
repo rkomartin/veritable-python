@@ -232,12 +232,12 @@ class TestTableOps:
     @attr('sync')
     def test_batch_delete_rows(self):
         rs = self.t.get_rows()
-        self.t.delete_rows(rs)
+        self.t.batch_delete_rows(rs)
     
     @attr('sync')
     def test_batch_delete_rows_by_id_only(self):
         rs = self.t.get_rows()
-        self.t.delete_rows([{'_id': r["_id"]} for r in rs])
+        self.t.batch_delete_rows([{'_id': r["_id"]} for r in rs])
     
     @attr('sync')
     @raises(MissingRowIDException)
@@ -245,7 +245,7 @@ class TestTableOps:
         rs = [{'zim': 'zam', 'wos': 9.3},
               {'zim': 'zop', 'wos': 18.9}]
         rs.append(self.t.get_rows())
-        self.t.delete_rows(rs)            
+        self.t.batch_delete_rows(rs)            
 
     @attr('sync')
     def test_get_analyses(self):

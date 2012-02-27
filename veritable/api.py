@@ -146,7 +146,7 @@ class Table:
         self._still_alive()
         return self.connection.delete(_format_url(self.links["rows"], row_id))
 
-    def delete_rows(self, rows):
+    def batch_delete_rows(self, rows):
         """Batch delete rows from the table."""
         self._still_alive()
         for i in range(len(rows)):
