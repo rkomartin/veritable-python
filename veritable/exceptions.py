@@ -43,8 +43,9 @@ class InvalidAnalysisTypeException(Exception):
         return repr(self.value)
 
 class InvalidSchemaException(Exception):
-    def __init__(self):
-        self.value = """Invalid schema specification."""
+    def __init__(self, msg="""Invalid schema specification.""", col=None):
+        self.value = msg
+        self.col = col
     def __str__(self):
         return repr(self.value)
 
@@ -79,10 +80,10 @@ class InvalidPredictionRequest(Exception):
         return repr(self.value)
 
 class DataValidationException(Exception):
-    def __init__(self, msg, row=None, field=None):
+    def __init__(self, msg, row=None, col=None):
         self.value = msg
         self.row = row
-        self.field = field
+        self.col = col
     def __str__(self):
         return repr(self.value)
 
