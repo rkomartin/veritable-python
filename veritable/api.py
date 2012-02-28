@@ -200,7 +200,7 @@ class Table:
 
 class Analysis:
     def __init__(self, connection, doc):
-        self.connection = connection
+        self._conn = connection
         self._doc = doc
 
     def _link(self, name):
@@ -208,26 +208,31 @@ class Analysis:
             raise VeritableError('analysis has no {0} link'.format(name))
         return self._doc['links'][name]
 
+    @property
+    def id(self):
+        return self._doc['_id']
+
+    @property
     def state(self):
         return self._doc['state']
 
     @property
     def error(self):
-        if self.state() != 'failed':
+        if self.state != 'failed':
             return None
         else:
             return self._doc['error']
 
     def update(self):
-        self._doc = self.connection.get(self._link('self'))
+        self._doc = self._conn.get(self._link('self'))
 
     def delete(self):
-        return self.connection.delete(self._link('self'))
+        return self._conn.delete(self._link('self'))
 
     def get_schema(self):
-        return self.connection.get(self._link('schema'))
+        return self._conn.get(self._link('schema'))
 
     def predict(self, row, count=10):
-        return self.connection.post(
+        return self._conn.post(
             self._link('predict'),
             data={'data': row, 'count': count})
