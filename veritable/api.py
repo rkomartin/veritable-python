@@ -98,11 +98,6 @@ class Table:
         """Check to make sure the table still exists."""
         if self.has_been_deleted:
             raise DeletedTableException()
-            
-    def _get_state(self):
-        """Get the state of the table."""
-        self._still_alive()
-        return self.connection.get(self.links["self"])
         
     def delete(self):
         """Delete the table."""
@@ -205,78 +200,48 @@ class Table:
                 data = {"_id": analysis_id, "description": description,
                         "type": type, "schema": schema})
         return Analysis(self.connection, r)
-                                        
+
 class Analysis:
-    def __init__(self, connection, data):
-        self.connection = connection
-        self.has_been_deleted = False
-        self.type = data["type"]
-        self.id = data["_id"]
-        self.links = {}
-        for k in ["self", "schema", "run", "predict"]:
-            if k in data["links"]:
-                self.links[k] = data["links"][k]
-    
+    def __init__(self, connection, doc):
+        self._conn = connection
+        self._doc = doc
+
     def __str__(self):
         return "<veritable.Analysis id='"+self.id+"'>"
 
     def __repr__(self):
         return self.__str__()
 
+    def _link(self, name):
+        if name not in self._doc['links']:
+            raise VeritableError('analysis has no {0} link'.format(name))
+        return self._doc['links'][name]
+
+    @property
+    def id(self):
+        return self._doc['_id']
+
+    @property
+    def state(self):
+        return self._doc['state']
+
     @property
     def error(self):
-        if self.state() != "failed":
+        if self.state != 'failed':
             return None
         else:
-            data = self._get_state()
-            return data["error"]
+            return self._doc['error']
 
-    def _still_alive(self):
-        """Check to make sure the analysis still exists."""
-        if self.has_been_deleted:
-            raise DeletedAnalysisException()
+    def update(self):
+        self._doc = self._conn.get(self._link('self'))
 
-    def _get_state(self):
-        """Get the state of the analysis."""
-        self._still_alive()
-        return self.connection.get(self.links["self"])
-    
-    def _update(self):
-        data = self._get_state()
-        for k in ["self", "schema", "run", "predict"]:
-            if k in data["links"]:
-                self.links[k] = data["links"][k]
-
-    def _did_not_fail(self):
-        data = self._get_state()
-        if data["state"] == "failed":
-            handle_api_error(data["error"])
-    
-    def _ready_to_predict(self):
-        self._update()
-        if "predict" not in self.links:
-            raise AnalysisNotReadyException()
-    
-    def state(self):
-        data = self._get_state()
-        return data["state"]
-    
     def delete(self):
-        """"Delete the analysis."""
-        self._still_alive()
-        return self.connection.delete(self.links["self"])
+        return self._conn.delete(self._link('self'))
 
     def get_schema(self):
-        """Get the schema corresponding to the analysis."""
-        self._still_alive()
-        return self.connection.get(self.links["schema"])
+        return self._conn.get(self._link('schema'))
 
     def predict(self, row, count=10):
-        """Make predictions based on analysis results."""
-        self._still_alive()
-        self._did_not_fail()
-        self._ready_to_predict()
-        if not isinstance(row, dict):
-            raise InvalidPredictionRequest("Wrong number of rows to predict: " + len(row))
-        request = {'data': row, 'count': count}
-        return self.connection.post(self.links["predict"], data = request)
+        return self._conn.post(
+            self._link('predict'),
+            data={'data': row, 'count': count})

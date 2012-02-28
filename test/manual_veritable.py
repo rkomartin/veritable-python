@@ -70,7 +70,6 @@ class TestAPI:
     def test_get_deleted_table(self):
         t = self.API.create_table("humm", force=True)
         t.delete()
-        t._get_state()
 
     @attr('sync')
     def test_create_deleted_table(self):
@@ -158,7 +157,6 @@ class TestAPI:
     def test_get_table_state(self):
         t = self.API.create_table("bugz_4", force=True)
         t.upload_row({'_id': 'fourbug', 'zim': 'fop', 'wos': 17.5})
-        t._get_state()
 
     @attr('sync')
     def test_batch_upload_rows(self):
@@ -284,7 +282,7 @@ class TestTableOps:
         schema = {'zim': {'type': 'real'}, 'wos': {'type': 'real'}}
         a = self.t.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.state() == "failed"
+        assert a.state == "failed"
 
     # Unpossible datatypes are identified synchronously
     @attr('sync')
@@ -329,14 +327,14 @@ class TestTableOps:
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
         a = self.t.create_analysis(schema, analysis_id="zubble")
         wait_for_analysis(a)
-        assert a.state() == "succeeded"
+        assert a.state == "succeeded"
 
     @attr('async')
     def test_wait_for_analysis_fails(self):
         schema = {'zim': {'type': 'boolean'}, 'wos': {'type': 'real'}}
         a = self.t.create_analysis(schema, analysis_id="zubble")
         wait_for_analysis(a)
-        assert a.state() == "failed"
+        assert a.state == "failed"
 
     @attr('async')
     def test_error_analysis_failed(self):
@@ -355,7 +353,7 @@ class TestTableOps:
         a = self.t.create_analysis(schema)
         wait_for_analysis(a)
         # TODO: uncomment this check once API is fixed
-        # assert a.state() == "failed"
+        # assert a.state == "failed"
 
     @attr('sync')
     def test_create_analysis_with_all_datatypes(self):
@@ -366,7 +364,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema, analysis_id="test_analysis", force=True)
         wait_for_analysis(a)        
-        assert a.state() == "succeeded"
+        assert a.state == "succeeded"
 
     @attr('async')
     def test_create_analysis_with_mismatch_categorical_real(self):
@@ -377,7 +375,7 @@ class TestTableOps:
                  }
         a = self.t2.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.state() == "failed"
+        assert a.state == "failed"
 
     @attr('async')
     def test_create_analysis_with_mismatch_categorical_count(self):
@@ -388,7 +386,7 @@ class TestTableOps:
                  }
         a = self.t2.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.state() == "failed"
+        assert a.state == "failed"
 
     @attr('async')
     def test_create_analysis_with_mismatch_categorical_boolean(self):
@@ -399,7 +397,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.state() == "failed"
+        assert a.state == "failed"
 
     @attr('async')
     def test_create_analysis_with_mismatch_boolean_real(self):
@@ -410,7 +408,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.state() == "failed"
+        assert a.state == "failed"
 
     @attr('async')
     def test_create_analysis_with_mismatch_boolean_count(self):
@@ -421,7 +419,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.state() == "failed"
+        assert a.state == "failed"
 
     @attr('async')
     def test_create_analysis_with_mismatch_real_count(self):
@@ -432,7 +430,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.state() == "failed"
+        assert a.state == "failed"
 
     @attr('async')
     def test_create_analysis_with_mismatch_real_categorical(self):
@@ -443,7 +441,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.state() == "failed"
+        assert a.state == "failed"
 
     @attr('async')
     def test_create_analysis_with_mismatch_real_boolean(self):
@@ -454,7 +452,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.state() == "failed"
+        assert a.state == "failed"
 
     @attr('async')
     def test_create_analysis_with_mismatch_count_boolean(self):
@@ -465,7 +463,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.state() == "failed"
+        assert a.state == "failed"
 
     @attr('async')
     def test_create_analysis_with_mismatch_count_categorical(self):
@@ -476,7 +474,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema)
         wait_for_analysis(a)
-        assert a.state() == "failed"
+        assert a.state == "failed"
 
     @attr('sync')
     def test_get_analysis(self):
@@ -518,19 +516,6 @@ class TestTableOps:
                   }
         self.t2.create_analysis(schema, analysis_id="double", force=True)
         self.t2.create_analysis(schema, analysis_id="double")
-
-    @attr('sync')
-    def test_analyses_still_alive(self):
-        schema = {'cat': {'type': 'categorical'},
-                  'ct': {'type': 'count'},
-                  'real': {'type': 'real'},
-                  'bool': {'type': 'boolean'}
-                  }
-        self.t2.create_analysis(schema, analysis_id="a", force=True)
-        self.t2.create_analysis(schema, analysis_id="b", force=True)
-        self.t2.create_analysis(schema, analysis_id="c", force=True)
-        aa = self.t2.get_analyses()
-        [a._still_alive() for a in aa]
 
     @attr('sync')
     def test_get_analysis_schema(self):
