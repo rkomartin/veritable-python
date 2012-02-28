@@ -70,7 +70,6 @@ class TestAPI:
     def test_get_deleted_table(self):
         t = self.API.create_table("humm", force=True)
         t.delete()
-        t._get_state()
 
     @attr('sync')
     def test_create_deleted_table(self):
@@ -158,7 +157,6 @@ class TestAPI:
     def test_get_table_state(self):
         t = self.API.create_table("bugz_4", force=True)
         t.upload_row({'_id': 'fourbug', 'zim': 'fop', 'wos': 17.5})
-        t._get_state()
 
     @attr('sync')
     def test_batch_upload_rows(self):

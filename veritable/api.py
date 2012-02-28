@@ -92,11 +92,6 @@ class Table:
         """Check to make sure the table still exists."""
         if self.has_been_deleted:
             raise DeletedTableException()
-            
-    def _get_state(self):
-        """Get the state of the table."""
-        self._still_alive()
-        return self.connection.get(self.links["self"])
         
     def delete(self):
         """Delete the table."""
@@ -202,7 +197,7 @@ class Table:
                 data = {"_id": analysis_id, "description": description,
                         "type": type, "schema": schema})
         return Analysis(self.connection, r)
-                                        
+
 class Analysis:
     def __init__(self, connection, doc):
         self.connection = connection
