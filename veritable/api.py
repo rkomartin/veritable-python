@@ -2,18 +2,19 @@ import os
 import simplejson
 from .connection import Connection
 from .exceptions import *
-from .utils import _make_table_id, _make_analysis_id, _format_url
+from urllib import quote_plus
+from .utils import _make_table_id, _make_analysis_id
 
 BASE_URL = "https://api.priorknowledge.com/"
 
 def connect(api_key=None, api_base_url=None, ssl_verify=True,
-        disable_gzip=False, debug=False):
+        enable_gzip=True, debug=False):
     if api_key is None:
         api_key = os.getenv("VERITABLE_KEY")
     if api_base_url is None:
         api_base_url = os.getenv("VERITABLE_URL") or BASE_URL
-    connection = Connection(api_key, api_base_url, ssl_verify,
-            disable_gzip, debug)
+    connection = Connection(api_key=api_key, api_base_url=api_base_url, ssl_verify=ssl_verify,
+            enable_gzip=enable_gzip, debug=debug)
     try:
         connection_test = connection.get("/")
     except simplejson.JSONDecodeError:
@@ -32,7 +33,10 @@ class API:
         self.url = connection.api_base_url
 
     def __str__(self):
-        return "Veritable API at " + self.url
+        return "<veritable.API url='" + self.url +"'>"
+
+    def __repr__(self):
+        return self.__str__()
 
     def table_exists(self, table_id):
         try:
@@ -49,7 +53,7 @@ class API:
 
     def get_table(self, table_id):
         """Get a table from the collection by its id."""
-        r = self.connection.get(_format_url("tables", table_id))
+        r = self.connection.get("/tables/{0}".format(quote_plus(table_id)))
         return Table(self.connection, r)
     
     def create_table(self, table_id=None, description="", force=False):
@@ -67,14 +71,13 @@ class API:
                 raise DuplicateTableException(table_id)
             else:
                 self.delete_table(table_id)
-        r = self.connection.post("tables",
+        r = self.connection.post("/tables",
                 data = {"_id": table_id, "description": description})
         return Table(self.connection, r)
     
     def delete_table(self, table_id):
         """Delete a table from the collection by its id."""
-        r = self.connection.get(_format_url("tables", table_id))
-        return Table(self.connection, r).delete()
+        self.connection.delete("/tables/{0}".format(quote_plus(table_id)))
 
 class Table:
     def __init__(self, connection, data):
@@ -86,7 +89,10 @@ class Table:
                       "rows": data["links"]["rows"]}    
                       
     def __str__(self):
-        return "Veritable table at " + self.links["self"]
+        return "<veritable.Table id='"+self.id+"'>"
+
+    def __repr__(self):
+        return self.__str__()
 
     def _still_alive(self):
         """Check to make sure the table still exists."""
@@ -113,7 +119,7 @@ class Table:
             row_id = row["_id"]
             if not isinstance(row_id, basestring):
                 raise TypeError("Row id must be a string")
-        return self.connection.put(_format_url(self.links["rows"], row_id),
+        return self.connection.put("{0}/{1}".format(self.links["rows"].rstrip("/"), quote_plus(row_id)),
                 row)
         
     def batch_upload_rows(self, rows):
@@ -128,7 +134,7 @@ class Table:
     def get_row(self, row_id):
         """Get a row from the table by its id."""
         self._still_alive()
-        return self.connection.get(_format_url(self.links["rows"], row_id))
+        return self.connection.get("{0}/{1}".format(self.links["rows"].rstrip("/"), quote_plus(row_id)))
 
     def get_rows(self):
         """Get the rows of the table."""
@@ -138,9 +144,9 @@ class Table:
     def delete_row(self, row_id):
         """Delete a row from the table by its id."""
         self._still_alive()
-        return self.connection.delete(_format_url(self.links["rows"], row_id))
+        return self.connection.delete("{0}/{1}".format(self.links["rows"].rstrip("/"), quote_plus(row_id)))
 
-    def delete_rows(self, rows):
+    def batch_delete_rows(self, rows):
         """Batch delete rows from the table."""
         self._still_alive()
         for i in range(len(rows)):
@@ -158,16 +164,13 @@ class Table:
     def get_analysis(self, analysis_id):
         """Get an analysis corresponding to the table by its id."""
         self._still_alive()
-        r = self.connection.get(_format_url(self.links["analyses"],
-                analysis_id))
+        r = self.connection.get("{0}/{1}".format(self.links["analyses"].rstrip("/"), quote_plus(analysis_id)))
         return Analysis(self.connection, r)
 
     def delete_analysis(self, analysis_id):
         """Delete an analysis corresponding to the table by its id."""
         self._still_alive()
-        r = self.connection.get(_format_url(self.links["analyses"],
-                analysis_id))
-        return Analysis(self.connection, r).delete()
+        self.connection.delete("{0}/{1}".format(self.links["analyses"].rstrip("/"), quote_plus(analysis_id)))
 
     def _analysis_exists(self, analysis_id):
         """Test if an analysis with a given id already exists."""
@@ -215,7 +218,10 @@ class Analysis:
                 self.links[k] = data["links"][k]
     
     def __str__(self):
-        return "Veritable analysis at " + self.links["self"]
+        return "<veritable.Analysis id='"+self.id+"'>"
+
+    def __repr__(self):
+        return self.__str__()
 
     @property
     def error(self):

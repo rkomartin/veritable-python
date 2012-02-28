@@ -9,7 +9,7 @@ from nose.tools import raises
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 from veritable.exceptions import *
-from veritable.utils import _format_url, wait_for_analysis
+from veritable.utils import wait_for_analysis
 
 TEST_API_KEY = os.getenv("VERITABLE_KEY") or "test"
 TEST_BASE_URL = os.getenv("VERITABLE_URL") or "https://api.priorknowledge.com"
@@ -232,12 +232,12 @@ class TestTableOps:
     @attr('sync')
     def test_batch_delete_rows(self):
         rs = self.t.get_rows()
-        self.t.delete_rows(rs)
+        self.t.batch_delete_rows(rs)
     
     @attr('sync')
     def test_batch_delete_rows_by_id_only(self):
         rs = self.t.get_rows()
-        self.t.delete_rows([{'_id': r["_id"]} for r in rs])
+        self.t.batch_delete_rows([{'_id': r["_id"]} for r in rs])
     
     @attr('sync')
     @raises(MissingRowIDException)
@@ -245,7 +245,7 @@ class TestTableOps:
         rs = [{'zim': 'zam', 'wos': 9.3},
               {'zim': 'zop', 'wos': 18.9}]
         rs.append(self.t.get_rows())
-        self.t.delete_rows(rs)            
+        self.t.batch_delete_rows(rs)            
 
     @attr('sync')
     def test_get_analyses(self):

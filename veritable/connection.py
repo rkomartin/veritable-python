@@ -7,7 +7,7 @@ from io import BytesIO
 from requests.auth import HTTPBasicAuth
 from urlparse import urljoin
 from .exceptions import *
-from .utils import _format_url, _url_has_scheme
+from .utils import _url_has_scheme
 from .version import __version__
 
 USER_AGENT = "veritable-python "+__version__
@@ -16,7 +16,7 @@ def fully_qualify_url(f):
     def g(*args, **kwargs):
         url = args[1]
         if not _url_has_scheme(url):
-            url = _format_url(args[0].api_base_url, url)
+            url = args[0].api_base_url.rstrip("/")+"/"+url.lstrip("/")
         return f(args[0], url, *args[2:], **kwargs)
     return g
 
@@ -62,16 +62,16 @@ def mgzip(buf):
 
 class Connection:
     def __init__(self, api_key, api_base_url, ssl_verify=None,
-                 disable_gzip=False, debug=False):
+                 enable_gzip=True, debug=False):
         if api_key is None:
             raise APIKeyException()
         if api_base_url is None:
             raise APIBaseURLException()        
         self.api_key = api_key
-        self.api_base_url = _format_url(api_base_url)
+        self.api_base_url = api_base_url.rstrip("/")
         self.auth = HTTPBasicAuth(self.api_key, self.api_key)
         self.ssl_verify = ssl_verify
-        self.disable_gzip = disable_gzip
+        self.disable_gzip = not(enable_gzip)
         self.debug = debug
         if self.debug:
             self.logger = logging.getLogger(__name__)
