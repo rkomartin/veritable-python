@@ -83,7 +83,7 @@ class InvalidPredictionRequest(VeritableError):
         return repr(self.value)
 
 class DataValidationException(VeritableError):
-    def __init__(self, msg, row=None, field=None):
+    def __init__(self, msg, row=None, col=None):
         self.value = msg
         self.row = row
         self.col = col
