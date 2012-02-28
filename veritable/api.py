@@ -203,6 +203,9 @@ class Analysis:
         self._conn = connection
         self._doc = doc
 
+    def __str__(self):
+        return 'Veritable analysis at ' + self._link('self')
+
     def _link(self, name):
         if name not in self._doc['links']:
             raise VeritableError('analysis has no {0} link'.format(name))
