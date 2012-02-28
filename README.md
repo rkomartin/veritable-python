@@ -1,4 +1,4 @@
-FIXME add descriptions of error codes 
+FIXME add descriptions of error codes
 
 # Veritable Python client
 First things first.
