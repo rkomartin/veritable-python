@@ -73,7 +73,7 @@ class Connection:
         self.ssl_verify = ssl_verify
         self.disable_gzip = not(enable_gzip)
         self.debug = debug
-        self.session = requests.session()
+        self.session = self._create_session()
         if self.debug:
             self.logger = logging.getLogger(__name__)
             ch = logging.StreamHandler()
@@ -81,16 +81,17 @@ class Connection:
             self.logger.addHandler(ch)
             self.logger.setLevel(logging.DEBUG)
 
+    def _create_session(self):
+        headers = {'User-Agent': USER_AGENT}
+        return requests.session(auth=self.auth, headers=headers)
+
     def debug_log(self, x):
         if self.debug:
             self.logger.debug(x)
 
-        
     @fully_qualify_url
     def get(self, url):
-        kwargs = {'headers': {'User-Agent':USER_AGENT},
-                  'auth': self.auth,
-                  'prefetch': True}
+        kwargs = {'headers': {}, 'prefetch': True}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
         if not self.disable_gzip:
@@ -102,8 +103,7 @@ class Connection:
     
     @fully_qualify_url
     def post(self, url, data):
-        kwargs = {'headers': {'User-Agent':USER_AGENT,'Content-Type': 'application/json'},
-                  'auth': self.auth,
+        kwargs = {'headers': {'Content-Type': 'application/json'},
                   'prefetch': True}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
@@ -119,8 +119,7 @@ class Connection:
     
     @fully_qualify_url
     def put(self, url, data):
-        kwargs = {'headers': {'User-Agent':USER_AGENT,'Content-Type': 'application/json'},
-                  'auth': self.auth,
+        kwargs = {'headers': {'Content-Type': 'application/json'},
                   'prefetch': True}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
@@ -136,9 +135,7 @@ class Connection:
     
     @fully_qualify_url
     def delete(self, url):
-        kwargs = {'headers': {'User-Agent':USER_AGENT},
-                  'auth': self.auth,
-                  'prefetch': True}
+        kwargs = {'headers': {}, 'prefetch': True}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
         if self.debug:
