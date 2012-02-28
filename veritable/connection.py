@@ -73,6 +73,7 @@ class Connection:
         self.ssl_verify = ssl_verify
         self.disable_gzip = not(enable_gzip)
         self.debug = debug
+        self.session = requests.session()
         if self.debug:
             self.logger = logging.getLogger(__name__)
             ch = logging.StreamHandler()
@@ -88,20 +89,22 @@ class Connection:
     @fully_qualify_url
     def get(self, url):
         kwargs = {'headers': {'User-Agent':USER_AGENT},
-                  'auth': self.auth}
+                  'auth': self.auth,
+                  'prefetch': True}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
         if not self.disable_gzip:
             kwargs['headers']['Accept-Encoding'] = 'gzip'
         if self.debug:
             kwargs['config'] = {'verbose': sys.stderr}
-        r = requests.get(url, **kwargs)
+        r = self.session.get(url, **kwargs)
         return get_response_data(r, self.debug_log)
     
     @fully_qualify_url
     def post(self, url, data):
         kwargs = {'headers': {'User-Agent':USER_AGENT,'Content-Type': 'application/json'},
-                  'auth': self.auth}
+                  'auth': self.auth,
+                  'prefetch': True}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
         if not self.disable_gzip:
@@ -111,13 +114,14 @@ class Connection:
             kwargs['data'] = json.dumps(data)
         if self.debug:
             kwargs['config'] = {'verbose': sys.stderr}
-        r = requests.post(url, **kwargs)
+        r = self.session.post(url, **kwargs)
         return get_response_data(r, self.debug_log)
     
     @fully_qualify_url
     def put(self, url, data):
         kwargs = {'headers': {'User-Agent':USER_AGENT,'Content-Type': 'application/json'},
-                  'auth': self.auth}
+                  'auth': self.auth,
+                  'prefetch': True}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
         if not self.disable_gzip:
@@ -127,16 +131,17 @@ class Connection:
             kwargs['data'] = json.dumps(data)
         if self.debug:
             kwargs['config'] = {'verbose': sys.stderr}
-        r = requests.put(url, **kwargs)
+        r = self.session.put(url, **kwargs)
         return get_response_data(r, self.debug_log)
     
     @fully_qualify_url
     def delete(self, url):
         kwargs = {'headers': {'User-Agent':USER_AGENT},
-                  'auth': self.auth}
+                  'auth': self.auth,
+                  'prefetch': True}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
         if self.debug:
             kwargs['config'] = {'verbose': sys.stderr}
-        r = requests.delete(url, **kwargs)
+        r = self.session.delete(url, **kwargs)
         return get_response_data(r, self.debug_log)
