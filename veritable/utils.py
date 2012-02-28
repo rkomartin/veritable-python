@@ -1,6 +1,6 @@
 import time
 import uuid
-from math import floor
+from math import floor, ceil, log
 from random import shuffle
 from urlparse import urlparse
 import csv
@@ -249,6 +249,129 @@ def _validate(rows,schema,convert_types,ignore_nones,remove_nones,remove_invalid
         if (fill == 0 and not(ignore_nones)):
             raise DataValidationException("Field '"+c+"' does not have any values",field=c)
 
+
+def point_estimate(predictions, schema, column):
+    col_type = schema[column]['type']
+    if col_type == 'boolean' or col_type == 'categorical':
+        # mode
+        counts = _counts(predictions, column)
+        max_count = 0
+        max_value = None
+        for value in counts:
+            if counts[value] > max_count:
+                max_count = counts[value]
+                max_value = value
+        return max_value
+    elif col_type == 'count':
+        # median
+        values = _sorted_values(predictions, column)
+        N = len(values)
+        if N % 2 == 0: # even
+            a = N / 2 - 1
+            return values[a] + values[a + 1] / 2.
+        else: # odd
+            a = int((N - 1) / 2)
+            return values[a]
+    elif col_type == 'real':
+        # mean
+        values = [row[column] for row in predictions]
+        mean = sum(values) / len(values)
+        return mean
+    else:
+        assert False, 'bad column type'
+
+
+def credible_values(predictions, schema, column, p=None):
+    col_type = schema[column]['type']
+    if col_type == 'boolean' or col_type == 'categorical':
+        if p == None:
+            p = .5
+        freqs = _freqs(_counts(predictions, column))
+        sorted_freqs = sorted(freqs.items(), key=lambda x: x[1], reverse=True)
+        threshold_freqs = [(c, a) for c, a in sorted_freqs if a >= p]
+        return threshold_freqs
+    elif col_type == 'count' or col_type == 'real':
+        # Note: this computes an interval that removes equal probability mass 
+        # from each end; a possible alternative would be to return the shorted 
+        # interval containing the given amount of mass
+        if p == None:
+            p = .9
+        N = len(predictions)
+        a = int(round(N * (1. - p) / 2.))
+        sorted_values = _sorted_values(predictions, column)
+        N = len(sorted_values)
+        lo = sorted_values[a]
+        hi = sorted_values[N - 1 - a]
+        return (lo, hi)
+    else:
+        assert False, 'bad column type'
+
+
+def prob_within(predictions, schema, column, set_spec):
+    col_type = schema[column]['type']
+    if col_type == 'boolean' or col_type == 'categorical':
+        count = 0
+        for row in predictions:
+            if row[column] in set_spec:
+                count += 1
+        return float(count) / len(predictions)
+    elif col_type == 'count' or col_type == 'real':
+        count = 0
+        mn = set_spec[0]
+        mx = set_spec[1]
+        for row in predictions:
+            v = row[column]
+            if (mn == None or v >= mn) and (mx == None or v <= mx):
+                count += 1
+        return float(count) / len(predictions)                
+    else:
+        assert False, 'bad column type'
+
+
+def binned_values(predictions, schema, column, num_bins=None):
+    col_type = schema[column]['type']
+    col_type = schema[column]['type']
+    if col_type == 'boolean' or col_type == 'categorical':
+        freqs = _freqs(_counts(predictions, column))
+        return freqs.items()
+    elif col_type == 'count' or col_type == 'real':
+        #FIXME count bins need to be integer-bounded
+        N = len(predictions)
+        if num_bins == None:
+            num_bins = int(ceil(log(N) * 2.))
+        sorted_values = _sorted_values(predictions, column)
+        mn = sorted_values[0]
+        mx = sorted_values[-1]
+        bw = float(mx - mn) / num_bins
+        bins = [(i * bw, (i + 1) * bw) for i in range(num_bins)]
+        bin_counts = [0] * num_bins
+        for row in predictions:
+            v = row[column]
+            bi = int(floor((v - mn) / bw))
+            bi = min(num_bins - 1, bi)
+            bin_counts[bi] += 1
+        return zip(bins, [float(c) / N for c in bin_counts])
+    else:
+        assert False, 'bad column type'
+
+
+def _sorted_values(predictions, column):
+    values = [row[column] for row in predictions]
+    values.sort()
+    return values
+
+
+def _counts(predictions, column):
+    counts = {}
+    for row in predictions:
+        counts[row[column]] = counts.get(row[column], 0) + 1
+    return counts
+
+
+def _freqs(counts):
+    total = sum(counts.values())
+    freqs = dict([(k, float(counts[k]) / total) for k in counts])
+    return freqs
 
 
 def summarize(predictions, col):
