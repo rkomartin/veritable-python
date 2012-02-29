@@ -85,14 +85,6 @@ class TestAPI:
         self.API.get_table("rum")
 
     @attr('sync')
-    def test_tables_still_alive(self):
-        self.API.create_table()
-        self.API.create_table()
-        self.API.create_table()
-        ts = self.API.get_tables()
-        [t._still_alive() for t in ts]
-
-    @attr('sync')
     @raises(DuplicateTableException)
     def test_create_duplicate_tables(self):
         t = self.API.create_table("dumb", force=True)
