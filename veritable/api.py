@@ -159,7 +159,7 @@ class Table:
     def get_analyses(self):
         """Get the analyses corresponding to the table."""
         r = self._conn.get(self._link("analyses"))
-        return [Analysis(self._conn, a) for a in r["data"]]
+        return [Analysis(self._conn, a) for a in r["analyses"]]
 
     def get_analysis(self, analysis_id):
         """Get an analysis corresponding to the table by its id."""
