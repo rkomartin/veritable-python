@@ -11,7 +11,7 @@ from requests.exceptions import HTTPError
 from veritable.exceptions import *
 from veritable.utils import wait_for_analysis
 
-TEST_API_KEY = os.getenv("VERITABLE_KEY") or "test"
+TEST_API_KEY = os.getenv("VERITABLE_KEY")
 TEST_BASE_URL = os.getenv("VERITABLE_URL") or "https://api.priorknowledge.com"
 
 class TestConnection:
