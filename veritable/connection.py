@@ -81,6 +81,12 @@ class Connection:
             self.logger.addHandler(ch)
             self.logger.setLevel(logging.DEBUG)
 
+    def __str__(self):
+        return "<veritable.Connection url='" + self._api_base_url +"'>"
+
+    def __repr__(self):
+        return self.__str__()
+
     def _create_session(self):
         headers = {'User-Agent': USER_AGENT}
         return requests.session(auth=self.auth, headers=headers)
