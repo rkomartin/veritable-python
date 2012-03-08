@@ -246,6 +246,14 @@ class Analysis:
         return self._conn.get(self._link('schema'))
 
     def predict(self, row, count=10):
-        return self._conn.post(
+        """Makes predictions from the analysis."""
+        if self.state == 'running':
+            self.update()
+        if self.state == 'succeeded':
+            return self._conn.post(
             self._link('predict'),
             data={'data': row, 'count': count})
+        elif self.state == 'running':
+            raise VeritableError('Analysis is not yet complete!')
+        elif self.state == 'failed':
+            raise VeritableError(self.error)
