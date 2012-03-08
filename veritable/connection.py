@@ -69,7 +69,7 @@ class Connection:
             raise APIBaseURLException()        
         self.api_key = api_key
         self.api_base_url = api_base_url.rstrip("/")
-        self.auth = HTTPBasicAuth(self.api_key, self.api_key)
+        self.auth = HTTPBasicAuth(self.api_key, "")
         self.ssl_verify = ssl_verify
         self.disable_gzip = not(enable_gzip)
         self.debug = debug
