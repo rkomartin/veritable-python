@@ -25,9 +25,6 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
         raise(APIConnectionException(api_base_url))
     return API(connection)
 
-def handle_api_error(err):
-    raise Exception(err)
-
 class API:
     """Gives access to the collection of tables availabe to the user."""
     def __init__(self, connection):
