@@ -66,9 +66,10 @@ class TestAPI:
         t.delete()
 
     @attr('sync')
-    @raises(DeletedTableException)
-    def test_get_deleted_table(self):
+    @raises(ServerException)
+    def test_delete_deleted_table(self):
         t = self.API.create_table("humm", force=True)
+        t.delete()
         t.delete()
 
     @attr('sync')
@@ -469,6 +470,17 @@ class TestTableOps:
         assert a.state == "failed"
 
     @attr('sync')
+    def test_get_analyses(self):
+        schema = {'cat': {'type': 'categorical'},
+                  'ct': {'type': 'count'},
+                  'real': {'type': 'real'},
+                  'bool': {'type': 'boolean'}
+                  }
+        self.t2.create_analysis(schema, analysis_id="test_analysis_1", force=True)
+        self.t2.create_analysis(schema, analysis_id="test_analysis_2", force=True)
+        self.t2.get_analyses()
+
+    @attr('sync')
     def test_get_analysis(self):
         schema = {'cat': {'type': 'categorical'},
                   'ct': {'type': 'count'},
@@ -519,47 +531,74 @@ class TestTableOps:
         a = self.t2.create_analysis(schema, analysis_id="a", force=True)
         assert schema == a.get_schema()
 
-    def test_get_analysis_schema_fails(self):
-        pass
+class TestPredictions:
+    def setup(self):
+        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
+        self.t = self.API.create_table(table_id = "bugz", force=True)
+        self.t.batch_upload_rows([{'_id': 'onebug', 'zim': 'zam', 'wos': 19.2},
+                         {'_id': 'twobug', 'zim': 'vim', 'wos': 11.3},
+                         {'_id': 'threebug', 'zim': 'fop', 'wos': 17.5},
+                         {'_id': 'fourbug', 'zim': 'zop', 'wos': 10.3},
+                         {'_id': 'fivebug', 'zim': 'zam', 'wos': 9.3},
+                         {'_id': 'sixbug', 'zim': 'zop', 'wos': 18.9}])
+        schema1 = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
+        self.a1 = self.t.create_analysis(schema1, analysis_id="a1", force=True)
+        self.t2 = self.API.create_table(table_id="test_all_types",
+                             description="Test dataset with all datatypes",
+                             force=True)
+        self.t2.batch_upload_rows(
+          [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
+           {'_id': 'row2', 'cat': 'b', 'ct': 0, 'real': 0.92131, 'bool': False},
+           {'_id': 'row3', 'cat': 'c', 'ct': 1, 'real': 1.82812, 'bool': True},
+           {'_id': 'row4', 'cat': 'c', 'ct': 1, 'real': 0.81271, 'bool': True},
+           {'_id': 'row5', 'cat': 'd', 'ct': 2, 'real': 1.14561, 'bool': False},
+           {'_id': 'row6', 'cat': 'a', 'ct': 5, 'real': 1.03412, 'bool': False}
+          ])
+        schema2 = {'cat': {'type': 'categorical'},
+                  'ct': {'type': 'count'},
+                  'real': {'type': 'real'},
+                  'bool': {'type': 'boolean'}
+                  }
+        self.a2 = self.t2.create_analysis(schema2, analysis_id="a2", force=True)
 
+    @attr('async')
     def test_make_prediction(self):
-        pass
+        wait_for_analysis(self.a2)
+        self.a2.predict({'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
 
-    def test_make_prediction_fails(self):
-        pass
-
-    def test_make_prediction_with_no_rows_fails(self):
-        pass    
+    @attr('async')
+    @raises
+    def test_make_prediction_with_empty_row_fails(self):
+        wait_for_analysis(self.a2)
+        self.a2.predict({})
     
-    def test_make_prediction_with_too_many_rows_fails(self):
-        pass
+    @attr('async')
+    @raises
+    def test_make_prediction_with_list_of_rows_fails(self):
+        wait_for_analysis(self.a2)
+        self.a2.predict([{'cat': 'b', 'ct': 2, 'real': None, 'bool': False}, {'cat': 'b', 'ct': 2, 'real': None, 'bool': None}])
 
-    def test_delete_analysis(self):
-        pass
+    @attr('async')
+    @raises
+    def test_make_prediction_with_count_too_high_fails(self):
+        wait_for_analysis(self.a2)
+        self.a2.predict({'cat': 'b', 'ct': 2, 'real': None, 'bool': False}, count = 10000)
 
-    def test_learn_analysis(self):
-        pass
+    @attr('async')
+    @raises
+    def test_make_prediction_with_invalid_column_fails(self):
+        wait_for_analysis(self.a1)
+        self.a1.predict({'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
 
-    def test_get_analysis(self):
-        pass
-
-    def test_delete_analysis_fails(self):
-        pass
-
-    def test_learn_analysis_fails(self):
-        pass
-
-    def test_get_anlysis_fails(self):
-        pass
+    @attr('sync')
+    def test_delete_analysis_with_instance_method(self):
+        self.a2.delete()
 
     def test_predict_link_is_present(self):
-        pass
-        
-    def test_predictions_ready(self):
-        pass
+        wait_for_analysis(self.a1)
+        self.a1._link('predict')
 
-    def test_make_too_many_predictions(self):
-        pass
-    
-    def test_utils_split_rows(self):
-        pass
+    @raises
+    def test_predict_from_failed_analysis(self):
+        a3 = self.t2.create_analysis(schema1, analysis_id="a3", force=True)
+        a3.predict({'cat': 'b', 'ct': 2, 'real': None, 'bool': False})

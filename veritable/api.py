@@ -9,6 +9,7 @@ BASE_URL = "https://api.priorknowledge.com/"
 
 def connect(api_key=None, api_base_url=None, ssl_verify=True,
         enable_gzip=True, debug=False):
+    """Returns an instance of the Veritable API."""
     if api_key is None:
         api_key = os.getenv("VERITABLE_KEY")
     if api_base_url is None:
@@ -24,10 +25,8 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
         raise(APIConnectionException(api_base_url))
     return API(connection)
 
-def handle_api_error(err):
-    raise Exception(err)
-
 class API:
+    """Gives access to the collection of tables availabe to the user."""
     def __init__(self, connection):
         self._conn = connection
         self._url = connection.api_base_url
@@ -39,11 +38,13 @@ class API:
         return self.__str__()
 
     def _link(self, name):
+        # Retrieves a subresource by name
         if name not in self._doc['links']:
             raise VeritableError('api has no {0} link'.format(name))
         return self._doc['links'][name]
 
     def table_exists(self, table_id):
+        """Checks if a table with the specified id is available to the user."""
         try:
             self.get_table(table_id)
         except:
@@ -52,17 +53,17 @@ class API:
             return True
 
     def get_tables(self):
-        """Return the Veritable tables available to the user."""
+        """Returns a list of the tables available to the user."""
         r = self._conn.get("tables")
         return [Table(self._conn, t) for t in r["tables"]]
 
     def get_table(self, table_id):
-        """Get a table from the collection by its id."""
+        """Gets a table from the collection by its id."""
         r = self._conn.get("/tables/{0}".format(quote_plus(table_id)))
         return Table(self._conn, r)
     
     def create_table(self, table_id=None, description="", force=False):
-        """Create a table with the given id."""    
+        """Creates a new table with the given id."""    
         if table_id is None:
             autogen = True
             table_id = _make_table_id()
@@ -81,10 +82,11 @@ class API:
         return Table(self._conn, r)
     
     def delete_table(self, table_id):
-        """Delete a table from the collection by its id."""
+        """Deletes a table from the collection by its id."""
         return self._conn.delete("/tables/{0}".format(quote_plus(table_id)))
 
 class Table:
+    """Gives access to the rows and analyses associated with a given table."""
     def __init__(self, connection, doc):
         self._conn = connection
         self._doc = doc
@@ -96,12 +98,13 @@ class Table:
         return self.__str__()
 
     def _link(self, name):
+        # Retrieves a subresource by name
         if name not in self._doc['links']:
             raise VeritableError('table has no {0} link'.format(name))
         return self._doc['links'][name]
 
     def _analysis_exists(self, analysis_id):
-        """Test if an analysis with a given id already exists."""
+        # Checks if an analysis with a given id already exists.
         try:
             self.get_analysis(analysis_id)
         except:
@@ -111,22 +114,23 @@ class Table:
 
     @property
     def id(self):
+        """The id of the table."""
         return self._doc['_id']
 
     def delete(self):
-        """Delete the table."""
+        """Deletes the table."""
         return self._conn.delete(self._link("self"))
 
     def get_row(self, row_id):
-        """Get a row from the table by its id."""
+        """Gets a row from the table by its id."""
         return self._conn.get("{0}/{1}".format(self._link("rows").rstrip("/"), quote_plus(row_id)))
 
     def get_rows(self):
-        """Get the rows of the table."""
+        """Gets all the rows of the table."""
         return self._conn.get(self._link("rows"))["rows"]
 
     def upload_row(self, row):
-        """Add a row to the table."""
+        """Adds a row to the table or updates an existing row."""
         if "_id" not in row:
             raise MissingRowIDException()
         else:
@@ -137,7 +141,7 @@ class Table:
                 row)
 
     def batch_upload_rows(self, rows):
-        """Batch add rows to the table."""
+        """Batch adds rows to the table or updates existing rows."""
         for i in range(len(rows)):
             if not "_id" in rows[i]:
                 raise MissingRowIDException()
@@ -145,11 +149,11 @@ class Table:
         return self._conn.post(self._link("rows"), data)
 
     def delete_row(self, row_id):
-        """Delete a row from the table by its id."""
+        """Deletes a row from the table by its id."""
         return self._conn.delete("{0}/{1}".format(self._link("rows").rstrip("/"), quote_plus(row_id)))
 
     def batch_delete_rows(self, rows):
-        """Batch delete rows from the table."""
+        """Batch deletes rows from the table."""
         for i in range(len(rows)):
             if not "_id" in rows[i]:
                 raise MissingRowIDException()
@@ -157,22 +161,22 @@ class Table:
         return self._conn.post(self._link("rows"), data)
 
     def get_analyses(self):
-        """Get the analyses corresponding to the table."""
+        """Gets all the analyses corresponding to the table."""
         r = self._conn.get(self._link("analyses"))
         return [Analysis(self._conn, a) for a in r["analyses"]]
 
     def get_analysis(self, analysis_id):
-        """Get an analysis corresponding to the table by its id."""
+        """Gets an analysis corresponding to the table by its id."""
         r = self._conn.get("{0}/{1}".format(self._link("analyses").rstrip("/"), quote_plus(analysis_id)))
         return Analysis(self._conn, r)
 
     def delete_analysis(self, analysis_id):
-        """Delete an analysis corresponding to the table by its id."""
+        """Deletes an analysis corresponding to the table by its id."""
         self._conn.delete("{0}/{1}".format(self._link("analyses").rstrip("/"), quote_plus(analysis_id)))
 
     def create_analysis(self, schema, analysis_id=None, description="",
                         type="veritable", force=False):
-        """Create a new analysis for the table."""
+        """Creates a new analysis of the table."""
         if type != "veritable":
             raise InvalidAnalysisTypeException()
         if analysis_id is None:
@@ -195,6 +199,7 @@ class Table:
         return Analysis(self._conn, r)
 
 class Analysis:
+    """Gives access to the schema associated with an analysis and makes predictions."""
     def __init__(self, connection, doc):
         self._conn = connection
         self._doc = doc
@@ -212,29 +217,43 @@ class Analysis:
 
     @property
     def id(self):
+        """The id of the analysis."""
         return self._doc['_id']
 
     @property
     def state(self):
+        """The state of the analysis: one of 'succeeded', 'failed', or 'running'."""
         return self._doc['state']
 
     @property
     def error(self):
+        """The error, if any, encountered by the analysis."""
         if self.state != 'failed':
             return None
         else:
             return self._doc['error']
 
     def update(self):
+        """Manually updates the analysis, checking if it has succeeded or failed."""
         self._doc = self._conn.get(self._link('self'))
 
     def delete(self):
+        """Deletes the analysis."""
         return self._conn.delete(self._link('self'))
 
     def get_schema(self):
+        """Gets the schema of the analysis."""
         return self._conn.get(self._link('schema'))
 
     def predict(self, row, count=10):
-        return self._conn.post(
+        """Makes predictions from the analysis."""
+        if self.state == 'running':
+            self.update()
+        if self.state == 'succeeded':
+            return self._conn.post(
             self._link('predict'),
             data={'data': row, 'count': count})
+        elif self.state == 'running':
+            raise VeritableError('Analysis is not yet complete!')
+        elif self.state == 'failed':
+            raise VeritableError(self.error)
