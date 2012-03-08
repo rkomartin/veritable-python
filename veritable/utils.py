@@ -10,20 +10,25 @@ from .exceptions import *
 
 
 def _make_table_id():
+    # Autogenerate id
     return uuid.uuid4().hex
 
 def _make_analysis_id():
+    # Autogenerate id
     return uuid.uuid4().hex
 
 def _url_has_scheme(url):
+    # Check if a URL includes a scheme
 	return urlparse(url)[0] is not ""
 
 def wait_for_analysis(a, poll=2):
+    """Waits for a running analysis to succeed or fail."""
     while a.state == 'running':
         time.sleep(poll)
         a.update()
 
 def split_rows(rows, frac):
+    """Splits a list of rows into two sets, sampling at random."""
 	N = len(rows)
 	inds = range(N)
 	shuffle(inds)
@@ -33,6 +38,7 @@ def split_rows(rows, frac):
 	return train_dataset, test_dataset
 
 def _validate_schema(schema):
+    # Validate a schema
     valid_types = ['boolean', 'categorical', 'real', 'count']
     for k in schema.keys():
         if not isinstance(k, basestring):
@@ -44,6 +50,7 @@ def _validate_schema(schema):
             raise InvalidSchemaException("Column '"+k+"' type '"+v['type']+"' is not valid. Please specify 'type' as one of ['"+string.join(valid_types,"', '")+"']",col=k)
 
 def validate_schema(schema):
+    """Checks if an analysis schema is well-formed."""
 	try:
 		_validate_schema(schema)
 	except:
@@ -52,6 +59,7 @@ def validate_schema(schema):
 		return True
 
 def make_schema(schema_rule,headers=None,rows=None):
+    """Makes an analysis schema from a schema rule."""
     if ((headers == None) & (rows == None)):
         raise Exception("Either headers or rows must be provided")
     if headers == None:
@@ -71,6 +79,7 @@ def make_schema(schema_rule,headers=None,rows=None):
 
 # Dialects: csv.excel_tab, csv.excel
 def write_csv(rows,filename,dialect=csv.excel):
+    """Writes a list of row dicts to disk as .csv"""
     headers = {}
     for r in rows:
         for c in r.keys():
@@ -87,6 +96,7 @@ def write_csv(rows,filename,dialect=csv.excel):
 
 # Dialects: csv.excel_tab, csv.excel
 def read_csv(filename,id_col=None,dialect=None):
+    """Reads a .csv from disk into a list of row dicts."""
     table = []
     with open(filename) as cacheFile:
         if dialect == None:
@@ -113,12 +123,15 @@ def read_csv(filename,id_col=None,dialect=None):
     return table;
 
 def validate_data(rows,schema,convert_types=False,remove_nones=False,remove_invalids=False,map_categories=False,assign_ids=False,remove_extra_fields=False):
+    """Validates a list of rows against an analysis schema."""
     return _validate(rows,schema,convert_types=convert_types,allow_nones=False,remove_nones=remove_nones,remove_invalids=remove_invalids,map_categories=map_categories,has_ids=True,assign_ids=assign_ids,allow_extra_fields=True,remove_extra_fields=remove_extra_fields)
 
 def validate_predictions(predictions,schema,convert_types=False,remove_invalids=False,remove_extra_fields=False):
+    """Validates a predictions request against an analysis schema."""
     return _validate(predictions,schema,convert_types=convert_types,allow_nones=True,remove_nones=False,remove_invalids=remove_invalids,map_categories=False,has_ids=False,assign_ids=False,allow_extra_fields=False,remove_extra_fields=remove_extra_fields)
 
 def _validate(rows,schema,convert_types,allow_nones,remove_nones,remove_invalids,map_categories,has_ids,assign_ids,allow_extra_fields,remove_extra_fields):
+    # Validates data against an analysis schema
     _validate_schema(schema)
     prevIDs = {}
     catCounts = {}
@@ -246,6 +259,7 @@ def _validate(rows,schema,convert_types,allow_nones,remove_nones,remove_invalids
 
 
 def summarize(predictions, col):
+    """Gives a basic summary of predictions results."""
     ctype = type(predictions[0][col])
     vals = [p[col] for p in predictions]
     cnt = len(vals)

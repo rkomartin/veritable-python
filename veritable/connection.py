@@ -13,6 +13,7 @@ from .version import __version__
 USER_AGENT = "veritable-python "+__version__
 
 def fully_qualify_url(f):
+    """Decorator ensures that urls passed to the HTTP methods are fully qualified."""
     def g(*args, **kwargs):
         url = args[1]
         if not _url_has_scheme(url):
@@ -21,6 +22,7 @@ def fully_qualify_url(f):
     return g
 
 def get_response_data(r, debug_log=None):
+    """Routes HTTP errors, if any, and translates JSON response data."""
     if r.status_code == requests.codes.ok:
         if debug_log is not None:
             debug_log(json.loads(r.content))
@@ -29,6 +31,7 @@ def get_response_data(r, debug_log=None):
         handle_http_error(r, debug_log)
 
 def handle_http_error(r, debug_log=None):
+    """Handles HTTP errors."""
     try:
         content = json.loads(r.content)
         if debug_log is not None:
@@ -48,6 +51,7 @@ def handle_http_error(r, debug_log=None):
 
 
 def mgzip(buf):
+    """Gzip middleware."""
     wbuf = BytesIO()
     zbuf = GzipFile(
             mode='wb',
@@ -61,6 +65,7 @@ def mgzip(buf):
     return result
 
 class Connection:
+    """Wraps the raw HTTP requests to the Veritable server."""
     def __init__(self, api_key, api_base_url, ssl_verify=None,
                  enable_gzip=True, debug=False):
         if api_key is None:
@@ -88,15 +93,18 @@ class Connection:
         return self.__str__()
 
     def _create_session(self):
+        # Creates a requests session
         headers = {'User-Agent': USER_AGENT}
         return requests.session(auth=self.auth, headers=headers)
 
     def debug_log(self, x):
+        """Debug logging."""
         if self.debug:
             self.logger.debug(x)
 
     @fully_qualify_url
     def get(self, url):
+        """Wraps GET requests."""
         kwargs = {'headers': {}, 'prefetch': True}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
@@ -109,6 +117,7 @@ class Connection:
     
     @fully_qualify_url
     def post(self, url, data):
+        """Wraps POST requests."""
         kwargs = {'headers': {'Content-Type': 'application/json'},
                   'prefetch': True}
         if self.ssl_verify is not None:
@@ -125,6 +134,7 @@ class Connection:
     
     @fully_qualify_url
     def put(self, url, data):
+        """Wraps PUT requests."""
         kwargs = {'headers': {'Content-Type': 'application/json'},
                   'prefetch': True}
         if self.ssl_verify is not None:
@@ -141,6 +151,7 @@ class Connection:
     
     @fully_qualify_url
     def delete(self, url):
+        """Wraps DELETE requests."""
         kwargs = {'headers': {}, 'prefetch': True}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
