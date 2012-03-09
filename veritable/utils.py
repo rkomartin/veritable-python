@@ -9,6 +9,12 @@ import string
 from .exceptions import *
 
 
+_alphanumeric = re.compile("^\w*$")
+
+def _check_id(id):
+    if _alphanumeric.match(id) is None:
+        raise InvalidIDException(id)
+
 def _make_table_id():
     # Autogenerate id
     return uuid.uuid4().hex
