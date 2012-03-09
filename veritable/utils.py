@@ -9,10 +9,10 @@ import string
 from .exceptions import *
 
 
-_alphanumeric = re.compile("^\w*$")
+_alphanumeric = re.compile("^[-_a-zA-Z0-9]+$")
 
 def _check_id(id):
-    if _alphanumeric.match(id) is None:
+    if _alphanumeric.match(id) is None or id[-1] == "\n":
         raise InvalidIDException(id)
 
 def _make_table_id():

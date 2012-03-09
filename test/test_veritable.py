@@ -15,6 +15,9 @@ from veritable.utils import wait_for_analysis
 TEST_API_KEY = os.getenv("VERITABLE_KEY")
 TEST_BASE_URL = os.getenv("VERITABLE_URL") or "https://api.priorknowledge.com"
 
+INVALID_IDS = ["éléphant", "374.34", "ajfh/d/sfd@#$", u"ひたちの", "", " foo",
+    "foo ", " foo ", "foo\n", "foo\nbar"]
+
 class TestConnection:
     def test_create_api(self):
         API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
@@ -48,10 +51,8 @@ class TestAPI:
 
     @attr('sync')
     def test_create_table_with_invalid_id(self):
-        assert_raises(InvalidIDException, self.API.create_table, "éléphant")
-        assert_raises(InvalidIDException, self.API.create_table, "374.34")
-        assert_raises(InvalidIDException, self.API.create_table, "ajfh/d/sfd@#$")
-        assert_raises(InvalidIDException, self.API.create_table, u"ひたちの")
+        for id in INVALID_IDS:
+            assert_raises(InvalidIDException, self.API.create_table, id)
 
     @attr('sync')
     def test_create_table_with_description(self):
@@ -117,11 +118,8 @@ class TestAPI:
     @attr('sync')
     def test_upload_row_with_invalid_id(self):
         t = self.API.create_table("bugz", force=True)
-        t.upload_row({'_id': 'onebug', 'zim': 'zam', 'wos': 19.2})
-        assert_raises(InvalidIDException, t.upload_row, {'_id': 'éléphant', 'zim': 'zam', 'wos': 19.2})
-        assert_raises(InvalidIDException, t.upload_row, {'_id': '374.34', 'zim': 'zam', 'wos': 19.2})
-        assert_raises(InvalidIDException, t.upload_row, {'_id': 'ajfh/d/sfd@#$', 'zim': 'zam', 'wos': 19.2})
-        assert_raises(InvalidIDException, t.upload_row, {'_id': u'ひたちの', 'zim': 'zam', 'wos': 19.2})
+        for id in INVALID_IDS:
+            assert_raises(InvalidIDException, t.upload_row, {'_id': id, 'zim': 'zam', 'wos': 19.2})
 
     @attr('sync')
     def test_table_upload_row_with_int_id_as_string(self):
@@ -180,9 +178,10 @@ class TestAPI:
     @raises(InvalidIDException)
     def test_batch_upload_rows_with_invalid_ids(self):
         t = self.API.create_table("bugz_5", force=True)
-        t.batch_upload_rows([{'_id': '374.34', 'zim': 'zop', 'wos': 10.3},
-                    {'_id': 'éléphant', 'zim': 'zam', 'wos': 9.3},
-                    {'_id': u'ひたちの', 'zim': 'zop', 'wos': 18.9}])
+        rows = []
+        for id in INVALID_IDS:
+            rows = rows + [{'_id': id, 'zim': 'zop', 'wos': 10.3}]
+        t.batch_upload_rows(rows)
 
     # This should fail per https://app.asana.com/0/401264106780/436898020970
     # Our client does not autogenerate row IDs
@@ -286,10 +285,8 @@ class TestTableOps:
     @attr('sync')
     def test_create_analysis_with_invalid_id(self):
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
-        assert_raises(InvalidIDException, self.t.create_analysis, schema, analysis_id='éléphant')
-        assert_raises(InvalidIDException, self.t.create_analysis, schema, analysis_id='374.34')
-        assert_raises(InvalidIDException, self.t.create_analysis, schema, analysis_id='ajfh/d/sfd@#$')
-        assert_raises(InvalidIDException, self.t.create_analysis, schema, analysis_id=u'ひたちの')
+        for id in INVALID_IDS:
+            assert_raises(InvalidIDException, self.t.create_analysis, schema, analysis_id=id)
 
     @attr('sync')
     @raises(DuplicateAnalysisException)
