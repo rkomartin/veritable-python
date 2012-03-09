@@ -19,7 +19,7 @@ def _make_analysis_id():
 
 def _url_has_scheme(url):
     # Check if a URL includes a scheme
-	return urlparse(url)[0] is not ""
+    return urlparse(url)[0] is not ""
 
 def wait_for_analysis(a, poll=2):
     """Waits for a running analysis to succeed or fail."""
@@ -29,13 +29,13 @@ def wait_for_analysis(a, poll=2):
 
 def split_rows(rows, frac):
     """Splits a list of rows into two sets, sampling at random."""
-	N = len(rows)
-	inds = range(N)
-	shuffle(inds)
-	border_ind = int(floor(N * frac))
-	train_dataset = [rows[i] for i in inds[0:border_ind]]
-	test_dataset = [rows[i] for i in inds[border_ind:]]
-	return train_dataset, test_dataset
+    N = len(rows)
+    inds = range(N)
+    shuffle(inds)
+    border_ind = int(floor(N * frac))
+    train_dataset = [rows[i] for i in inds[0:border_ind]]
+    test_dataset = [rows[i] for i in inds[border_ind:]]
+    return train_dataset, test_dataset
 
 def _validate_schema(schema):
     # Validate a schema
@@ -51,12 +51,12 @@ def _validate_schema(schema):
 
 def validate_schema(schema):
     """Checks if an analysis schema is well-formed."""
-	try:
-		_validate_schema(schema)
-	except:
-		return False
-	else:
-		return True
+    try:
+        _validate_schema(schema)
+    except:
+        return False
+    else:
+        return True
 
 def make_schema(schema_rule,headers=None,rows=None):
     """Makes an analysis schema from a schema rule."""
