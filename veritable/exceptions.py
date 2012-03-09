@@ -39,6 +39,15 @@ class MissingRowIDException(VeritableError):
     def __str__(self):
         return repr(self.value)
 
+class InvalidIDException(VeritableError):
+    def __init__(self, s=None):
+        if s:
+            self.value = """Specified id """ + s + """ is invalid: alphanumeric and underscore only!"""
+        else:
+            self.value = """Specified id is invalid: alphanumeric and underscore only!"""
+    def __str__(self):
+        return repr(self.value)
+
 class InvalidAnalysisTypeException(VeritableError):
     def __init__(self):
         self.value = """Invalid analysis type."""

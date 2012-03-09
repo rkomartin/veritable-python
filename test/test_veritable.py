@@ -1,11 +1,12 @@
 #! usr/bin/python
+# coding=utf-8
 
 import time
 import simplejson as json
 import veritable
 import os
 from nose.plugins.attrib import attr
-from nose.tools import raises
+from nose.tools import raises, assert_raises
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 from veritable.exceptions import *
@@ -13,6 +14,9 @@ from veritable.utils import wait_for_analysis
 
 TEST_API_KEY = os.getenv("VERITABLE_KEY")
 TEST_BASE_URL = os.getenv("VERITABLE_URL") or "https://api.priorknowledge.com"
+
+INVALID_IDS = ["éléphant", "374.34", "ajfh/d/sfd@#$", u"ひたちの", "", " foo",
+    "foo ", " foo ", "foo\n", "foo\nbar"]
 
 class TestConnection:
     def test_create_api(self):
@@ -44,6 +48,11 @@ class TestAPI:
     @attr('sync')
     def test_create_table_with_id(self):
         t = self.API.create_table("foo", force=True)
+
+    @attr('sync')
+    def test_create_table_with_invalid_id(self):
+        for id in INVALID_IDS:
+            assert_raises(InvalidIDException, self.API.create_table, id)
 
     @attr('sync')
     def test_create_table_with_description(self):
@@ -107,10 +116,17 @@ class TestAPI:
         t.upload_row({'_id': 'onebug', 'zim': 'zam', 'wos': 19.2})
 
     @attr('sync')
+    def test_upload_row_with_invalid_id(self):
+        t = self.API.create_table("bugz", force=True)
+        for id in INVALID_IDS:
+            assert_raises(InvalidIDException, t.upload_row, {'_id': id, 'zim': 'zam', 'wos': 19.2})
+
+    @attr('sync')
     def test_table_upload_row_with_int_id_as_string(self):
         t = self.API.create_table("bugz", force=True)
         t.upload_row({'_id': '3', 'zim': 'zam', 'wos': 19.2})
 
+    @raises(InvalidIDException)
     @attr('sync')
     def test_table_upload_row_with_float_id_as_string(self):
         t = self.API.create_table("bugz", force=True)
@@ -157,6 +173,15 @@ class TestAPI:
         t.batch_upload_rows([{'_id': 'fourbug', 'zim': 'zop', 'wos': 10.3},
                     {'_id': 'fivebug', 'zim': 'zam', 'wos': 9.3},
                     {'_id': 'sixbug', 'zim': 'zop', 'wos': 18.9}])
+
+    @attr('sync')
+    @raises(InvalidIDException)
+    def test_batch_upload_rows_with_invalid_ids(self):
+        t = self.API.create_table("bugz_5", force=True)
+        rows = []
+        for id in INVALID_IDS:
+            rows = rows + [{'_id': id, 'zim': 'zop', 'wos': 10.3}]
+        t.batch_upload_rows(rows)
 
     # This should fail per https://app.asana.com/0/401264106780/436898020970
     # Our client does not autogenerate row IDs
@@ -214,7 +239,7 @@ class TestTableOps:
     def test_delete_row(self):
         self.t.delete_row("fivebug")
 
-    #Note: At the moment, this does not @raises(ServerException) because arguably it's acceptable behavior according to API
+    # This is expected behavior according to the API spec
     @attr('sync')
     def test_delete_deleted_row(self):
         self.t.delete_row("fivebug")
@@ -256,6 +281,12 @@ class TestTableOps:
     def test_create_analysis_autogen_id(self):
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
         self.t.create_analysis(schema)
+
+    @attr('sync')
+    def test_create_analysis_with_invalid_id(self):
+        schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
+        for id in INVALID_IDS:
+            assert_raises(InvalidIDException, self.t.create_analysis, schema, analysis_id=id)
 
     @attr('sync')
     @raises(DuplicateAnalysisException)

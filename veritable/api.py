@@ -3,7 +3,7 @@ import simplejson
 from .connection import Connection
 from .exceptions import *
 from urllib import quote_plus
-from .utils import _make_table_id, _make_analysis_id
+from .utils import _make_table_id, _make_analysis_id, _check_id
 
 BASE_URL = "https://api.priorknowledge.com/"
 
@@ -68,6 +68,7 @@ class API:
             autogen = True
             table_id = _make_table_id()
         else:
+            _check_id(table_id)
             autogen = False
         if self.table_exists(table_id):
             if autogen:
@@ -135,6 +136,7 @@ class Table:
             raise MissingRowIDException()
         else:
             row_id = row["_id"]
+            _check_id(row_id)
             if not isinstance(row_id, basestring):
                 raise TypeError("Row id must be a string")
         return self._conn.put("{0}/{1}".format(self._link("rows").rstrip("/"), quote_plus(row_id)),
@@ -145,6 +147,7 @@ class Table:
         for i in range(len(rows)):
             if not "_id" in rows[i]:
                 raise MissingRowIDException()
+            _check_id(rows[i]["_id"])
         data = {'action': 'put', 'rows': rows}
         return self._conn.post(self._link("rows"), data)
 
@@ -183,6 +186,7 @@ class Table:
             autogen = True
             analysis_id = _make_analysis_id()
         else:
+            _check_id(analysis_id)
             autogen = False
         if self._analysis_exists(analysis_id):
             if autogen:
