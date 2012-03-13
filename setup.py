@@ -1,6 +1,7 @@
 import os
 from setuptools import setup
 
+
 def get_version():
     basedir = os.path.dirname(__file__)
     with open(os.path.join(basedir, 'veritable/version.py')) as f:

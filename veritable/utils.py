@@ -51,9 +51,15 @@ def _validate_schema(schema):
             raise InvalidSchemaException()
         v = schema[k]
         if not ('type' in v.keys()):
-            raise InvalidSchemaException("Column '"+k+"' does not have a 'type' specified. Please specify 'type' as one of ['"+string.join(valid_types,"', '")+"']",col=k)
+            raise InvalidSchemaException("""Column '""" + k +
+                """' does not have a 'type' specified. Please specify
+                'type' as one of ['""" + string.join(valid_types, "', '") +
+                """']""", col=k)
         if not v['type'] in valid_types:
-            raise InvalidSchemaException("Column '"+k+"' type '"+v['type']+"' is not valid. Please specify 'type' as one of ['"+string.join(valid_types,"', '")+"']",col=k)
+            raise InvalidSchemaException("""Column '""" + k + """' type '""" +
+                v['type'] + """' is not valid. Please specify 'type' as
+                one of ['""" + string.join(valid_types,"', '") + """']""",
+                col=k)
 
 def validate_schema(schema):
     """Checks if an analysis schema is well-formed."""
@@ -131,15 +137,27 @@ def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
             table.append(rowSet)
     return table;
 
-def validate_data(rows,schema,convert_types=False,remove_nones=False,remove_invalids=False,map_categories=False,assign_ids=False,remove_extra_fields=False):
+def validate_data(rows, schema, convert_types=False, remove_nones=False,
+    remove_invalids=False, map_categories=False, assign_ids=False,
+    remove_extra_fields=False):
     """Validates a list of rows against an analysis schema."""
-    return _validate(rows,schema,convert_types=convert_types,allow_nones=False,remove_nones=remove_nones,remove_invalids=remove_invalids,map_categories=map_categories,has_ids=True,assign_ids=assign_ids,allow_extra_fields=True,remove_extra_fields=remove_extra_fields)
+    return _validate(rows, schema, convert_types=convert_types,
+        allow_nones=False, remove_nones=remove_nones,
+        remove_invalids=remove_invalids, map_categories=map_categories,
+        has_ids=True, assign_ids=assign_ids, allow_extra_fields=True,
+        remove_extra_fields=remove_extra_fields)
 
-def validate_predictions(predictions,schema,convert_types=False,remove_invalids=False,remove_extra_fields=False):
+def validate_predictions(predictions, schema, convert_types=False,
+    remove_invalids=False, remove_extra_fields=False):
     """Validates a predictions request against an analysis schema."""
-    return _validate(predictions,schema,convert_types=convert_types,allow_nones=True,remove_nones=False,remove_invalids=remove_invalids,map_categories=False,has_ids=False,assign_ids=False,allow_extra_fields=False,remove_extra_fields=remove_extra_fields)
+    return _validate(predictions, schema, convert_types=convert_types,
+        allow_nones=True, remove_nones=False, remove_invalids=remove_invalids,
+        map_categories=False, has_ids=False, assign_ids=False,
+        allow_extra_fields=False, remove_extra_fields=remove_extra_fields)
 
-def _validate(rows,schema,convert_types,allow_nones,remove_nones,remove_invalids,map_categories,has_ids,assign_ids,allow_extra_fields,remove_extra_fields):
+def _validate(rows, schema, convert_types, allow_nones, remove_nones,
+    remove_invalids, map_categories, has_ids, assign_ids, allow_extra_fields,
+    remove_extra_fields):
     # Validates data against an analysis schema
     _validate_schema(schema)
     prevIDs = {}

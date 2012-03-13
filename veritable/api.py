@@ -7,6 +7,7 @@ from .utils import _make_table_id, _make_analysis_id, _check_id
 
 BASE_URL = "https://api.priorknowledge.com/"
 
+
 def connect(api_key=None, api_base_url=None, ssl_verify=True,
         enable_gzip=True, debug=False):
     """Returns an instance of the Veritable API."""
@@ -14,8 +15,8 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
         api_key = os.getenv("VERITABLE_KEY")
     if api_base_url is None:
         api_base_url = os.getenv("VERITABLE_URL") or BASE_URL
-    connection = Connection(api_key=api_key, api_base_url=api_base_url, ssl_verify=ssl_verify,
-            enable_gzip=enable_gzip, debug=debug)
+    connection = Connection(api_key=api_key, api_base_url=api_base_url,
+            ssl_verify=ssl_verify, enable_gzip=enable_gzip, debug=debug)
     try:
         connection_test = connection.get("/")
     except simplejson.JSONDecodeError:
@@ -25,6 +26,7 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
         raise(APIConnectionException(api_base_url))
     return API(connection)
 
+
 class API:
     """Gives access to the collection of tables availabe to the user."""
     def __init__(self, connection):
@@ -32,7 +34,7 @@ class API:
         self._url = connection.api_base_url
 
     def __str__(self):
-        return "<veritable.API url='" + self._url +"'>"
+        return "<veritable.API url='" + self._url + "'>"
 
     def __repr__(self):
         return self.__str__()
@@ -61,9 +63,9 @@ class API:
         """Gets a table from the collection by its id."""
         r = self._conn.get("/tables/{0}".format(quote_plus(table_id)))
         return Table(self._conn, r)
-    
+
     def create_table(self, table_id=None, description="", force=False):
-        """Creates a new table with the given id."""    
+        """Creates a new table with the given id."""
         if table_id is None:
             autogen = True
             table_id = _make_table_id()
@@ -79,12 +81,13 @@ class API:
             else:
                 self.delete_table(table_id)
         r = self._conn.post("/tables",
-                data = {"_id": table_id, "description": description})
+                data={"_id": table_id, "description": description})
         return Table(self._conn, r)
-    
+
     def delete_table(self, table_id):
         """Deletes a table from the collection by its id."""
         return self._conn.delete("/tables/{0}".format(quote_plus(table_id)))
+
 
 class Table:
     """Gives access to the rows and analyses associated with a given table."""
@@ -93,7 +96,7 @@ class Table:
         self._doc = doc
 
     def __str__(self):
-        return "<veritable.Table id='"+self.id+"'>"
+        return "<veritable.Table id='" + self.id + "'>"
 
     def __repr__(self):
         return self.__str__()
@@ -124,7 +127,8 @@ class Table:
 
     def get_row(self, row_id):
         """Gets a row from the table by its id."""
-        return self._conn.get("{0}/{1}".format(self._link("rows").rstrip("/"), quote_plus(row_id)))
+        return self._conn.get("{0}/{1}".format(self._link("rows").rstrip("/"),
+            quote_plus(row_id)))
 
     def get_rows(self):
         """Gets all the rows of the table."""
@@ -139,8 +143,8 @@ class Table:
             _check_id(row_id)
             if not isinstance(row_id, basestring):
                 raise TypeError("Row id must be a string")
-        return self._conn.put("{0}/{1}".format(self._link("rows").rstrip("/"), quote_plus(row_id)),
-                row)
+        return self._conn.put("{0}/{1}".format(self._link("rows").rstrip("/"),
+            quote_plus(row_id)), row)
 
     def batch_upload_rows(self, rows):
         """Batch adds rows to the table or updates existing rows."""
@@ -153,7 +157,8 @@ class Table:
 
     def delete_row(self, row_id):
         """Deletes a row from the table by its id."""
-        return self._conn.delete("{0}/{1}".format(self._link("rows").rstrip("/"), quote_plus(row_id)))
+        return self._conn.delete("{0}/{1}".format(self._link("rows").rstrip("/"),
+            quote_plus(row_id)))
 
     def batch_delete_rows(self, rows):
         """Batch deletes rows from the table."""
@@ -170,12 +175,14 @@ class Table:
 
     def get_analysis(self, analysis_id):
         """Gets an analysis corresponding to the table by its id."""
-        r = self._conn.get("{0}/{1}".format(self._link("analyses").rstrip("/"), quote_plus(analysis_id)))
+        r = self._conn.get("{0}/{1}".format(self._link("analyses").rstrip("/"),
+            quote_plus(analysis_id)))
         return Analysis(self._conn, r)
 
     def delete_analysis(self, analysis_id):
         """Deletes an analysis corresponding to the table by its id."""
-        self._conn.delete("{0}/{1}".format(self._link("analyses").rstrip("/"), quote_plus(analysis_id)))
+        self._conn.delete("{0}/{1}".format(self._link("analyses").rstrip("/"),
+            quote_plus(analysis_id)))
 
     def create_analysis(self, schema, analysis_id=None, description="",
                         type="veritable", force=False):
@@ -198,18 +205,19 @@ class Table:
             else:
                 self.delete_analysis(analysis_id)
         r = self._conn.post(self._link("analyses"),
-                data = {"_id": analysis_id, "description": description,
-                        "type": type, "schema": schema})
+                data={"_id": analysis_id, "description": description,
+                      "type": type, "schema": schema})
         return Analysis(self._conn, r)
 
 class Analysis:
-    """Gives access to the schema associated with an analysis and makes predictions."""
+    """Gives access to the schema associated with an analysis
+        and makes predictions."""
     def __init__(self, connection, doc):
         self._conn = connection
         self._doc = doc
 
     def __str__(self):
-        return "<veritable.Analysis id='"+self.id+"'>"
+        return "<veritable.Analysis id='" + self.id + "'>"
 
     def __repr__(self):
         return self.__str__()
@@ -226,7 +234,8 @@ class Analysis:
 
     @property
     def state(self):
-        """The state of the analysis: one of 'succeeded', 'failed', or 'running'."""
+        """The state of the analysis: one of 'succeeded', 'failed',
+            or 'running'."""
         return self._doc['state']
 
     @property
@@ -238,7 +247,8 @@ class Analysis:
             return self._doc['error']
 
     def update(self):
-        """Manually updates the analysis, checking if it has succeeded or failed."""
+        """Manually updates the analysis, checking whether it has succeeded
+            or failed."""
         self._doc = self._conn.get(self._link('self'))
 
     def delete(self):

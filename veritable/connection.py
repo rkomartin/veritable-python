@@ -5,21 +5,23 @@ import sys
 from gzip import GzipFile
 from io import BytesIO
 from requests.auth import HTTPBasicAuth
-from urlparse import urljoin
 from .exceptions import *
 from .utils import _url_has_scheme
 from .version import __version__
 
-USER_AGENT = "veritable-python "+__version__
+USER_AGENT = "veritable-python " + __version__
+
 
 def fully_qualify_url(f):
-    """Decorator ensures that urls passed to the HTTP methods are fully qualified."""
+    """Decorator ensures that urls passed to the HTTP methods are fully
+        qualified."""
     def g(*args, **kwargs):
         url = args[1]
         if not _url_has_scheme(url):
-            url = args[0].api_base_url.rstrip("/")+"/"+url.lstrip("/")
+            url = args[0].api_base_url.rstrip("/") + "/" + url.lstrip("/")
         return f(args[0], url, *args[2:], **kwargs)
     return g
+
 
 def get_response_data(r, debug_log=None):
     """Routes HTTP errors, if any, and translates JSON response data."""
@@ -29,6 +31,7 @@ def get_response_data(r, debug_log=None):
         return json.loads(r.content)
     else:
         handle_http_error(r, debug_log)
+
 
 def handle_http_error(r, debug_log=None):
     """Handles HTTP errors."""
@@ -64,6 +67,7 @@ def mgzip(buf):
     wbuf.close()
     return result
 
+
 class Connection:
     """Wraps the raw HTTP requests to the Veritable server."""
     def __init__(self, api_key, api_base_url, ssl_verify=None,
@@ -71,7 +75,7 @@ class Connection:
         if api_key is None:
             raise APIKeyException()
         if api_base_url is None:
-            raise APIBaseURLException()        
+            raise APIBaseURLException()
         self.api_key = api_key
         self.api_base_url = api_base_url.rstrip("/")
         self.auth = HTTPBasicAuth(self.api_key, "")
@@ -87,7 +91,7 @@ class Connection:
             self.logger.setLevel(logging.DEBUG)
 
     def __str__(self):
-        return "<veritable.Connection url='" + self._api_base_url +"'>"
+        return "<veritable.Connection url='" + self._api_base_url + "'>"
 
     def __repr__(self):
         return self.__str__()
@@ -114,7 +118,7 @@ class Connection:
             kwargs['config'] = {'verbose': sys.stderr}
         r = self.session.get(url, **kwargs)
         return get_response_data(r, self.debug_log)
-    
+
     @fully_qualify_url
     def post(self, url, data):
         """Wraps POST requests."""
@@ -131,7 +135,7 @@ class Connection:
             kwargs['config'] = {'verbose': sys.stderr}
         r = self.session.post(url, **kwargs)
         return get_response_data(r, self.debug_log)
-    
+
     @fully_qualify_url
     def put(self, url, data):
         """Wraps PUT requests."""
@@ -148,7 +152,7 @@ class Connection:
             kwargs['config'] = {'verbose': sys.stderr}
         r = self.session.put(url, **kwargs)
         return get_response_data(r, self.debug_log)
-    
+
     @fully_qualify_url
     def delete(self, url):
         """Wraps DELETE requests."""
