@@ -10,12 +10,12 @@ def get_version():
 
 if __name__ == '__main__':
     setup(name='veritable',
-	  version=get_version(),
-	  description='Python Client Library for Veritable API',
-	  author='Prior Knowledge, Inc.',
-	  author_email='developers@priorknowledge.com',
-	  maintainer='Max Gasner',
-	  maintainer_email='max@priorknowledge.com',
-	  url='http://www.priorknowledge.com/',
-	  install_requires=['requests', 'simplejson'],
-	  packages=['veritable'])
+      version=get_version(),
+      description='Python Client Library for Veritable API',
+      author='Prior Knowledge, Inc.',
+      author_email='developers@priorknowledge.com',
+      maintainer='Max Gasner',
+      maintainer_email='max@priorknowledge.com',
+      url='http://www.priorknowledge.com/',
+      install_requires=['requests', 'simplejson'],
+      packages=['veritable'])
