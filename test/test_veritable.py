@@ -560,8 +560,11 @@ class TestPredictions:
     @classmethod
     def setup_class(self):
         self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
+<<<<<<< Updated upstream
 
     def setup(self):
+=======
+>>>>>>> Stashed changes
         self.t = self.API.create_table(table_id="bugz", force=True)
         self.t.batch_upload_rows([{'_id': 'onebug', 'zim': 'zam', 'wos': 19.2},
                          {'_id': 'twobug', 'zim': 'vim', 'wos': 11.3},
@@ -587,12 +590,17 @@ class TestPredictions:
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
+<<<<<<< Updated upstream
         self.a2 = self.t2.create_analysis(self.schema2, analysis_id="a2",
             force=True)
 
     def teardown(self):
         self.t.delete()
         self.t2.delete()
+=======
+        self.a2 = self.t2.create_analysis(schema2, analysis_id="a2",
+            force=True)
+>>>>>>> Stashed changes
 
     @attr('async')
     def test_make_prediction(self):
@@ -607,15 +615,24 @@ class TestPredictions:
     @attr('async')
     def test_make_prediction_with_list_of_rows_fails(self):
         wait_for_analysis(self.a2)
+<<<<<<< Updated upstream
         assert_raises(ServerException, self.a2.predict,
             [{'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
              {'cat': 'b', 'ct': 2, 'real': None, 'bool': None}])
+=======
+        self.a2.predict([{'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
+            {'cat': 'b', 'ct': 2, 'real': None, 'bool': None}])
+>>>>>>> Stashed changes
 
     @attr('async')
     def test_make_prediction_with_count_too_high_fails(self):
         wait_for_analysis(self.a2)
+<<<<<<< Updated upstream
         assert_raises(ServerException, self.a2.predict,
             {'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
+=======
+        self.a2.predict({'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
+>>>>>>> Stashed changes
             count = 10000)
 
     @attr('async')
