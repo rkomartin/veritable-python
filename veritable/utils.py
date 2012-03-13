@@ -70,20 +70,20 @@ def validate_schema(schema):
     else:
         return True
 
-def make_schema(schema_rule,headers=None,rows=None):
+def make_schema(schema_rule, headers=None, rows=None):
     """Makes an analysis schema from a schema rule."""
-    if ((headers == None) & (rows == None)):
+    if headers is None and rows is None:
         raise Exception("Either headers or rows must be provided")
-    if headers == None:
-        headerSet = {}
+    if headers is None:
+        headers = set()
         for r in rows:
-            for c in r.keys():
-                headerSet[c] = True
-        headers = headerSet.keys()
+            headers = headers.union(r.keys())
     schema = {}
+    for i in range(len(schema_rule)):
+        schema_rule[i][0] = re.compile(schema_rule[i][0])
     for c in headers:
-        for (r,t) in schema_rule:
-            if re.match(r,c):
+        for (r, t) in schema_rule:
+            if r.match(c):
                 schema[c] = t
                 break
     return schema
@@ -110,11 +110,11 @@ def write_csv(rows,filename,dialect=csv.excel):
 def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
     """Reads a .csv from disk into a list of row dicts."""
     table = []
-    with open(filename) as cacheFile:
+    with open(filename) as f:
         if dialect == None:
-            dialect = csv.Sniffer().sniff(cacheFile.read(1024))
-        cacheFile.seek(0)
-        reader = csv.reader(cacheFile, dialect)
+            dialect = csv.Sniffer().sniff(f.read(1024))
+        f.seek(0)
+        reader = csv.reader(f, dialect)
         header = [h.strip() for h in reader.next()]
         if '_id' in header:
             id_col = '_id'
@@ -286,18 +286,27 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
 
 
 def summarize(predictions, col):
-    """Gives a basic summary of predictions results."""
-    ctype = type(predictions[0][col])
+    """Calculates a point estimate and an associated estimate of uncertainty
+        for a single column from predictions results.
+
+        For real columns, this returns the mean and standard deviation. For
+        count columns, this returns the mean rounded to the nearest integer
+        and standard deviation. For categorical and boolean columns, this is
+        the mode and the probability that another value was predicted."""
+    coltype = type(predictions[0][col])
     vals = [p[col] for p in predictions]
     cnt = len(vals)
-    if ctype in (int,float):
-        e = sum(vals) / float(cnt)
-        c = 0 if cnt == 1 else pow(sum([pow(v-e,2) for v in vals])/float(cnt-1),0.5)
-        if ctype == int:
-            return (int(round(e,0)),c)
+    if coltype in (int, float):
+        e = sum(vals) / float(cnt) # use the mean
+        if cnt == 1:
+            c = 0
         else:
-            return (e,c)
-    elif ctype in (str,bool):
+            c = pow(sum([pow(v - e, 2) for v in vals]) / float(cnt - 1), 0.5)
+        if coltype == int:
+            return (int(round(e, 0)), c)
+        else:
+            return (e, c)
+    elif coltype in (str, bool):
         e = max(vals, key=vals.count)
         c = 1 - (sum([1.0 for v in vals if v == e]) / float(cnt))
-        return (e,c)
+        return (e, c)
