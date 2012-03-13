@@ -1,22 +1,24 @@
-from veritable.utils import read_csv, write_csv, make_schema, validate_data, validate_predictions, summarize
-from veritable.exceptions import DataValidationException, InvalidSchemaException
+from veritable.utils import *
+from veritable.exceptions import DataValidationException
+from veritable.exceptions import InvalidSchemaException
 from nose.tools import raises
 from tempfile import mkstemp
 import csv
 import os
 
+
 def test_write_read_csv():
-    handle,filename = mkstemp()
+    handle, filename = mkstemp()
     refrows = [{'_id':'7', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a'},
                {'_id':'8', 'ColInt':4, 'ColCat':'b', 'ColBool':False},
                {'_id':'9'}]
-    write_csv(refrows,filename,dialect=csv.excel)
-    testrows = read_csv(filename,dialect=csv.excel)
+    write_csv(refrows, filename, dialect=csv.excel)
+    testrows = read_csv(filename, dialect=csv.excel)
     cschema = {
-        'ColInt':{'type':'count'},
-        'ColFloat':{'type':'real'},
-        'ColCat':{'type':'categorical'},
-        'ColBool':{'type':'boolean'}
+        'ColInt': {'type': 'count'},
+        'ColFloat': {'type': 'real'},
+        'ColCat': {'type': 'categorical'},
+        'ColBool': {'type': 'boolean'}
         }
     validate_data(testrows,cschema,convert_types=True)
     assert len(testrows) == len(refrows)
