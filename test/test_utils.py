@@ -732,42 +732,34 @@ def test_data_empty_col_fail():
         raise
 
 
-def test_summarize_count():
-    testpreds = [{'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':False},
-                {'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
-                {'ColInt':8, 'ColFloat':8.1, 'ColCat':'b', 'ColBool':False},
-                {'ColInt':11, 'ColFloat':2.1, 'ColCat':'c', 'ColBool':True}]
-    expected,uncertainty = summarize(testpreds,'ColInt')
-    assert type(expected) == int
-    assert expected == 7
-    assert abs(uncertainty - 3.6968) < 0.001
+class TestSummarize:
+    def setup(self):
+        self.testpreds = [
+            {'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':False},
+            {'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
+            {'ColInt':8, 'ColFloat':8.1, 'ColCat':'b', 'ColBool':False},
+            {'ColInt':11, 'ColFloat':2.1, 'ColCat':'c', 'ColBool':True}]
 
-def test_summarize_real():
-    testpreds = [{'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':False},
-                {'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
-                {'ColInt':8, 'ColFloat':8.1, 'ColCat':'b', 'ColBool':False},
-                {'ColInt':11, 'ColFloat':2.1, 'ColCat':'c', 'ColBool':True}]
-    expected,uncertainty = summarize(testpreds,'ColFloat')
-    assert type(expected) == float
-    assert abs(expected - 4.35) < 0.001
-    assert abs(uncertainty - 2.6299) < 0.001
+    def test_summarize_count(self):
+        expected, uncertainty = summarize(self.testpreds, 'ColInt')
+        assert type(expected) == int
+        assert expected == 7
+        assert abs(uncertainty - 3.6968) < 0.001
 
-def test_summarize_cat():
-    testpreds = [{'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':False},
-                {'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
-                {'ColInt':8, 'ColFloat':8.1, 'ColCat':'b', 'ColBool':False},
-                {'ColInt':11, 'ColFloat':2.1, 'ColCat':'c', 'ColBool':True}]
-    expected,uncertainty = summarize(testpreds,'ColCat')
-    assert type(expected) == str
-    assert expected == 'b'
-    assert abs(uncertainty - 0.5) < 0.001
+    def test_summarize_real(self):
+        expected, uncertainty = summarize(self.testpreds, 'ColFloat')
+        assert type(expected) == float
+        assert abs(expected - 4.35) < 0.001
+        assert abs(uncertainty - 2.6299) < 0.001
 
-def test_summarize_bool():
-    testpreds = [{'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':False},
-                {'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
-                {'ColInt':8, 'ColFloat':8.1, 'ColCat':'b', 'ColBool':False},
-                {'ColInt':11, 'ColFloat':2.1, 'ColCat':'c', 'ColBool':True}]
-    expected,uncertainty = summarize(testpreds,'ColBool')
-    assert type(expected) == bool
-    assert expected == False
-    assert abs(uncertainty - 0.25) < 0.001
+    def test_summarize_cat(self):
+        expected,uncertainty = summarize(self.testpreds, 'ColCat')
+        assert type(expected) == str
+        assert expected == 'b'
+        assert abs(uncertainty - 0.5) < 0.001
+
+    def test_summarize_bool():
+        expected, uncertainty = summarize(self.testpreds, 'ColBool')
+        assert type(expected) == bool
+        assert expected == False
+        assert abs(uncertainty - 0.25) < 0.001
