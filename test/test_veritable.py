@@ -546,17 +546,6 @@ class TestTableOps:
         assert_raises(ServerException, self.t2.delete_analysis, "foobar")
 
     @attr('sync')
-    def test_create_duplicate_analysis(self):
-        schema = {'cat': {'type': 'categorical'},
-                  'ct': {'type': 'count'},
-                  'real': {'type': 'real'},
-                  'bool': {'type': 'boolean'}
-                  }
-        self.t2.create_analysis(schema, analysis_id="double", force=True)
-        assert_raises(DuplicateAnalysisException, self.t2.create_analysis,
-            schema, analysis_id="double")
-
-    @attr('sync')
     def test_get_analysis_schema(self):
         schema = {'cat': {'type': 'categorical'},
                   'ct': {'type': 'count'},
@@ -566,13 +555,14 @@ class TestTableOps:
         a = self.t2.create_analysis(schema, analysis_id="a", force=True)
         assert schema == a.get_schema()
 
+
 class TestPredictions:
     @classmethod
     def setup_class(self):
         self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
 
     def setup(self):
-        self.t = self.API.create_table(table_id = "bugz", force=True)
+        self.t = self.API.create_table(table_id="bugz", force=True)
         self.t.batch_upload_rows([{'_id': 'onebug', 'zim': 'zam', 'wos': 19.2},
                          {'_id': 'twobug', 'zim': 'vim', 'wos': 11.3},
                          {'_id': 'threebug', 'zim': 'fop', 'wos': 17.5},
@@ -597,7 +587,8 @@ class TestPredictions:
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
-        self.a2 = self.t2.create_analysis(self.schema2, analysis_id="a2", force=True)
+        self.a2 = self.t2.create_analysis(self.schema2, analysis_id="a2",
+            force=True)
 
     def teardown(self):
         self.t.delete()
@@ -612,7 +603,7 @@ class TestPredictions:
     def test_make_prediction_with_empty_row(self):
         wait_for_analysis(self.a2)
         self.a2.predict({})
-    
+
     @attr('async')
     def test_make_prediction_with_list_of_rows_fails(self):
         wait_for_analysis(self.a2)
@@ -624,7 +615,8 @@ class TestPredictions:
     def test_make_prediction_with_count_too_high_fails(self):
         wait_for_analysis(self.a2)
         assert_raises(ServerException, self.a2.predict,
-            {'cat': 'b', 'ct': 2, 'real': None, 'bool': False}, count = 10000)
+            {'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
+            count = 10000)
 
     @attr('async')
     def test_make_prediction_with_invalid_column_fails(self):
