@@ -101,7 +101,7 @@ def write_csv(rows,filename,dialect=csv.excel):
                               else str(r[c])) for c in headers])
 
 # Dialects: csv.excel_tab, csv.excel
-def read_csv(filename,id_col=None,dialect=None):
+def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
     """Reads a .csv from disk into a list of row dicts."""
     table = []
     with open(filename) as cacheFile:
@@ -118,11 +118,14 @@ def read_csv(filename,id_col=None,dialect=None):
             rowSet = {}
             for i in range(min(len(header),len(row))):
                 val = row[i].strip()
-                if not(val == ''):
+                if not(val in na_vals):
                     if(header[i] == id_col):
                         rowSet['_id'] = val
                     else:
                         rowSet[header[i]] = val
+                else:
+                    if header[i] == id_col:
+                        raise VeritableException("Missing id for row" + str(i))
             if id_col == None:
                 rowSet['_id'] = str(rowCount)
             table.append(rowSet)
