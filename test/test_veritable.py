@@ -618,21 +618,21 @@ class TestPredictions:
     @attr('async')
     def test_make_prediction_with_list_of_rows_fails(self):
         wait_for_analysis(self.a2)
-        assert_raises(ServerException, self.a2.predict,
+        assert_raises(VeritableError, self.a2.predict,
             [{'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
              {'cat': 'b', 'ct': 2, 'real': None, 'bool': None}])
 
     @attr('async')
     def test_make_prediction_with_count_too_high_fails(self):
         wait_for_analysis(self.a2)
-        assert_raises(ServerException, self.a2.predict,
+        assert_raises(VeritableError, self.a2.predict,
             {'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
             count = 10000)
 
     @attr('async')
     def test_make_prediction_with_invalid_column_fails(self):
         wait_for_analysis(self.a1)
-        assert_raises(ServerException, self.a1.predict,
+        assert_raises(VeritableError, self.a1.predict,
             {'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
 
     @attr('sync')
