@@ -245,11 +245,11 @@ def validate_data(rows, schema, convert_types=False, remove_nones=False,
     Raises a DataValidationException containing further details if the data
     does not validate against the schema.
 
-    WARNING: Setting the optional arguments convert_types, remove_nones,
+    Note: Setting the optional arguments convert_types, remove_nones,
     remove_invalids, reduce_categories, assign_ids, or remove_extra_fields to
-    True will cause destructive updates to be performed on the rows argument.
-    If validate_data raises an exception, values in some rows may be converted
-    while others are left in their original state.
+    True will mutate the rows argument. If validate_data raises an exception,
+    values in some rows may be converted while others are left in their
+    original state.
 
     Arguments:
     rows -- the list of row dicts to validate
@@ -291,11 +291,10 @@ def validate_predictions(predictions, schema, convert_types=False,
     Raises a DataValidationException containing further details if the request
     does not validate against the schema.
 
-    WARNING: Setting the optional arguments convert_types, remove_invalids, 
-    or remove_extra_fields to True will cause destructive updates to be
-    performed on the predictions argument. If validate_predictions raises an
-    exception, some values may be converted while others are left in their
-    original state.
+    Note: Setting the optional arguments convert_types, remove_invalids, 
+    or remove_extra_fields to True will mutate the predictions argument. If
+    validate_data raises an exception, values in some rows may be converted
+    while others are left in their original state.
 
     Arguments:
     predictions -- the predictions request to validate
