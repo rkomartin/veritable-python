@@ -192,7 +192,6 @@ def test_data_missing_id_fix():
     validate_data(testrows, vschema, assign_ids=True)
     assert testrows[0]['_id'] != testrows[1]['_id']
     validate_data(testrows, vschema)
-    
 
 # Duplicate ID
 @raises(DataValidationException)
@@ -770,7 +769,7 @@ class TestSummarize:
         assert expected == 'b'
         assert abs(uncertainty - 0.5) < 0.001
 
-    def test_summarize_bool():
+    def test_summarize_bool(self):
         expected, uncertainty = summarize(self.testpreds, 'ColBool')
         assert type(expected) == bool
         assert expected == False
