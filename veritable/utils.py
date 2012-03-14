@@ -314,7 +314,7 @@ def validate_predictions(predictions, schema, convert_types=False,
         allow_nones=True, remove_nones=False, remove_invalids=remove_invalids,
         reduce_categories=False, has_ids=False, assign_ids=False,
         allow_extra_fields=False, remove_extra_fields=remove_extra_fields,
-        allow_empty_columns=False)
+        allow_empty_columns=True)
 
 def _validate(rows, schema, convert_types, allow_nones, remove_nones,
     remove_invalids, reduce_categories, has_ids, assign_ids, allow_extra_fields,
