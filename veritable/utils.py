@@ -125,7 +125,8 @@ def make_schema(schema_rule, headers=None, rows=None):
 
     Arguments:
     schema_rule -- a list of lists in the form:
-        [['a_regex_to_match', 'datatype'], ['another_regex', 'datatype'], ...] 
+        [['a_regex_to_match', {'type': 'continuous'}], ['another_regex',
+          {'type': 'count'}], ...]
         Earlier rules will match before later rules.
     headers -- a list of column names against which to match. (default: None)
         If headers is not provided, column names will be read from the rows
