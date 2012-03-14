@@ -52,8 +52,8 @@ def wait_for_analysis(a, poll=2):
         time.sleep(poll)
         a.update()
 
-def split_rows(rows, frac):
 
+def split_rows(rows, frac=0.5):
     """Splits a list of dicts representing a dataset into two sets.
 
     Returns a tuple of lists of dicts, containing (floor(len(rows) * frac),
