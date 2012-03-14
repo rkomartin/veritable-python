@@ -85,8 +85,8 @@ def test_make_schema_headers():
                  'IntA': {'type': 'count'},
                  'IntB': {'type': 'count'}}
     headers = ['IntA','IntB','CatA','CatB','Foo']
-    schemaRule = [  ['Int.*', {'type':'count'}],
-                    ['Cat.*', {'type':'categorical'}]  ]
+    schemaRule = [['Int.*', {'type':'count'}],
+                  ['Cat.*', {'type':'categorical'}]  ]
     schema = make_schema(schemaRule, headers=headers)
     assert schema == refSchema
 
@@ -97,30 +97,30 @@ def test_make_schema_rows():
                     'IntA': {'type': 'count'},
                     'IntB': {'type': 'count'}}
     rows = [{'CatA':None, 'CatB':None, 'IntA':None, 'IntB':None, 'Foo':None}]
-    schemaRule = [  ['Int.*',{'type':'count'}],
-                    ['Cat.*',{'type':'categorical'}]  ]
+    schemaRule = [['Int.*',{'type':'count'}],
+                  ['Cat.*',{'type':'categorical'}]]
     schema = make_schema(schemaRule, rows=rows)
     assert schema == refSchema
 
 
 @raises(Exception)
 def test_make_schema_noarg_fail():
-    schemaRule = [  ['Int.*',{'type':'count'}],
-                    ['Cat.*',{'type':'categorical'}]  ]
-    schema = make_schema(schemaRule)
+    schemaRule = [['Int.*',{'type':'count'}],
+                  ['Cat.*',{'type':'categorical'}]]
+    make_schema(schemaRule)
 
 
 # Invalid Schema
 @raises(DataValidationException)
 def test_missing_schema_type_fail():
-    bschema = {'ColInt':{},'ColFloat':{'type':'real'} }
+    bschema = {'ColInt':{},'ColFloat':{'type':'real'}}
     testrows = []
     validate_data(testrows, bschema)
 
 
 @raises(DataValidationException)
 def test_bad_schema_type_fail():
-    bschema = {'ColInt':{'type':'jello'},'ColFloat':{'type':'real'} }
+    bschema = {'ColInt':{'type':'jello'},'ColFloat':{'type':'real'}}
     testrows = []
     validate_data(testrows, bschema)
 
@@ -806,11 +806,11 @@ def test_data_too_many_cats_fail():
     testrows = []
     rid = 0
     maxCols = 256
-    for i in range(maxCols-1):
+    for i in range(maxCols - 1):
         testrows.append({'_id':str(rid), 'ColCat':str(i)})
         testrows.append({'_id':str(rid + 1), 'ColCat':str(i)})
         rid = rid + 2
-    testrows.append({'_id':str(rid), 'ColCat':str(maxCols-1)})
+    testrows.append({'_id':str(rid), 'ColCat':str(maxCols - 1)})
     testrows.append({'_id':str(rid + 1), 'ColCat':str(maxCols)})
     try:
         validate_data(testrows, eschema, convert_types=True)
@@ -827,11 +827,11 @@ def test_pred_too_many_cats_fail():
     testrows = []
     rid = 0
     maxCols = 256
-    for i in range(maxCols-1):
+    for i in range(maxCols - 1):
         testrows.append({'ColCat':str(i)})
         testrows.append({'ColCat':str(i)})
         rid = rid + 2
-    testrows.append({'ColCat':str(maxCols-1)})
+    testrows.append({'ColCat':str(maxCols - 1)})
     testrows.append({'ColCat':str(maxCols)})
     try:
         validate_predictions(testrows, eschema, convert_types=True)
@@ -847,11 +847,11 @@ def test_data_too_many_cats_fix():
     testrows = []
     rid = 0
     maxCols = 256
-    for i in range(maxCols-1):
+    for i in range(maxCols - 1):
         testrows.append({'_id':str(rid), 'ColCat':str(i)})
         testrows.append({'_id':str(rid + 1), 'ColCat':str(i)})
         rid = rid + 2
-    testrows.append({'_id':str(rid), 'ColCat':str(maxCols-1)})
+    testrows.append({'_id':str(rid), 'ColCat':str(maxCols - 1)})
     testrows.append({'_id':str(rid + 1), 'ColCat':str(maxCols)})
     validate_data(testrows, eschema, reduce_categories=True)
     assert testrows[510]['ColCat'] == 'Other'
