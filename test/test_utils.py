@@ -726,7 +726,7 @@ def test_data_too_many_cats_fix():
         rid = rid + 2
     testrows.append({'_id':str(rid), 'ColCat':str(maxCols-1)})
     testrows.append({'_id':str(rid+1), 'ColCat':str(maxCols)})
-    validate_data(testrows, eschema, map_categories=True)
+    validate_data(testrows, eschema, reduce_categories=True)
     assert testrows[510]['ColCat'] == 'Other'
     assert testrows[511]['ColCat'] == 'Other'
     validate_data(testrows, eschema)
