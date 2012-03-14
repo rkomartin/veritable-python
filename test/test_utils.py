@@ -161,7 +161,7 @@ def test_data_valid_rows_fix():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
                 {'_id':'3'}]
-    validate_data(testrows, vschema, convert_types=True, remove_nones=True, remove_invalids=True, map_categories=True, remove_extra_fields=True)
+    validate_data(testrows, vschema, convert_types=True, remove_nones=True, remove_invalids=True, reduce_categories=True, remove_extra_fields=True)
     assert testrows == refrows
 
 def test_pred_valid_rows_fix():
