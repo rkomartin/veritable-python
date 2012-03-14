@@ -155,7 +155,7 @@ def make_schema(schema_rule, headers=None, rows=None):
 
 
 # Dialects: csv.excel_tab, csv.excel
-def write_csv(rows, filename, dialect=csv.excel):
+def write_csv(rows, filename, dialect=csv.excel, na_val=''):
     """Writes a list of row dicts to disk as .csv
 
     Does not support Unicode values in row dicts.
@@ -179,8 +179,8 @@ def write_csv(rows, filename, dialect=csv.excel):
         writer = csv.writer(outFile, dialect=dialect)
         writer.writerow(headers)
         for r in rows:
-            writer.writerow([('' if not(r.has_key(c))
-                              else '' if r[c] == None
+            writer.writerow([(na_val if not(r.has_key(c))
+                              else na_val if r[c] is None
                               else str(r[c])) for c in headers])
 
 # Dialects: csv.excel_tab, csv.excel
