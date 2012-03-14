@@ -1,13 +1,10 @@
 #! usr/bin/python
 # coding=utf-8
 
-import time
-import simplejson as json
 import veritable
 import os
 from nose.plugins.attrib import attr
-from nose.tools import raises, assert_raises
-from requests.auth import HTTPBasicAuth
+from nose.tools import assert_raises
 from requests.exceptions import HTTPError
 from veritable.exceptions import *
 from veritable.utils import wait_for_analysis
@@ -18,12 +15,13 @@ TEST_BASE_URL = os.getenv("VERITABLE_URL") or "https://api.priorknowledge.com"
 INVALID_IDS = ["éléphant", "374.34", "ajfh/d/sfd@#$", u"ひたちの", "", " foo",
     "foo ", " foo ", "foo\n", "foo\nbar"]
 
+
 class TestConnection:
     def test_create_api(self):
-        API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
+        veritable.connect(TEST_API_KEY, TEST_BASE_URL)
 
     def test_create_api_with_debug(self):
-        API = veritable.connect(TEST_API_KEY, TEST_BASE_URL, debug=True)
+        veritable.connect(TEST_API_KEY, TEST_BASE_URL, debug=True)
 
     def test_create_api_with_invalid_user(self):
         assert_raises(HTTPError, veritable.connect,
@@ -33,6 +31,7 @@ class TestConnection:
         assert_raises(APIConnectionException, veritable.connect,
             "foo", "http://www.google.com")
 
+
 class TestAPI:
     @classmethod
     def setup_class(self):
@@ -40,7 +39,7 @@ class TestAPI:
 
     @attr('sync')
     def test_get_tables(self):
-        ts = self.API.get_tables()
+        self.API.get_tables()
 
     @attr('sync')
     def test_create_table_autoid(self):
@@ -115,9 +114,10 @@ class TestAPI:
         t.delete()
 
     @attr('sync')
-    def test_delete_table(self):
-        t = self.API.create_table("gramble", force=True)
+    def test_delete_table_by_id(self):
+        self.API.create_table("gramble", force=True)
         self.API.delete_table("gramble")
+
 
 class TestRowUploads:
     @classmethod
@@ -156,7 +156,7 @@ class TestRowUploads:
 
     @attr('sync')
     def test_table_upload_row_with_float_id(self):
-        assert_raises(TypeError, self.t.upload_row, 
+        assert_raises(TypeError, self.t.upload_row,
             {'_id': 3.131455, 'zim': 'zam', 'wos': 19.2})
 
     # This should fail per 401264106780/436898020970
@@ -179,9 +179,10 @@ class TestRowUploads:
 
     @attr('sync')
     def test_batch_upload_rows(self):
-        self.t.batch_upload_rows([{'_id': 'fourbug', 'zim': 'zop', 'wos': 10.3},
-                    {'_id': 'fivebug', 'zim': 'zam', 'wos': 9.3},
-                    {'_id': 'sixbug', 'zim': 'zop', 'wos': 18.9}])
+        self.t.batch_upload_rows(
+            [{'_id': 'fourbug', 'zim': 'zop', 'wos': 10.3},
+             {'_id': 'fivebug', 'zim': 'zam', 'wos': 9.3},
+             {'_id': 'sixbug', 'zim': 'zop', 'wos': 18.9}])
 
     @attr('sync')
     def test_batch_upload_rows_with_invalid_ids(self):
@@ -199,13 +200,14 @@ class TestRowUploads:
              {'zim': 'zop', 'wos': 18.9},
              {'_id': 'sixbug', 'zim': 'fop', 'wos': 18.3}])
 
+
 class TestTableOps:
     @classmethod
     def setup_class(self):
         self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
 
     def setup(self):
-        self.t = self.API.create_table(table_id = "bugz", force=True)
+        self.t = self.API.create_table(table_id="bugz", force=True)
         self.t.batch_upload_rows([{'_id': 'onebug', 'zim': 'zam', 'wos': 19.2},
                          {'_id': 'twobug', 'zim': 'vim', 'wos': 11.3},
                          {'_id': 'threebug', 'zim': 'fop', 'wos': 17.5},
@@ -241,7 +243,8 @@ class TestTableOps:
     def test_table_add_duplicate_rows_succeeded(self):
         self.t.upload_row({'_id': 'threebug', 'zim': 'fop', 'wos': 17.5})
         self.t.upload_row({'_id': 'threebug', 'zim': 'vim', 'wos': 11.3})
-        assert self.t.get_row("threebug") == {'_id': 'threebug', 'zim': 'vim', 'wos': 11.3}
+        assert self.t.get_row("threebug") == {'_id': 'threebug',
+            'zim': 'vim', 'wos': 11.3}
 
     @attr('sync')
     def test_batch_get_rows(self):
@@ -261,18 +264,18 @@ class TestTableOps:
     def test_batch_delete_rows(self):
         rs = self.t.get_rows()
         self.t.batch_delete_rows(rs)
-    
+
     @attr('sync')
     def test_batch_delete_rows_by_id_only(self):
         rs = self.t.get_rows()
         self.t.batch_delete_rows([{'_id': r["_id"]} for r in rs])
-    
+
     @attr('sync')
     def test_batch_delete_rows_faulty(self):
         rs = [{'zim': 'zam', 'wos': 9.3},
               {'zim': 'zop', 'wos': 18.9}]
         rs.append(self.t.get_rows())
-        assert_raises(MissingRowIDException, self.t.batch_delete_rows, rs)            
+        assert_raises(MissingRowIDException, self.t.batch_delete_rows, rs)
 
     @attr('sync')
     def test_get_analyses(self):
@@ -286,7 +289,8 @@ class TestTableOps:
     @attr('sync')
     def test_create_analysis_2(self):
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
-        self.t.create_analysis(schema, description="Foolish", analysis_id="zubble_2", force=True)
+        self.t.create_analysis(schema, description="Foolish",
+            analysis_id="zubble_2", force=True)
 
     @attr('sync')
     def test_create_analysis_autogen_id(self):
@@ -297,7 +301,8 @@ class TestTableOps:
     def test_create_analysis_with_invalid_id(self):
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
         for id in INVALID_IDS:
-            assert_raises(InvalidIDException, self.t.create_analysis, schema, analysis_id=id)
+            assert_raises(InvalidIDException, self.t.create_analysis,
+                schema, analysis_id=id)
 
     @attr('sync')
     def test_create_duplicate_analysis(self):
@@ -322,7 +327,8 @@ class TestTableOps:
     # Unpossible datatypes are identified synchronously
     @attr('sync')
     def test_create_analysis_malformed_schema_unpossible_datatypes(self):
-        schema = {'zim': {'type': 'generalized_wishart_process'}, 'wos': {'type': 'ibp'}}
+        schema = {'zim': {'type': 'generalized_wishart_process'},
+            'wos': {'type': 'ibp'}}
         assert_raises(ServerException, self.t.create_analysis, schema)
 
     @attr('sync')
@@ -392,8 +398,9 @@ class TestTableOps:
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
-        a = self.t2.create_analysis(schema, analysis_id="test_analysis", force=True)
-        wait_for_analysis(a)        
+        a = self.t2.create_analysis(schema, analysis_id="test_analysis",
+            force=True)
+        wait_for_analysis(a)
         assert a.state == "succeeded"
 
     @attr('async')
@@ -507,14 +514,16 @@ class TestTableOps:
         assert a.state == "failed"
 
     @attr('sync')
-    def test_get_analyses(self):
+    def test_get_analyses_after_created(self):
         schema = {'cat': {'type': 'categorical'},
                   'ct': {'type': 'count'},
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
-        self.t2.create_analysis(schema, analysis_id="test_analysis_1", force=True)
-        self.t2.create_analysis(schema, analysis_id="test_analysis_2", force=True)
+        self.t2.create_analysis(schema, analysis_id="test_analysis_1",
+            force=True)
+        self.t2.create_analysis(schema, analysis_id="test_analysis_2",
+            force=True)
         self.t2.get_analyses()
 
     @attr('sync')
@@ -524,9 +533,10 @@ class TestTableOps:
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
-        self.t2.create_analysis(schema, analysis_id="test_analysis", force=True)
+        self.t2.create_analysis(schema, analysis_id="test_analysis",
+            force=True)
         self.t2.get_analysis("test_analysis")
-      
+
     @attr('sync')
     def test_get_analysis_fails(self):
         assert_raises(ServerException, self.t2.get_analysis, "yummy_tummy")
@@ -546,17 +556,6 @@ class TestTableOps:
         assert_raises(ServerException, self.t2.delete_analysis, "foobar")
 
     @attr('sync')
-    def test_create_duplicate_analysis(self):
-        schema = {'cat': {'type': 'categorical'},
-                  'ct': {'type': 'count'},
-                  'real': {'type': 'real'},
-                  'bool': {'type': 'boolean'}
-                  }
-        self.t2.create_analysis(schema, analysis_id="double", force=True)
-        assert_raises(DuplicateAnalysisException, self.t2.create_analysis,
-            schema, analysis_id="double")
-
-    @attr('sync')
     def test_get_analysis_schema(self):
         schema = {'cat': {'type': 'categorical'},
                   'ct': {'type': 'count'},
@@ -566,24 +565,26 @@ class TestTableOps:
         a = self.t2.create_analysis(schema, analysis_id="a", force=True)
         assert schema == a.get_schema()
 
+
 class TestPredictions:
     @classmethod
     def setup_class(self):
         self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
 
     def setup(self):
-        self.t = self.API.create_table(table_id = "bugz", force=True)
+        self.t = self.API.create_table(table_id="bugz", force=True)
         self.t.batch_upload_rows([{'_id': 'onebug', 'zim': 'zam', 'wos': 19.2},
                          {'_id': 'twobug', 'zim': 'vim', 'wos': 11.3},
                          {'_id': 'threebug', 'zim': 'fop', 'wos': 17.5},
                          {'_id': 'fourbug', 'zim': 'zop', 'wos': 10.3},
                          {'_id': 'fivebug', 'zim': 'zam', 'wos': 9.3},
                          {'_id': 'sixbug', 'zim': 'zop', 'wos': 18.9}])
-        self.schema1 = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
-        self.a1 = self.t.create_analysis(self.schema1, analysis_id="a1", force=True)
+        self.schema1 = {'zim': {'type': 'categorical'},
+            'wos': {'type': 'real'}}
+        self.a1 = self.t.create_analysis(self.schema1, analysis_id="a1",
+            force=True)
         self.t2 = self.API.create_table(table_id="test_all_types",
-                             description="Test dataset with all datatypes",
-                             force=True)
+            description="Test dataset with all datatypes", force=True)
         self.t2.batch_upload_rows(
           [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
            {'_id': 'row2', 'cat': 'b', 'ct': 0, 'real': 0.92131, 'bool': False},
@@ -597,7 +598,8 @@ class TestPredictions:
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
-        self.a2 = self.t2.create_analysis(self.schema2, analysis_id="a2", force=True)
+        self.a2 = self.t2.create_analysis(self.schema2, analysis_id="a2",
+            force=True)
 
     def teardown(self):
         self.t.delete()
@@ -612,24 +614,25 @@ class TestPredictions:
     def test_make_prediction_with_empty_row(self):
         wait_for_analysis(self.a2)
         self.a2.predict({})
-    
+
     @attr('async')
     def test_make_prediction_with_list_of_rows_fails(self):
         wait_for_analysis(self.a2)
-        assert_raises(ServerException, self.a2.predict,
+        assert_raises(VeritableError, self.a2.predict,
             [{'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
              {'cat': 'b', 'ct': 2, 'real': None, 'bool': None}])
 
     @attr('async')
     def test_make_prediction_with_count_too_high_fails(self):
         wait_for_analysis(self.a2)
-        assert_raises(ServerException, self.a2.predict,
-            {'cat': 'b', 'ct': 2, 'real': None, 'bool': False}, count = 10000)
+        assert_raises(VeritableError, self.a2.predict,
+            {'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
+            count = 10000)
 
     @attr('async')
     def test_make_prediction_with_invalid_column_fails(self):
         wait_for_analysis(self.a1)
-        assert_raises(ServerException, self.a1.predict,
+        assert_raises(VeritableError, self.a1.predict,
             {'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
 
     @attr('sync')

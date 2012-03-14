@@ -1,22 +1,30 @@
-from veritable.utils import read_csv, write_csv, make_schema, validate_data, validate_predictions, summarize
-from veritable.exceptions import DataValidationException, InvalidSchemaException
-from nose.tools import raises
+#! usr/bin/python
+# coding=utf-8
+
+from veritable.utils import *
+from veritable.exceptions import DataValidationException
+from veritable.exceptions import InvalidSchemaException
+from nose.tools import raises, assert_raises
 from tempfile import mkstemp
 import csv
 import os
 
+INVALID_IDS = ["éléphant", "374.34", "ajfh/d/sfd@#$", "ひたちの", "", " foo",
+    "foo ", " foo ", "foo\n", "foo\nbar"]
+
+
 def test_write_read_csv():
-    handle,filename = mkstemp()
+    handle, filename = mkstemp()
     refrows = [{'_id':'7', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a'},
                {'_id':'8', 'ColInt':4, 'ColCat':'b', 'ColBool':False},
                {'_id':'9'}]
-    write_csv(refrows,filename,dialect=csv.excel)
-    testrows = read_csv(filename,dialect=csv.excel)
+    write_csv(refrows, filename, dialect=csv.excel)
+    testrows = read_csv(filename, dialect=csv.excel)
     cschema = {
-        'ColInt':{'type':'count'},
-        'ColFloat':{'type':'real'},
-        'ColCat':{'type':'categorical'},
-        'ColBool':{'type':'boolean'}
+        'ColInt': {'type': 'count'},
+        'ColFloat': {'type': 'real'},
+        'ColCat': {'type': 'categorical'},
+        'ColBool': {'type': 'boolean'}
         }
     validate_data(testrows,cschema,convert_types=True)
     assert len(testrows) == len(refrows)
@@ -184,7 +192,6 @@ def test_data_missing_id_fix():
     validate_data(testrows, vschema, assign_ids=True)
     assert testrows[0]['_id'] != testrows[1]['_id']
     validate_data(testrows, vschema)
-    
 
 # Duplicate ID
 @raises(DataValidationException)
@@ -216,6 +223,12 @@ def test_data_nonstring_id_fix():
     validate_data(testrows, vschema, convert_types=True)
     assert testrows[1]['_id'] == '2'
     validate_data(testrows, vschema)
+
+def test_data_nonalphanumeric_ids_fail():
+    for id in INVALID_IDS:
+        testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
+                    {'_id': id, 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False}]
+        assert_raises(InvalidIDException, validate_data, testrows, vschema)
 
 # Extra Field Not In Schema
 def test_data_extrafield_pass():
@@ -730,42 +743,34 @@ def test_data_empty_col_fail():
         raise
 
 
-def test_summarize_count():
-    testpreds = [{'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':False},
-                {'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
-                {'ColInt':8, 'ColFloat':8.1, 'ColCat':'b', 'ColBool':False},
-                {'ColInt':11, 'ColFloat':2.1, 'ColCat':'c', 'ColBool':True}]
-    expected,uncertainty = summarize(testpreds,'ColInt')
-    assert type(expected) == int
-    assert expected == 7
-    assert abs(uncertainty - 3.6968) < 0.001
+class TestSummarize:
+    def setup(self):
+        self.testpreds = [
+            {'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':False},
+            {'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
+            {'ColInt':8, 'ColFloat':8.1, 'ColCat':'b', 'ColBool':False},
+            {'ColInt':11, 'ColFloat':2.1, 'ColCat':'c', 'ColBool':True}]
 
-def test_summarize_real():
-    testpreds = [{'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':False},
-                {'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
-                {'ColInt':8, 'ColFloat':8.1, 'ColCat':'b', 'ColBool':False},
-                {'ColInt':11, 'ColFloat':2.1, 'ColCat':'c', 'ColBool':True}]
-    expected,uncertainty = summarize(testpreds,'ColFloat')
-    assert type(expected) == float
-    assert abs(expected - 4.35) < 0.001
-    assert abs(uncertainty - 2.6299) < 0.001
+    def test_summarize_count(self):
+        expected, uncertainty = summarize(self.testpreds, 'ColInt')
+        assert type(expected) == int
+        assert expected == 7
+        assert abs(uncertainty - 3.6968) < 0.001
 
-def test_summarize_cat():
-    testpreds = [{'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':False},
-                {'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
-                {'ColInt':8, 'ColFloat':8.1, 'ColCat':'b', 'ColBool':False},
-                {'ColInt':11, 'ColFloat':2.1, 'ColCat':'c', 'ColBool':True}]
-    expected,uncertainty = summarize(testpreds,'ColCat')
-    assert type(expected) == str
-    assert expected == 'b'
-    assert abs(uncertainty - 0.5) < 0.001
+    def test_summarize_real(self):
+        expected, uncertainty = summarize(self.testpreds, 'ColFloat')
+        assert type(expected) == float
+        assert abs(expected - 4.35) < 0.001
+        assert abs(uncertainty - 2.6299) < 0.001
 
-def test_summarize_bool():
-    testpreds = [{'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':False},
-                {'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False},
-                {'ColInt':8, 'ColFloat':8.1, 'ColCat':'b', 'ColBool':False},
-                {'ColInt':11, 'ColFloat':2.1, 'ColCat':'c', 'ColBool':True}]
-    expected,uncertainty = summarize(testpreds,'ColBool')
-    assert type(expected) == bool
-    assert expected == False
-    assert abs(uncertainty - 0.25) < 0.001
+    def test_summarize_cat(self):
+        expected,uncertainty = summarize(self.testpreds, 'ColCat')
+        assert type(expected) == str
+        assert expected == 'b'
+        assert abs(uncertainty - 0.5) < 0.001
+
+    def test_summarize_bool(self):
+        expected, uncertainty = summarize(self.testpreds, 'ColBool')
+        assert type(expected) == bool
+        assert expected == False
+        assert abs(uncertainty - 0.25) < 0.001
