@@ -22,17 +22,21 @@ def _check_id(id):
     if _alphanumeric.match(id) is None or id[-1] == "\n":
         raise InvalidIDException(id)
 
+
 def _make_table_id():
     # Autogenerate id
     return uuid.uuid4().hex
+
 
 def _make_analysis_id():
     # Autogenerate id
     return uuid.uuid4().hex
 
+
 def _url_has_scheme(url):
     # Check if a URL includes a scheme
     return urlparse(url)[0] is not ""
+
 
 def wait_for_analysis(a, poll=2):
     """Waits for a running analysis to succeed or fail.
@@ -71,6 +75,7 @@ def split_rows(rows, frac):
     test_dataset = [rows[i] for i in inds[border_ind:]]
     return train_dataset, test_dataset
 
+
 def _validate_schema(schema):
     # Checks whether a schema is well formed and raises an
     # InvalidSchemaException if not.
@@ -89,6 +94,7 @@ def _validate_schema(schema):
                 v['type'] + """' is not valid. Please specify 'type' as
                 one of ['""" + string.join(valid_types,"', '") + """']""",
                 col=k)
+
 
 def validate_schema(schema):
     """Checks if an analysis schema is well-formed.
@@ -110,6 +116,7 @@ def validate_schema(schema):
         return False
     else:
         return True
+
 
 def make_schema(schema_rule, headers=None, rows=None):
     """Constructs an analysis schema from a schema rule.
