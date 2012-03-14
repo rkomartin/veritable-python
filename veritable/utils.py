@@ -90,16 +90,15 @@ def make_schema(schema_rule, headers=None, rows=None):
 
 
 # Dialects: csv.excel_tab, csv.excel
-def write_csv(rows,filename,dialect=csv.excel):
+def write_csv(rows, filename, dialect=csv.excel):
     """Writes a list of row dicts to disk as .csv"""
-    headers = {}
+    headers = set()
     for r in rows:
-        for c in r.keys():
-            headers[c] = True
-    headers = headers.keys()
+        headers = headers.union(r.keys())
+    headers = list(headers)
     headers.sort()
     with open(filename,'wb') as outFile:
-        writer = csv.writer(outFile,dialect=dialect)
+        writer = csv.writer(outFile, dialect=dialect)
         writer.writerow(headers)
         for r in rows:
             writer.writerow([('' if not(r.has_key(c))
@@ -118,23 +117,24 @@ def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
         header = [h.strip() for h in reader.next()]
         if '_id' in header:
             id_col = '_id'
-        rowCount = 0
+        if id_col is None:
+            rid = 0
         for row in reader:
-            rowCount = rowCount + 1
-            rowSet = {}
-            for i in range(min(len(header),len(row))):
+            r = {}
+            for i in range(min(len(header), len(row))):
                 val = row[i].strip()
                 if not(val in na_vals):
                     if(header[i] == id_col):
-                        rowSet['_id'] = val
+                        r['_id'] = val
                     else:
-                        rowSet[header[i]] = val
+                        r[header[i]] = val
                 else:
                     if header[i] == id_col:
                         raise VeritableException("Missing id for row" + str(i))
             if id_col == None:
-                rowSet['_id'] = str(rowCount)
-            table.append(rowSet)
+                rid = rid + 1
+                r['_id'] = str(rid)
+            table.append(r)
     return table;
 
 def validate_data(rows, schema, convert_types=False, remove_nones=False,
