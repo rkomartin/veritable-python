@@ -481,10 +481,10 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                             if not category_counts[c].has_key(r[c]):
                                 category_counts[c][r[c]] = 0
                             category_counts[c][r[c]] = category_counts[c][r[c]] + 1
-            if not field_fill.has_key(c): # keep track of all the fields
-                field_fill[c] = 0
-            if r.has_key(c) and r[c] is not None: # and their density
-                field_fill[c] = field_fill[c] + 1
+                if not field_fill.has_key(c) and not remove_extra_fields: 
+                    field_fill[c] = 0
+                if r.has_key(c) and r[c] is not None:
+                    field_fill[c] = field_fill[c] + 1
 
     MAX_CATS = 256
     for c in category_counts.keys():
