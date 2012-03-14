@@ -209,7 +209,7 @@ def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
     """
     table = []
     with open(filename) as f:
-        if dialect == None:
+        if dialect is None:
             dialect = csv.Sniffer().sniff(f.read(1024))
         f.seek(0)
         reader = csv.reader(f, dialect)
@@ -230,7 +230,7 @@ def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
                 else:
                     if header[i] == id_col:
                         raise VeritableException("Missing id for row" + str(i))
-            if id_col == None:
+            if id_col is None:
                 rid = rid + 1
                 r['_id'] = str(rid)
             table.append(r)
