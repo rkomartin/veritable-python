@@ -18,6 +18,7 @@ from .exceptions import *
 _alphanumeric = re.compile("^[-_a-zA-Z0-9]+$")
 
 def _check_id(id):
+    # Note that this will choke on unicode ids
     if _alphanumeric.match(id) is None or id[-1] == "\n":
         raise InvalidIDException(id)
 
@@ -71,7 +72,8 @@ def split_rows(rows, frac):
     return train_dataset, test_dataset
 
 def _validate_schema(schema):
-    # Validate a schema
+    # Checks whether a schema is well formed and raises an
+    # InvalidSchemaException if not.
     valid_types = ['boolean', 'categorical', 'real', 'count']
     for k in schema.keys():
         if not isinstance(k, basestring):
