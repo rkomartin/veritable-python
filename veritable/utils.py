@@ -160,27 +160,50 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
     remove_extra_fields):
     # Validates data against an analysis schema
     _validate_schema(schema)
-    prevIDs = {}
-    catCounts = {}
+    unique_ids = {}
+    category_counts = {}
+    TRUE_STRINGS = ['true', 't', 'yes', 'y']
+    FALSE_STRINGS = ['false', 'f', 'no', 'n']
     for i in range(len(rows)):
         r = rows[i]
         if assign_ids:
             r['_id'] = str(i)
         elif has_ids:
             if not(r.has_key('_id')):
-                raise DataValidationException("Row:'"+str(i)+"' is missing Key:'_id'",row=i,col='_id')
+                raise DataValidationException("""Row:'""" + str(i) +
+                    """' is missing Key:'_id'""", row=i, col='_id')
             if convert_types:
-                r['_id'] = str(r['_id'])
-            if not (type(r['_id']) == str):
-                raise DataValidationException("Row:'"+str(i)+"' Key:'_id' Value:'"+str(r['_id'])+"' is "+str(type(r['_id']))+", not a str",row=i,col='_id')
-            if prevIDs.has_key(r['_id']):
-                raise DataValidationException("Row:'"+str(i)+"' Key:'_id' Value:'"+str(r['_id'])+"' is not unique, conflicts with Row:'"+str(prevIDs[r['_id']])+"'",row=i,col='_id')
-            prevIDs[r['_id']] = i
+                try:
+                    r['_id'] = str(r['_id'])
+                except UnicodeDecodeError:
+                    raise DataValidationException("""Row:'""" + str(i) +
+                        """' Key:'_id' Value:'""" + r['_id'].encode('utf-8') +
+                        """' is """ + str(type(r['_id'])) + """, not a str""",
+                        row=i, col='_id')
+            if not isinstance(r['_id'], str):
+                if isinstance(r['_id'], unicode):
+                    raise DataValidationException("""Row:'""" + str(i) +
+                        """' Key:'_id' Value:'""" + r['_id'].encode('utf-8') +
+                        """' is """ + str(type(r['_id'])) + """, not a str""",
+                        row=i, col='_id')
+                else:
+                    raise DataValidationException("""Row:'""" + str(i) +
+                        """' Key:'_id' Value:'""" + str(r['_id']) +
+                        """' is """ + str(type(r['_id'])) + """, not a str""",
+                        row=i, col='_id')
+            _check_id(r['_id'])
+            if r['_id'] in unique_ids:
+                raise DataValidationException("""Row:'""" + str(i) +
+                    """' Key:'_id' Value:'""" + str(r['_id']) +
+                    """' is not unique, conflicts with Row:'""" +
+                    str(unique_ids[r['_id']]) + """'""", row=i, col='_id')
+            unique_ids[r['_id']] = i
         elif r.has_key('_id'):
             if remove_extra_fields:
                 r.pop('_id')
             else:
-                raise DataValidationException("Row:'"+str(i)+"' Key:'_id' should not be included",row=i,col='_id')
+                raise DataValidationException("""Row:'""" + str(i) +
+                    """' Key:'_id' should not be included""", row=i, col='_id')
         for c in r.keys():
             if not(c == '_id'):
                 if not(schema.has_key(c)):
@@ -188,16 +211,21 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                         r.pop(c)
                     else:
                         if not(allow_extra_fields):
-                            raise DataValidationException("Row:'"+str(i)+"' Key:'"+c+"' is not defined in schema",row=i,col=c)                    
+                            raise DataValidationException("Row:'" + str(i) + 
+                                """' Key:'""" + c + """' is not defined in schema""",
+                                row=i, col=c)                    
                 elif r[c] == None:
                     if remove_nones:
                         r.pop(c)
                     else:
                         if not(allow_nones):
-                            raise DataValidationException("Row:'"+str(i)+"' Key:'"+c+"' should be removed because it has value None",row=i,col=c)                    
+                            raise DataValidationException("""Row:'""" +
+                                str(i) + """' Key:'""" + c + """' should be
+                                removed because it has value None""", row=i,
+                                col=c)                    
                 else:
-                    ctype = schema[c]['type']
-                    if(ctype == 'count'):
+                    coltype = schema[c]['type']
+                    if coltype == 'count':
                         if convert_types:                            
                             try:
                                 r[c] = int(r[c])
@@ -207,9 +235,12 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                         if r[c] == None:
                             r.pop(c)
                         else:
-                            if not(type(r[c]) == int):
-                                raise DataValidationException("Row:'"+str(i)+"' Key:'"+c+"' Value:'"+str(r[c])+"' is "+str(type(r[c]))+", not an int",row=i,col=c)                            
-                    elif(ctype == 'real'):
+                            if not isinstance(r[c], int):
+                                raise DataValidationException("""Row:'""" +
+                                    str(i) + """' Key:'""" + c + """' Value:'""" +
+                                    str(r[c]) + """' is """ + str(type(r[c])) + 
+                                    """, not an int""", row=i, col=c)                            
+                    elif coltype == 'real':
                         if convert_types:                            
                             try:
                                 r[c] = float(r[c])
@@ -219,21 +250,33 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                         if r[c] == None:
                             r.pop(c)
                         else:
-                            if not(type(r[c]) == float):
-                                raise DataValidationException("Row:'"+str(i)+"' Key:'"+c+"' Value:'"+str(r[c])+"' is "+str(type(r[c]))+", not a float",row=i,col=c)
-                    elif(ctype == 'boolean'):
+                            if not isinstance(r[c], float):
+                                raise DataValidationException("""Row:'""" +
+                                    str(i) + """' Key:'""" + c +
+                                    """' Value:'""" + str(r[c]) + """' is """ + 
+                                    str(type(r[c])) + """, not a float""", row=i,
+                                    col=c)
+                    elif coltype == 'boolean':
                         if convert_types:                            
                             try:
-                                r[c] = True if str(r[c]).strip().lower() in ['true','yes','y'] else False if str(r[c]).strip().lower() in ['false','no','n'] else bool(int(r[c]))
+                                if str(r[c]).strip().lower() in TRUE_STRINGS:
+                                    r[c] = True
+                                elif str(r[c]).strip().lower() in FALSE_STRINGS:
+                                    r[c] = False
+                                else:
+                                    r[c] = bool(int(r[c]))
                             except:
                                 if remove_invalids:
                                     r[c] = None
                         if r[c] == None:
                             r.pop(c)
                         else:
-                            if not(type(r[c]) == bool):
-                                raise DataValidationException("Row:'"+str(i)+"' Key:'"+c+"' Value:'"+str(r[c])+"' is "+str(type(r[c]))+", not a bool",row=i,col=c)   
-                    elif(ctype == 'categorical'):
+                            if not isinstance(r[c], bool):
+                                raise DataValidationException("""Row:'""" + str(i) + 
+                                    """' Key:'""" + c + """' Value:'""" + str(r[c]) +
+                                    """' is """ + str(type(r[c])) + """, not a bool""",
+                                    row=i, col=c)
+                    elif coltype == 'categorical':
                         if convert_types:                            
                             try:
                                 r[c] = str(r[c])
@@ -243,46 +286,52 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                         if r[c] == None:
                             r.pop(c)
                         else:
-                            if not(type(r[c]) == str):
-                                raise DataValidationException("Row:'"+str(i)+"' Key:'"+c+"' Value:'"+str(r[c])+"' is "+str(type(r[c]))+", not a str",row=i,col=c)
-                            if not(catCounts.has_key(c)):
-                                catCounts[c] = {}
-                            if not(catCounts[c].has_key(r[c])):
-                                catCounts[c][r[c]] = 0
-                            catCounts[c][r[c]] = catCounts[c][r[c]] + 1
-    maxCats = 256
-    for c in catCounts.keys():
-        cats = catCounts[c].keys()
-        if (len(cats) > maxCats):
+                            if not isinstance(r[c], str):
+                                raise DataValidationException("""Row:'""" + str(i) +
+                                    """' Key:'""" + c + """' Value:'""" + str(r[c]) +
+                                    """' is """ + str(type(r[c])) + """, not a str""",
+                                    row=i, col=c)
+                            if not(category_counts.has_key(c)):
+                                category_counts[c] = {}
+                            if not(category_counts[c].has_key(r[c])):
+                                category_counts[c][r[c]] = 0
+                            category_counts[c][r[c]] = category_counts[c][r[c]] + 1
+    MAX_CATS = 256
+    for c in category_counts.keys():
+        cats = category_counts[c].keys()
+        if (len(cats) > MAX_CATS):
             if map_categories:
-                cats.sort(key=lambda cat: catCounts[c][cat])
+                cats.sort(key=lambda cat: category_counts[c][cat])
                 cats.reverse()
-                catMap = {}
+                category_map = {}
                 for j in range(len(cats)):
-                    if j < (maxCats - 1):
-                        catMap[cats[j]] = cats[j]
+                    if j < (MAX_CATS - 1):
+                        category_map[cats[j]] = cats[j]
                     else:
-                        catMap[cats[j]] = 'Other'
+                        category_map[cats[j]] = 'Other'
                 for r in rows:
                     if r.has_key(c):
                         if not(r[c] == None):
-                            r[c] = catMap[r[c]]
+                            r[c] = category_map[r[c]]
             else:
-                raise DataValidationException("Categorical column '"+c+"' has "+str(len(catCounts[c].keys()))+" unique values which exceeds the limit of "+str(maxCats),col=c)
+                raise DataValidationException("""Categorical column '""" +
+                    c + """' has """ + str(len(category_counts[c].keys())) +
+                    """ unique values which exceeds the limit of """ +
+                    str(MAX_CATS), col=c)
     if not(allow_nones):
-        fieldFill = {}
+        field_fill = {}
         for c in schema.keys():
-            fieldFill[c] = 0
+            field_fill[c] = 0
         for r in rows:
             for c in r.keys():
-                if not(fieldFill.has_key(c)):
-                    fieldFill[c] = 0
+                if not(field_fill.has_key(c)):
+                    field_fill[c] = 0
                 if not(r[c] == None):
-                    fieldFill[c] = fieldFill[c]+1
-        for (c,fill) in fieldFill.items():
+                    field_fill[c] = field_fill[c] + 1
+        for (c,fill) in field_fill.items():
             if (fill == 0):
-                raise DataValidationException("Column '"+c+"' does not have any values",col=c)
-
+                raise DataValidationException("""Column '""" + c +
+                    """' does not have any values""", col=c)
 
 
 def summarize(predictions, col):

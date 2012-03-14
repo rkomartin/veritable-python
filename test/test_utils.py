@@ -1,10 +1,16 @@
+#! usr/bin/python
+# coding=utf-8
+
 from veritable.utils import *
 from veritable.exceptions import DataValidationException
 from veritable.exceptions import InvalidSchemaException
-from nose.tools import raises
+from nose.tools import raises, assert_raises
 from tempfile import mkstemp
 import csv
 import os
+
+INVALID_IDS = ["éléphant", "374.34", "ajfh/d/sfd@#$", "ひたちの", "", " foo",
+    "foo ", " foo ", "foo\n", "foo\nbar"]
 
 
 def test_write_read_csv():
@@ -218,6 +224,12 @@ def test_data_nonstring_id_fix():
     validate_data(testrows, vschema, convert_types=True)
     assert testrows[1]['_id'] == '2'
     validate_data(testrows, vschema)
+
+def test_data_nonalphanumeric_ids_fail():
+    for id in INVALID_IDS:
+        testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
+                    {'_id': id, 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False}]
+        assert_raises(InvalidIDException, validate_data, testrows, vschema)
 
 # Extra Field Not In Schema
 def test_data_extrafield_pass():
