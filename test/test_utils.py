@@ -104,25 +104,17 @@ def test_make_schema_noarg_fail():
 
 
 # Invalid Schema
-@raises(InvalidSchemaException)
+@raises(DataValidationException)
 def test_missing_schema_type_fail():
     bschema = {'ColInt':{},'ColFloat':{'type':'real'} }
     testrows = []
-    try:
-        validate_data(testrows, bschema)
-    except DataValidationException as e:
-        assert e.col == 'ColInt'
-        raise
+    validate_data(testrows, bschema)
 
-@raises(InvalidSchemaException)
+@raises(DataValidationException)
 def test_bad_schema_type_fail():
     bschema = {'ColInt':{'type':'jello'},'ColFloat':{'type':'real'} }
     testrows = []
-    try:
-        validate_data(testrows, bschema)
-    except DataValidationException as e:
-        assert e.col == 'ColInt'
-        raise
+    validate_data(testrows, bschema)
 
 
 vschema = {
@@ -228,7 +220,7 @@ def test_data_nonalphanumeric_ids_fail():
     for id in INVALID_IDS:
         testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                     {'_id': id, 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False}]
-        assert_raises(InvalidIDException, validate_data, testrows, vschema)
+        assert_raises(DataValidationException, validate_data, testrows, vschema)
 
 # Extra Field Not In Schema
 def test_data_extrafield_pass():
