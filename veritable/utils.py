@@ -1,3 +1,9 @@
+"""Utility functions for working with veritable-python.
+
+See also: https://dev.priorknowledge.com/docs/client/python
+
+"""
+
 import time
 import uuid
 from math import floor
@@ -28,13 +34,34 @@ def _url_has_scheme(url):
     return urlparse(url)[0] is not ""
 
 def wait_for_analysis(a, poll=2):
-    """Waits for a running analysis to succeed or fail."""
+    """Waits for a running analysis to succeed or fail.
+
+    Arguments:
+    a -- the Analysis object for which to wait
+    poll -- the number of seconds to wait between updates (default 2)
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
     while a.state == 'running':
         time.sleep(poll)
         a.update()
 
 def split_rows(rows, frac):
-    """Splits a list of rows into two sets, sampling at random."""
+
+    """Splits a list of dicts representing a dataset into two sets.
+
+    Returns a tuple of lists of dicts, containing (floor(len(rows) * frac),
+    1 - floor(len(rows) * frac)) row dicts respectively, sampled at
+    random.
+
+    Arguments:
+    rows -- the list of dicts representing the dataset to split
+    frac -- the fraction of rows to split by (default 0.5)
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
     N = len(rows)
     inds = range(N)
     shuffle(inds)
@@ -62,7 +89,19 @@ def _validate_schema(schema):
                 col=k)
 
 def validate_schema(schema):
-    """Checks if an analysis schema is well-formed."""
+    """Checks if an analysis schema is well-formed.
+
+    Returns True if the schema is well-formed, False otherwise.
+
+    Note that this function does not check the schema against the dataset. To
+    validate against a dataset, use validate_data.
+
+    Arguments:
+    schema -- the schema to validate as a Python dict
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
     try:
         _validate_schema(schema)
     except:
@@ -71,7 +110,24 @@ def validate_schema(schema):
         return True
 
 def make_schema(schema_rule, headers=None, rows=None):
-    """Makes an analysis schema from a schema rule."""
+    """Constructs an analysis schema from a schema rule.
+
+    Returns an analysis schema as a Python dict.
+
+    Arguments:
+    schema_rule -- a list of lists in the form:
+        [['a_regex_to_match', 'datatype'], ['another_regex', 'datatype'], ...] 
+        Earlier rules will match before later rules.
+    headers -- a list of column names against which to match. (default: None)
+        If headers is not provided, column names will be read from the rows
+        argument. Either headers or rows must be provided, or an Exception
+        will be raised.
+    rows -- a list of row dicts from which column names will be extracted if
+        headers are not specified. (default: None) 
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
     if headers is None and rows is None:
         raise Exception("Either headers or rows must be provided")
     if headers is None:
@@ -91,7 +147,20 @@ def make_schema(schema_rule, headers=None, rows=None):
 
 # Dialects: csv.excel_tab, csv.excel
 def write_csv(rows, filename, dialect=csv.excel):
-    """Writes a list of row dicts to disk as .csv"""
+    """Writes a list of row dicts to disk as .csv
+
+    Does not support Unicode values in row dicts.
+
+    Arguments:
+    rows -- the list of row dicts to write
+    filename -- the filename to which to write
+    dialect -- a subclass of csv.Dialect (default: csv.excel)
+    na_val -- columns that are missing in a row or that are set to None will
+        be written out as this value (default: '')
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
     headers = set()
     for r in rows:
         headers = headers.union(r.keys())
@@ -107,7 +176,28 @@ def write_csv(rows, filename, dialect=csv.excel):
 
 # Dialects: csv.excel_tab, csv.excel
 def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
-    """Reads a .csv from disk into a list of row dicts."""
+    """Reads a .csv from disk into a list of row dicts.
+
+    Returns a list of dicts representing the rows in the .csv file.
+
+    Does not support .csvs that contain Unicode values.
+
+    Arguments:
+    filename -- the .csv file to read from
+    id_col -- the column, if any, containing unique row ids (default: None)
+        If None, the rows will be numbered sequentially; otherwise, this
+        column will be renamed to '_id' (as required by the row upload
+        functions). If id_col is specified, but ids are missing for some rows,
+        then a VeritableException will be raised.
+    dialect -- a subclass of csv.Dialect to use in reading the .csv file
+        (default: None) If None, read_csv will try to sniff the dialect using
+        csv.Sniffer.
+    na_vals -- a list of values to treat as NA (default: ['']) Each row dict
+        will contain only those columns in which these values do not occur.
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
     table = []
     with open(filename) as f:
         if dialect == None:
@@ -140,7 +230,44 @@ def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
 def validate_data(rows, schema, convert_types=False, remove_nones=False,
     remove_invalids=False, map_categories=False, assign_ids=False,
     remove_extra_fields=False):
-    """Validates a list of rows against an analysis schema."""
+    """Validates a list of row dicts against an analysis schema.
+
+    Raises a DataValidationException containing further details if the data
+    does not validate against the schema.
+
+    WARNING: Setting the optional arguments convert_types, remove_nones,
+    remove_invalids, reduce_categories, assign_ids, or remove_extra_fields to
+    True will cause destructive updates to be performed on the rows argument.
+    If validate_data raises an exception, values in some rows may be converted
+    while others are left in their original state.
+
+    Arguments:
+    rows -- the list of row dicts to validate
+    schema -- an analysis schema specifying the types of the columns appearing
+        in the rows being validated
+    convert_types -- controls whether validate_data will attempt to convert
+        cells in a column to be of the correct type (default: False)
+    remove_nones -- controls whether validate_data will automatically remove
+        cells containing the value None (default: False)
+    remove_invalids -- controls whether validate_data will automatically
+        remove cells that are invalid for a given column (default: False)
+    reduce_categories -- controls whether validate_data will automatically
+        reduce the number of categories in categorical columns with too many
+        categories (default: False) If True, the largest categories in a
+        column will be preserved, up to the allowable limit, and the other
+        categories will be binned as "Other".
+    assign_ids -- controls whether validate_data will automatically assign new
+        ids to the rows (default: False) If True, rows will be numbered
+        sequentially. If the rows have an existing '_id' column,
+        remove_extra_fields must also be set to True to avoid raising a
+        DataValidationException.
+    remove_extra_fields -- controls whether validate_data will automatically
+        remove columns that are not contained in the schema (default: False)
+        If assign_ids is True, will also remove the '_id' column. 
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
     return _validate(rows, schema, convert_types=convert_types,
         allow_nones=False, remove_nones=remove_nones,
         remove_invalids=remove_invalids, map_categories=map_categories,
@@ -149,7 +276,31 @@ def validate_data(rows, schema, convert_types=False, remove_nones=False,
 
 def validate_predictions(predictions, schema, convert_types=False,
     remove_invalids=False, remove_extra_fields=False):
-    """Validates a predictions request against an analysis schema."""
+    """Validates a predictions request against an analysis schema.
+
+    Raises a DataValidationException containing further details if the request
+    does not validate against the schema.
+
+    WARNING: Setting the optional arguments convert_types, remove_invalids, 
+    or remove_extra_fields to True will cause destructive updates to be
+    performed on the predictions argument. If validate_predictions raises an
+    exception, some values may be converted while others are left in their
+    original state.
+
+    Arguments:
+    predictions -- the predictions request to validate
+    schema -- an analysis schema specifying the types of the columns appearing
+        in the predictions request being validated
+    convert_types -- controls whether validate_data will attempt to convert
+        cells in a column to be of the correct type (default: False)
+    remove_invalids -- controls whether validate_data will automatically
+        remove cells that are invalid for a given column (default: False)
+    remove_extra_fields -- controls whether validate_data will automatically
+        remove columns that are not contained in the schema (default: False)
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
     return _validate(predictions, schema, convert_types=convert_types,
         allow_nones=True, remove_nones=False, remove_invalids=remove_invalids,
         map_categories=False, has_ids=False, assign_ids=False,
@@ -335,13 +486,23 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
 
 
 def summarize(predictions, col):
-    """Calculates a point estimate and an associated estimate of uncertainty
-        for a single column from predictions results.
+    """Basic summary for predictions results.
 
-        For real columns, this returns the mean and standard deviation. For
-        count columns, this returns the mean rounded to the nearest integer
-        and standard deviation. For categorical and boolean columns, this is
-        the mode and the probability that another value was predicted."""
+    Calculates a point estimate and an associated estimate of uncertainty for
+    a single column from predictions results.
+
+    For real columns, returns the mean and standard deviation. For count
+    columns, returns the mean rounded to the nearest integer and standard
+    deviation. For categorical and boolean columns, returns the modal value
+    and the total probability of all values other than the mode.
+
+    Arguments:
+    predictions -- predictions results as a list of row dicts
+    col -- the column to summarize
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
     coltype = type(predictions[0][col])
     vals = [p[col] for p in predictions]
     cnt = len(vals)
