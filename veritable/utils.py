@@ -13,7 +13,7 @@ import csv
 import re
 import string
 from .exceptions import (InvalidIDException, InvalidSchemaException,
-    VeritableException, DataValidationException)
+    VeritableError, DataValidationException)
 
 
 _alphanumeric = re.compile("^[-_a-zA-Z0-9]+$")
@@ -201,7 +201,7 @@ def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
         If None, the rows will be numbered sequentially; otherwise, this
         column will be renamed to '_id' (as required by the row upload
         functions). If id_col is specified, but ids are missing for some rows,
-        then a VeritableException will be raised.
+        then a VeritableError will be raised.
     dialect -- a subclass of csv.Dialect to use in reading the .csv file
         (default: None) If None, read_csv will try to sniff the dialect using
         csv.Sniffer.
@@ -233,7 +233,7 @@ def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
                         r[header[i]] = val
                 else:
                     if header[i] == id_col:
-                        raise VeritableException("Missing id for row" + str(i))
+                        raise VeritableError("Missing id for row" + str(i))
             if id_col is None:
                 rid = rid + 1
                 r['_id'] = str(rid)

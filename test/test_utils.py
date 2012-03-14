@@ -1,8 +1,8 @@
 #! usr/bin/python
 # coding=utf-8
 
-from veritable.utils import (write_csv, read_csv, validate_data,
-    validate_predictions)
+from veritable.utils import (write_csv, read_csv, make_schema, summarize,
+    validate_data, validate_predictions)
 from veritable.exceptions import DataValidationException
 from nose.tools import raises, assert_raises
 from tempfile import mkstemp

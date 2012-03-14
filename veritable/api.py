@@ -26,7 +26,7 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
 
     status = connection_test['status']
     entropy = connection_test['entropy']
-    if status =! "SUCCESS" or not isinstance(entropy, float):
+    if status != "SUCCESS" or not isinstance(entropy, float):
         raise(APIConnectionException(api_base_url))
     return API(connection)
 
