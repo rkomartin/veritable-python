@@ -3,7 +3,7 @@ import simplejson
 from .connection import Connection
 from .exceptions import (APIConnectionException, DuplicateTableException,
     MissingRowIDException, InvalidAnalysisTypeException,
-    DuplicateAnalysisException)
+    DuplicateAnalysisException, VeritableError)
 from urllib import quote_plus
 from .utils import _make_table_id, _make_analysis_id, _check_id
 

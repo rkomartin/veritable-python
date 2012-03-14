@@ -87,15 +87,13 @@ def _validate_schema(schema):
             raise InvalidSchemaException()
         v = schema[k]
         if not ('type' in v.keys()):
-            raise InvalidSchemaException("""Column '""" + k +
-                """' does not have a 'type' specified. Please specify
-                'type' as one of ['""" + string.join(valid_types, "', '") +
-                """']""", col=k)
+            raise InvalidSchemaException("""Column '{0}' does not have a
+                'type' specified. Please specify 'type' as one of
+                ['{1}']""".format(k, string.join(valid_types, "', '")), col=k)
         if not v['type'] in valid_types:
-            raise InvalidSchemaException("""Column '""" + k + """' type '""" +
-                v['type'] + """' is not valid. Please specify 'type' as
-                one of ['""" + string.join(valid_types,"', '") + """']""",
-                col=k)
+            raise InvalidSchemaException("""Column '{0}' type '{1}' is not
+                valid. Please specify 'type' as one of ['{2}']""".format(k,
+                v['type'], string.join(valid_types, "', '")), col=k)
 
 
 def validate_schema(schema):
@@ -135,7 +133,7 @@ def make_schema(schema_rule, headers=None, rows=None):
         argument. Either headers or rows must be provided, or an Exception
         will be raised.
     rows -- a list of row dicts from which column names will be extracted if
-        headers are not specified. (default: None) 
+        headers are not specified. (default: None)
 
     See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -238,7 +236,7 @@ def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
                 rid = rid + 1
                 r['_id'] = str(rid)
             table.append(r)
-    return table;
+    return table
 
 
 def validate_data(rows, schema, convert_types=False, remove_nones=False,
@@ -277,7 +275,7 @@ def validate_data(rows, schema, convert_types=False, remove_nones=False,
         DataValidationException.
     remove_extra_fields -- controls whether validate_data will automatically
         remove columns that are not contained in the schema (default: False)
-        If assign_ids is True, will also remove the '_id' column. 
+        If assign_ids is True, will also remove the '_id' column.
 
     See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -322,8 +320,8 @@ def validate_predictions(predictions, schema, convert_types=False,
         allow_empty_columns=True)
 
 def _validate(rows, schema, convert_types, allow_nones, remove_nones,
-    remove_invalids, reduce_categories, has_ids, assign_ids, allow_extra_fields,
-    remove_extra_fields, allow_empty_columns):
+    remove_invalids, reduce_categories, has_ids, assign_ids,
+    allow_extra_fields, remove_extra_fields, allow_empty_columns):
     # First check that the schema is well formed
     try:
         _validate_schema(schema)
@@ -400,9 +398,9 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                         r.pop(c)
                     else:
                         if not allow_extra_fields:  # or silently allow
-                            raise DataValidationException("""Row:'{0}' Key: 
+                            raise DataValidationException("""Row:'{0}' Key:
                                 '{1}' is not defined in
-                                schema""".format(str(i), c), row=i, col=c)                    
+                                schema""".format(str(i), c), row=i, col=c)
                 elif r[c] is None:  # None values
                     if remove_nones:  # remove
                         r.pop(c)
@@ -427,7 +425,7 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                                 raise DataValidationException("""Row:'{0}'
                                     Key:'{1}' Value:'{2}' is {3}, not an
                                     int""".format(str(i), c, str(r[c]),
-                                    str(type(r[c]))), row=i, col=c)                            
+                                    str(type(r[c]))), row=i, col=c)
                     elif coltype == 'real':
                         if convert_types:  # try converting to float
                             try:
