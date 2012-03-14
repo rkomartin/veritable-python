@@ -104,7 +104,7 @@ def echodelete(content):
 
 
 @app.route("/inst/echoget2/<content>", methods=['GET'])
-def echoget(content):
+def echoget2(content):
     assert request.headers['User-Agent'] == USER_AGENT
     return '"' + content + '"'
 

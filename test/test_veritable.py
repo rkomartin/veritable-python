@@ -218,13 +218,13 @@ class TestTableOps:
                              description="Test dataset with all datatypes",
                              force=True)
         self.t2.batch_upload_rows(
-          [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
-           {'_id': 'row2', 'cat': 'b', 'ct': 0, 'real': 0.92131, 'bool': False},
-           {'_id': 'row3', 'cat': 'c', 'ct': 1, 'real': 1.82812, 'bool': True},
-           {'_id': 'row4', 'cat': 'c', 'ct': 1, 'real': 0.81271, 'bool': True},
-           {'_id': 'row5', 'cat': 'd', 'ct': 2, 'real': 1.14561, 'bool': False},
-           {'_id': 'row6', 'cat': 'a', 'ct': 5, 'real': 1.03412, 'bool': False}
-          ])
+        [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
+         {'_id': 'row2', 'cat': 'b', 'ct': 0, 'real': 0.92131, 'bool': False},
+         {'_id': 'row3', 'cat': 'c', 'ct': 1, 'real': 1.82812, 'bool': True},
+         {'_id': 'row4', 'cat': 'c', 'ct': 1, 'real': 0.81271, 'bool': True},
+         {'_id': 'row5', 'cat': 'd', 'ct': 2, 'real': 1.14561, 'bool': False},
+         {'_id': 'row6', 'cat': 'a', 'ct': 5, 'real': 1.03412, 'bool': False}
+        ])
 
     def teardown(self):
         self.t.delete()
@@ -586,13 +586,13 @@ class TestPredictions:
         self.t2 = self.API.create_table(table_id="test_all_types",
             description="Test dataset with all datatypes", force=True)
         self.t2.batch_upload_rows(
-          [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
-           {'_id': 'row2', 'cat': 'b', 'ct': 0, 'real': 0.92131, 'bool': False},
-           {'_id': 'row3', 'cat': 'c', 'ct': 1, 'real': 1.82812, 'bool': True},
-           {'_id': 'row4', 'cat': 'c', 'ct': 1, 'real': 0.81271, 'bool': True},
-           {'_id': 'row5', 'cat': 'd', 'ct': 2, 'real': 1.14561, 'bool': False},
-           {'_id': 'row6', 'cat': 'a', 'ct': 5, 'real': 1.03412, 'bool': False}
-          ])
+        [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
+         {'_id': 'row2', 'cat': 'b', 'ct': 0, 'real': 0.92131, 'bool': False},
+         {'_id': 'row3', 'cat': 'c', 'ct': 1, 'real': 1.82812, 'bool': True},
+         {'_id': 'row4', 'cat': 'c', 'ct': 1, 'real': 0.81271, 'bool': True},
+         {'_id': 'row5', 'cat': 'd', 'ct': 2, 'real': 1.14561, 'bool': False},
+         {'_id': 'row6', 'cat': 'a', 'ct': 5, 'real': 1.03412, 'bool': False}
+        ])
         self.schema2 = {'cat': {'type': 'categorical'},
                   'ct': {'type': 'count'},
                   'real': {'type': 'real'},
@@ -627,7 +627,7 @@ class TestPredictions:
         wait_for_analysis(self.a2)
         assert_raises(VeritableError, self.a2.predict,
             {'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
-            count = 10000)
+            count=10000)
 
     @attr('async')
     def test_make_prediction_with_invalid_column_fails(self):
@@ -645,8 +645,10 @@ class TestPredictions:
 
 # Filed: see 401264106780/595905981311
     # def test_predict_from_failed_analysis(self):
-    #     a3 = self.t2.create_analysis(self.schema1, analysis_id="a3", force=True)
+    #     a3 = self.t2.create_analysis(self.schema1, analysis_id="a3",
+        # force=True)
     #     wait_for_analysis(a3)
-    #     assert_raises(ServerException, a3.predict, {'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
+    #     assert_raises(ServerException, a3.predict,
+        # {'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
     #     assert_raises(ServerException, a3.predict, {'zim': None})
     #     assert_raises(ServerException, a3.predict, {'wos': None})

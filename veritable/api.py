@@ -1,7 +1,9 @@
 import os
 import simplejson
 from .connection import Connection
-from .exceptions import *
+from .exceptions import (APIConnectionException, DuplicateTableException,
+    MissingRowIDException, InvalidAnalysisTypeException,
+    DuplicateAnalysisException)
 from urllib import quote_plus
 from .utils import _make_table_id, _make_analysis_id, _check_id
 
@@ -22,7 +24,9 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
     except simplejson.JSONDecodeError:
         raise(APIConnectionException(api_base_url))
 
-    if not connection_test['status'] == "SUCCESS" or not isinstance(connection_test['entropy'], float):
+    status = connection_test['status']
+    entropy = connection_test['entropy']
+    if status =! "SUCCESS" or not isinstance(entropy, float):
         raise(APIConnectionException(api_base_url))
     return API(connection)
 
@@ -157,8 +161,8 @@ class Table:
 
     def delete_row(self, row_id):
         """Deletes a row from the table by its id."""
-        return self._conn.delete("{0}/{1}".format(self._link("rows").rstrip("/"),
-            quote_plus(row_id)))
+        return self._conn.delete("{0}/{1}".format(
+            self._link("rows").rstrip("/"), quote_plus(row_id)))
 
     def batch_delete_rows(self, rows):
         """Batch deletes rows from the table."""
@@ -208,6 +212,7 @@ class Table:
                 data={"_id": analysis_id, "description": description,
                       "type": type, "schema": schema})
         return Analysis(self._conn, r)
+
 
 class Analysis:
     """Gives access to the schema associated with an analysis
