@@ -9,8 +9,9 @@ from tempfile import mkstemp
 import csv
 import os
 
-INVALID_IDS = ["éléphant", "374.34", "ajfh/d/sfd@#$", u"ひたちの", "", " foo",
-    "foo ", " foo ", "foo\n", "foo\nbar"]
+INVALID_IDS = ["\xc3\xa9l\xc3\xa9phant", "374.34", "ajfh/d/sfd@#$",
+    "\xe3\x81\xb2\xe3\x81\x9f\xe3\x81\xa1\xe3\x81\xae", "", " foo",
+    "foo ", " foo ", "foo\n", "foo\nbar", 5, 374.34, False]
 
 
 def test_write_read_csv():
@@ -262,7 +263,6 @@ def test_data_nonalphanumeric_ids_fail():
              'ColBool':False}]
         assert_raises(DataValidationException, validate_data, testrows,
             vschema)
-
 
 # Extra Field Not In Schema
 def test_data_extrafield_pass():
@@ -881,7 +881,7 @@ class TestSummarize:
     def test_summarize_count(self):
         expected, uncertainty = summarize(self.testpreds, 'ColInt')
         assert type(expected) == int
-        assert expected == 7
+        assert expected == int(round((3+4+8+11)/4.0))
         assert abs(uncertainty - 3.6968) < 0.001
 
     def test_summarize_real(self):
