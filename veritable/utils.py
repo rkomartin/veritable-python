@@ -8,7 +8,10 @@ import time
 import uuid
 from math import floor
 from random import shuffle
-from urlparse import urlparse
+try:
+    from urlparse import urlparse
+except ImportError:
+    from urllib.parse import urlparse    
 import csv
 import re
 import string
@@ -68,17 +71,17 @@ def _validate_schema(schema):
     # InvalidSchemaException if not.
     valid_types = ['boolean', 'categorical', 'real', 'count']
     for k in schema.keys():
-        if not isinstance(k, basestring):
+        if not isinstance(k, str):
             raise InvalidSchemaException()
         v = schema[k]
         if not ('type' in v.keys()):
             raise InvalidSchemaException("""Column '{0}' does not have a
                 'type' specified. Please specify 'type' as one of
-                ['{1}']""".format(k, string.join(valid_types, "', '")), col=k)
+                ['{1}']""".format(k, "', '".join(valid_types), col=k))
         if not v['type'] in valid_types:
             raise InvalidSchemaException("""Column '{0}' type '{1}' is not
                 valid. Please specify 'type' as one of ['{2}']""".format(k,
-                v['type'], string.join(valid_types, "', '")), col=k)
+                v['type'], "', '".join(valid_types), col=k))
 
 
 def validate_schema(schema):
@@ -161,7 +164,7 @@ def write_csv(rows, filename, dialect=csv.excel, na_val=''):
         headers = headers.union(r.keys())
     headers = list(headers)
     headers.sort()
-    with open(filename,'wb') as outFile:
+    with open(filename,'w') as outFile:
         writer = csv.writer(outFile, dialect=dialect)
         writer.writerow(headers)
         for r in rows:
@@ -200,7 +203,7 @@ def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
             dialect = csv.Sniffer().sniff(f.read(1024))
         f.seek(0)
         reader = csv.reader(f, dialect)
-        header = [h.strip() for h in reader.next()]
+        header = [h.strip() for h in next(reader)]
         if '_id' in header:
             id_col = '_id'
         if id_col is None:
@@ -349,22 +352,33 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                         r['_id'].encode('utf-8'), str(type(r['_id']))),
                         row=i, col='_id')
             if not isinstance(r['_id'], str):  # invalid type for _id
-                if isinstance(r['_id'], unicode):  # catch and use str.encode
+                    try:
+                        str(r['_id'])
+                    except UnicodeEncodeError: # ensure we work in 2.7 and 3
+                        raise DataValidationException("""Row:'{0}' Key:'_id'
+                            is {1}, not an ascii str.""".format(str(i),
+                            str(type(r['_id']))), row=i, col='_id')
+                    else:
+                        raise DataValidationException("""Row:'{0}' Key:'_id'
+                            Value:'{1}' is {2}, not an ascii
+                            str.""".format(str(i), r['_id'],
+                            str(type(r['_id']))), row=i, col='_id')
+            else:
+                try:
+                    r['_id'].encode('utf-8').decode('ascii')
+                except UnicodeDecodeError:
                     raise DataValidationException("""Row:'{0}' Key:'_id'
-                        Value:'{1}' is {2}, not a str.""".format(str(i),
-                        r['_id'].encode('utf-8'), str(type(r['_id']))),
-                        row=i, col='_id')
-                else:
-                    raise DataValidationException("""Row:'{0}' Key:'_id'
-                        Value:'{1}' is {2}, not a str""".format(str(i),
-                        str(r['_id']), str(type(r['_id']))), row=i, col='_id')
+                        Value:'{1}' is {2}, not an ascii
+                        str.""".format(str(i), str(r['_id']),
+                        str(type(r['_id']))), row=i, col='_id')
             try:  # make sure _id is alphanumeric
                 _check_id(r['_id'])
             except InvalidIDException:
                 raise DataValidationException("""Row:'{0}' Key:'_id'
-                    Value:'{1}' is not alphanumeric""".format(str(i),
-                    str(r['_id'])), row=i, col='_id')
-            if r['_id'] in unique_ids:  # make sure id is unique
+                    Value:'{1}' must contain only alphanumerics, underscores,
+                    and hyphens""".format(str(i), str(r['_id'])),
+                    row=i, col='_id')
+            if r['_id'] in unique_ids:
                 raise DataValidationException("""Row:'{0}' Key:'_id'
                     Value:'{1}' is not unique, conflicts with
                     Row:'{2}'""".format(str(i), str(r['_id']),
@@ -376,7 +390,7 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
             else:
                 raise DataValidationException("""Row:'{0}' Key:'_id' should
                     not be included""".format(str(i)), row=i, col='_id')
-        for c in r.keys():
+        for c in list(r.keys()):
             if c != '_id':
                 if not c in schema:  # keys missing from schema
                     if remove_extra_fields:  # remove it
@@ -474,7 +488,7 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
 
     MAX_CATS = 256
     for c in category_counts.keys():
-        cats = category_counts[c].keys()
+        cats = list(category_counts[c].keys())
         if len(cats) > MAX_CATS:  # too many categories
             if reduce_categories:  # keep the largest MAX_CATS - 1
                 cats.sort(key=lambda cat: category_counts[c][cat])

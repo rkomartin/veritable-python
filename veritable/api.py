@@ -1,11 +1,13 @@
 import os
-import simplejson
 import time
 from .connection import Connection
 from .exceptions import (APIConnectionException, DuplicateTableException,
     MissingRowIDException, InvalidAnalysisTypeException,
     DuplicateAnalysisException, VeritableError)
-from urllib import quote_plus
+try:
+    from urllib import quote_plus
+except ImportError:
+    from urllib.parse import quote_plus    
 from .utils import _make_table_id, _make_analysis_id, _check_id
 
 BASE_URL = "https://api.priorknowledge.com/"
@@ -22,9 +24,8 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
             ssl_verify=ssl_verify, enable_gzip=enable_gzip, debug=debug)
     try:
         connection_test = connection.get("/")
-    except simplejson.JSONDecodeError:
+    except:
         raise(APIConnectionException(api_base_url))
-
     status = connection_test['status']
     entropy = connection_test['entropy']
     if status != "SUCCESS" or not isinstance(entropy, float):
