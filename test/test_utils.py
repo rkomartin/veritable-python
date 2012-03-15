@@ -9,7 +9,8 @@ from tempfile import mkstemp
 import csv
 import os
 
-INVALID_IDS = ["éléphant", "374.34", "ajfh/d/sfd@#$", u"ひたちの", "", " foo",
+INVALID_IDS = ["\xc3\xa9l\xc3\xa9phant", "374.34", "ajfh/d/sfd@#$",
+    "\xe3\x81\xb2\xe3\x81\x9f\xe3\x81\xa1\xe3\x81\xae", "", " foo",
     "foo ", " foo ", "foo\n", "foo\nbar", 5, 374.34, False]
 
 
