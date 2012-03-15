@@ -1,3 +1,9 @@
+"""Tools for working with veritable-python.
+
+See also: https://dev.priorknowledge.com/docs/client/python
+
+"""
+
 import os
 import simplejson
 import time
@@ -13,7 +19,24 @@ BASE_URL = "https://api.priorknowledge.com/"
 
 def connect(api_key=None, api_base_url=None, ssl_verify=True,
         enable_gzip=True, debug=False):
-    """Returns an instance of the Veritable API."""
+    """Entry point to the Veritable API.
+
+    Returns a veritable.api.API instance.
+
+    Arguments:
+    api_key -- the API key to use for access. (default: None) If None, reads
+        the API key in from the VERITABLE_KEY environment variable.
+    api_base_url -- the base url of the API. (default: None) If None, reads
+        the url in from the VERITABLE_URL environment variable, and if
+        nothing is found, uses https://api.priorknowledge.com by default.
+    ssl_verify -- controls whether SSL keys are verified. (default: True)
+    enable_gzip -- controls whether requests to and from the API server are
+        gzipped. (default: True)
+    debug -- controls the production of debug messages. (default: False)
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
     if api_key is None:
         api_key = os.getenv("VERITABLE_KEY")
     if api_base_url is None:
@@ -33,7 +56,20 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
 
 
 class API:
-    """Gives access to the collection of tables availabe to the user."""
+
+    """Represents the resources available to a user of the Veritable API.
+
+    Methods:
+    table_exists -- checks whether a table with a given id is available.
+    get_tables -- gets the collection of available tables.
+    get_table -- gets a table with a given id.
+    create_table -- creates a new table.
+    delete_table -- deletes a table with a given id.
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
+
     def __init__(self, connection):
         self._conn = connection
         self._url = connection.api_base_url
