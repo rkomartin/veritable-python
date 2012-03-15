@@ -87,7 +87,7 @@ class API:
 
     def delete_table(self, table_id):
         """Deletes a table from the collection by its id."""
-        return self._conn.delete("/tables/{0}".format(quote_plus(table_id)))
+        self._conn.delete("/tables/{0}".format(quote_plus(table_id)))
 
 
 class Table:
@@ -124,7 +124,7 @@ class Table:
 
     def delete(self):
         """Deletes the table."""
-        return self._conn.delete(self._link("self"))
+        self._conn.delete(self._link("self"))
 
     def get_row(self, row_id):
         """Gets a row from the table by its id."""
@@ -144,7 +144,7 @@ class Table:
             _check_id(row_id)
             if not isinstance(row_id, basestring):
                 raise TypeError("Row id must be a string")
-        return self._conn.put("{0}/{1}".format(self._link("rows").rstrip("/"),
+        self._conn.put("{0}/{1}".format(self._link("rows").rstrip("/"),
             quote_plus(row_id)), row)
 
     def batch_upload_rows(self, rows):
@@ -154,11 +154,11 @@ class Table:
                 raise MissingRowIDException()
             _check_id(rows[i]["_id"])
         data = {'action': 'put', 'rows': rows}
-        return self._conn.post(self._link("rows"), data)
+        self._conn.post(self._link("rows"), data)
 
     def delete_row(self, row_id):
         """Deletes a row from the table by its id."""
-        return self._conn.delete("{0}/{1}".format(self._link("rows").rstrip("/"),
+        self._conn.delete("{0}/{1}".format(self._link("rows").rstrip("/"),
             quote_plus(row_id)))
 
     def batch_delete_rows(self, rows):
@@ -167,7 +167,7 @@ class Table:
             if not "_id" in rows[i]:
                 raise MissingRowIDException()
         data = {'action': 'delete', 'rows': rows}
-        return self._conn.post(self._link("rows"), data)
+        self._conn.post(self._link("rows"), data)
 
     def get_analyses(self):
         """Gets all the analyses corresponding to the table."""
@@ -254,7 +254,7 @@ class Analysis:
 
     def delete(self):
         """Deletes the analysis."""
-        return self._conn.delete(self._link('self'))
+        self._conn.delete(self._link('self'))
 
     def get_schema(self):
         """Gets the schema of the analysis."""
