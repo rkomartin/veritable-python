@@ -5,7 +5,7 @@ class VeritableError(Exception):
 class APIKeyException(VeritableError):
     def __init__(self):
         self.value = """Must provide an API key to instantiate a Veritable
-                        connection"""
+            connection"""
 
     def __str__(self):
         return repr(self.value)
@@ -14,7 +14,7 @@ class APIKeyException(VeritableError):
 class APIBaseURLException(VeritableError):
     def __init__(self):
         self.value = """Must provide an base URL to instantiate a Veritable
-                        connection"""
+            connection"""
 
     def __str__(self):
         return repr(self.value)
@@ -30,7 +30,8 @@ class APIConnectionException(VeritableError):
 
 class DeletedTableException(VeritableError):
     def __init__(self):
-        self.value = """"Cannot perform operations on a table that has already been deleted"""
+        self.value = """"Cannot perform operations on a table that has
+            already been deleted"""
 
     def __str__(self):
         return repr(self.value)
@@ -38,7 +39,8 @@ class DeletedTableException(VeritableError):
 
 class DeletedAnalysisException(VeritableError):
     def __init__(self):
-        self.value = """"Cannot perform operations on an analysis that has already been deleted"""
+        self.value = """"Cannot perform operations on an analysis that has
+            already been deleted"""
 
     def __str__(self):
         return repr(self.value)
@@ -55,9 +57,11 @@ class MissingRowIDException(VeritableError):
 class InvalidIDException(VeritableError):
     def __init__(self, s=None):
         if s:
-            self.value = """Specified id """ + s + """ is invalid: alphanumeric and underscore only!"""
+            self.value = """Specified id """ + s + """ is invalid:
+                alphanumeric and underscore only!"""
         else:
-            self.value = """Specified id is invalid: alphanumeric and underscore only!"""
+            self.value = """Specified id is invalid: alphanumeric and
+                underscore only!"""
 
     def __str__(self):
         return repr(self.value)
@@ -82,7 +86,8 @@ class InvalidSchemaException(Exception):
 
 class DuplicateTableException(VeritableError):
     def __init__(self, table_id):
-        self.value = "Table with id " + table_id + " already exists! Set force=True to override."
+        self.value = """Table with id """ + table_id + """ already exists!
+            Set force=True to override."""
 
     def __str__(self):
         return repr(self.value)
@@ -90,7 +95,8 @@ class DuplicateTableException(VeritableError):
 
 class DuplicateAnalysisException(VeritableError):
     def __init__(self, analysis_id):
-        self.value = "Analysis with id " + analysis_id + " already exists! Set force=True to override."
+        self.value = """Analysis with id """ + analysis_id + """ already
+            exists! Set force=True to override."""
 
     def __str__(self):
         return repr(self.value)
@@ -98,7 +104,7 @@ class DuplicateAnalysisException(VeritableError):
 
 class AnalysisNotReadyException(VeritableError):
     def __init__(self):
-        self.value = "Analysis is not ready for predictions."
+        self.value = """Analysis is not ready for predictions."""
 
     def __str__(self):
         return repr(self.value)
@@ -106,7 +112,7 @@ class AnalysisNotReadyException(VeritableError):
 
 class ServerException(VeritableError):
     def __init__(self, val="unknown"):
-        self.value = "Error reported by server: " + val
+        self.value = """Error reported by server: """ + val
 
     def __str__(self):
         return repr(self.value)

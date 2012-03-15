@@ -5,7 +5,8 @@ import sys
 from gzip import GzipFile
 from io import BytesIO
 from requests.auth import HTTPBasicAuth
-from .exceptions import *
+from .exceptions import (ServerException, APIKeyException,
+    APIBaseURLException)
 from .utils import _url_has_scheme
 from .version import __version__
 
