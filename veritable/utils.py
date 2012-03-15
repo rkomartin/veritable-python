@@ -38,21 +38,6 @@ def _url_has_scheme(url):
     return urlparse(url)[0] is not ""
 
 
-def wait_for_analysis(a, poll=2):
-    """Waits for a running analysis to succeed or fail.
-
-    Arguments:
-    a -- the Analysis object for which to wait
-    poll -- the number of seconds to wait between updates (default 2)
-
-    See also: https://dev.priorknowledge.com/docs/client/python
-
-    """
-    while a.state == 'running':
-        time.sleep(poll)
-        a.update()
-
-
 def split_rows(rows, frac=0.5):
     """Splits a list of dicts representing a dataset into two sets.
 
