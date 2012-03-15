@@ -7,7 +7,6 @@ from nose.plugins.attrib import attr
 from nose.tools import assert_raises
 from requests.exceptions import HTTPError
 from veritable.exceptions import *
-from veritable.utils import wait_for_analysis
 
 TEST_API_KEY = os.getenv("VERITABLE_KEY")
 TEST_BASE_URL = os.getenv("VERITABLE_URL") or "https://api.priorknowledge.com"
@@ -218,13 +217,13 @@ class TestTableOps:
                              description="Test dataset with all datatypes",
                              force=True)
         self.t2.batch_upload_rows(
-          [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
-           {'_id': 'row2', 'cat': 'b', 'ct': 0, 'real': 0.92131, 'bool': False},
-           {'_id': 'row3', 'cat': 'c', 'ct': 1, 'real': 1.82812, 'bool': True},
-           {'_id': 'row4', 'cat': 'c', 'ct': 1, 'real': 0.81271, 'bool': True},
-           {'_id': 'row5', 'cat': 'd', 'ct': 2, 'real': 1.14561, 'bool': False},
-           {'_id': 'row6', 'cat': 'a', 'ct': 5, 'real': 1.03412, 'bool': False}
-          ])
+        [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
+         {'_id': 'row2', 'cat': 'b', 'ct': 0, 'real': 0.92131, 'bool': False},
+         {'_id': 'row3', 'cat': 'c', 'ct': 1, 'real': 1.82812, 'bool': True},
+         {'_id': 'row4', 'cat': 'c', 'ct': 1, 'real': 0.81271, 'bool': True},
+         {'_id': 'row5', 'cat': 'd', 'ct': 2, 'real': 1.14561, 'bool': False},
+         {'_id': 'row6', 'cat': 'a', 'ct': 5, 'real': 1.03412, 'bool': False}
+        ])
 
     def teardown(self):
         self.t.delete()
@@ -321,7 +320,7 @@ class TestTableOps:
     def test_create_analysis_malformed_schema_datatype_column_mismatch(self):
         schema = {'zim': {'type': 'real'}, 'wos': {'type': 'real'}}
         a = self.t.create_analysis(schema)
-        wait_for_analysis(a)
+        a.wait()
         assert a.state == "failed"
 
     # Unpossible datatypes are identified synchronously
@@ -362,21 +361,21 @@ class TestTableOps:
     def test_wait_for_analysis_succeeds(self):
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
         a = self.t.create_analysis(schema, analysis_id="zubble")
-        wait_for_analysis(a)
+        a.wait()
         assert a.state == "succeeded"
 
     @attr('async')
     def test_wait_for_analysis_fails(self):
         schema = {'zim': {'type': 'boolean'}, 'wos': {'type': 'real'}}
         a = self.t.create_analysis(schema, analysis_id="zubble")
-        wait_for_analysis(a)
+        a.wait()
         assert a.state == "failed"
 
     @attr('async')
     def test_error_analysis_failed(self):
         schema = {'zim': {'type': 'boolean'}, 'wos': {'type': 'real'}}
         a = self.t.create_analysis(schema, analysis_id="zubble")
-        wait_for_analysis(a)
+        a.wait()
         assert(a.error is not None)
 
     # This test should not error synchronously -- it should fail only after
@@ -387,7 +386,7 @@ class TestTableOps:
                   'wos': {'type': 'real'},
                   'krob': {'type': 'count'}}
         a = self.t.create_analysis(schema)
-        wait_for_analysis(a)
+        a.wait()
         # TODO: uncomment this check once API is fixed
         # assert a.state == "failed"
 
@@ -400,7 +399,7 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema, analysis_id="test_analysis",
             force=True)
-        wait_for_analysis(a)
+        a.wait()
         assert a.state == "succeeded"
 
     @attr('async')
@@ -411,7 +410,7 @@ class TestTableOps:
                   'bool': {'type': 'boolean'}
                  }
         a = self.t2.create_analysis(schema)
-        wait_for_analysis(a)
+        a.wait()
         assert a.state == "failed"
 
     @attr('async')
@@ -422,7 +421,7 @@ class TestTableOps:
                   'bool': {'type': 'boolean'}
                  }
         a = self.t2.create_analysis(schema)
-        wait_for_analysis(a)
+        a.wait()
         assert a.state == "failed"
 
     @attr('async')
@@ -433,7 +432,7 @@ class TestTableOps:
                   'bool': {'type': 'boolean'}
                   }
         a = self.t2.create_analysis(schema)
-        wait_for_analysis(a)
+        a.wait()
         assert a.state == "failed"
 
     @attr('async')
@@ -444,7 +443,7 @@ class TestTableOps:
                   'bool': {'type': 'real'}
                   }
         a = self.t2.create_analysis(schema)
-        wait_for_analysis(a)
+        a.wait()
         assert a.state == "failed"
 
     @attr('async')
@@ -455,7 +454,7 @@ class TestTableOps:
                   'bool': {'type': 'count'}
                   }
         a = self.t2.create_analysis(schema)
-        wait_for_analysis(a)
+        a.wait()
         assert a.state == "failed"
 
     @attr('async')
@@ -466,7 +465,7 @@ class TestTableOps:
                   'bool': {'type': 'boolean'}
                   }
         a = self.t2.create_analysis(schema)
-        wait_for_analysis(a)
+        a.wait()
         assert a.state == "failed"
 
     @attr('async')
@@ -477,7 +476,7 @@ class TestTableOps:
                   'bool': {'type': 'boolean'}
                   }
         a = self.t2.create_analysis(schema)
-        wait_for_analysis(a)
+        a.wait()
         assert a.state == "failed"
 
     @attr('async')
@@ -488,7 +487,7 @@ class TestTableOps:
                   'bool': {'type': 'boolean'}
                   }
         a = self.t2.create_analysis(schema)
-        wait_for_analysis(a)
+        a.wait()
         assert a.state == "failed"
 
     @attr('async')
@@ -499,7 +498,7 @@ class TestTableOps:
                   'bool': {'type': 'boolean'}
                   }
         a = self.t2.create_analysis(schema)
-        wait_for_analysis(a)
+        a.wait()
         assert a.state == "failed"
 
     @attr('async')
@@ -510,7 +509,7 @@ class TestTableOps:
                   'bool': {'type': 'boolean'}
                   }
         a = self.t2.create_analysis(schema)
-        wait_for_analysis(a)
+        a.wait()
         assert a.state == "failed"
 
     @attr('sync')
@@ -586,13 +585,13 @@ class TestPredictions:
         self.t2 = self.API.create_table(table_id="test_all_types",
             description="Test dataset with all datatypes", force=True)
         self.t2.batch_upload_rows(
-          [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
-           {'_id': 'row2', 'cat': 'b', 'ct': 0, 'real': 0.92131, 'bool': False},
-           {'_id': 'row3', 'cat': 'c', 'ct': 1, 'real': 1.82812, 'bool': True},
-           {'_id': 'row4', 'cat': 'c', 'ct': 1, 'real': 0.81271, 'bool': True},
-           {'_id': 'row5', 'cat': 'd', 'ct': 2, 'real': 1.14561, 'bool': False},
-           {'_id': 'row6', 'cat': 'a', 'ct': 5, 'real': 1.03412, 'bool': False}
-          ])
+        [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
+         {'_id': 'row2', 'cat': 'b', 'ct': 0, 'real': 0.92131, 'bool': False},
+         {'_id': 'row3', 'cat': 'c', 'ct': 1, 'real': 1.82812, 'bool': True},
+         {'_id': 'row4', 'cat': 'c', 'ct': 1, 'real': 0.81271, 'bool': True},
+         {'_id': 'row5', 'cat': 'd', 'ct': 2, 'real': 1.14561, 'bool': False},
+         {'_id': 'row6', 'cat': 'a', 'ct': 5, 'real': 1.03412, 'bool': False}
+        ])
         self.schema2 = {'cat': {'type': 'categorical'},
                   'ct': {'type': 'count'},
                   'real': {'type': 'real'},
@@ -607,31 +606,31 @@ class TestPredictions:
 
     @attr('async')
     def test_make_prediction(self):
-        wait_for_analysis(self.a2)
+        self.a2.wait()
         self.a2.predict({'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
 
     @attr('async')
     def test_make_prediction_with_empty_row(self):
-        wait_for_analysis(self.a2)
+        self.a2.wait()
         self.a2.predict({})
 
     @attr('async')
     def test_make_prediction_with_list_of_rows_fails(self):
-        wait_for_analysis(self.a2)
+        self.a2.wait()
         assert_raises(VeritableError, self.a2.predict,
             [{'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
              {'cat': 'b', 'ct': 2, 'real': None, 'bool': None}])
 
     @attr('async')
     def test_make_prediction_with_count_too_high_fails(self):
-        wait_for_analysis(self.a2)
+        self.a2.wait()
         assert_raises(VeritableError, self.a2.predict,
             {'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
-            count = 10000)
+            count=10000)
 
     @attr('async')
     def test_make_prediction_with_invalid_column_fails(self):
-        wait_for_analysis(self.a1)
+        self.a1.wait()
         assert_raises(VeritableError, self.a1.predict,
             {'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
 
@@ -640,13 +639,15 @@ class TestPredictions:
         self.a2.delete()
 
     def test_predict_link_is_present(self):
-        wait_for_analysis(self.a1)
+        self.a1.wait()
         self.a1._link('predict')
 
 # Filed: see 401264106780/595905981311
     # def test_predict_from_failed_analysis(self):
-    #     a3 = self.t2.create_analysis(self.schema1, analysis_id="a3", force=True)
+    #     a3 = self.t2.create_analysis(self.schema1, analysis_id="a3",
+        # force=True)
     #     wait_for_analysis(a3)
-    #     assert_raises(ServerException, a3.predict, {'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
+    #     assert_raises(ServerException, a3.predict,
+        # {'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
     #     assert_raises(ServerException, a3.predict, {'zim': None})
     #     assert_raises(ServerException, a3.predict, {'wos': None})

@@ -1,6 +1,9 @@
 import os
+import time
 from .connection import Connection
-from .exceptions import *
+from .exceptions import (APIConnectionException, DuplicateTableException,
+    MissingRowIDException, InvalidAnalysisTypeException,
+    DuplicateAnalysisException, VeritableError)
 try:
     from urllib import quote_plus
 except ImportError:
@@ -23,7 +26,9 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
         connection_test = connection.get("/")
     except:
         raise(APIConnectionException(api_base_url))
-    if not connection_test['status'] == "SUCCESS" or not isinstance(connection_test['entropy'], float):
+    status = connection_test['status']
+    entropy = connection_test['entropy']
+    if status != "SUCCESS" or not isinstance(entropy, float):
         raise(APIConnectionException(api_base_url))
     return API(connection)
 
@@ -87,7 +92,7 @@ class API:
 
     def delete_table(self, table_id):
         """Deletes a table from the collection by its id."""
-        return self._conn.delete("/tables/{0}".format(quote_plus(table_id)))
+        self._conn.delete("/tables/{0}".format(quote_plus(table_id)))
 
 
 class Table:
@@ -124,7 +129,7 @@ class Table:
 
     def delete(self):
         """Deletes the table."""
-        return self._conn.delete(self._link("self"))
+        self._conn.delete(self._link("self"))
 
     def get_row(self, row_id):
         """Gets a row from the table by its id."""
@@ -144,7 +149,7 @@ class Table:
             _check_id(row_id)
             if not isinstance(row_id, basestring):
                 raise TypeError("Row id must be a string")
-        return self._conn.put("{0}/{1}".format(self._link("rows").rstrip("/"),
+        self._conn.put("{0}/{1}".format(self._link("rows").rstrip("/"),
             quote_plus(row_id)), row)
 
     def batch_upload_rows(self, rows):
@@ -154,11 +159,11 @@ class Table:
                 raise MissingRowIDException()
             _check_id(rows[i]["_id"])
         data = {'action': 'put', 'rows': rows}
-        return self._conn.post(self._link("rows"), data)
+        self._conn.post(self._link("rows"), data)
 
     def delete_row(self, row_id):
         """Deletes a row from the table by its id."""
-        return self._conn.delete("{0}/{1}".format(self._link("rows").rstrip("/"),
+        self._conn.delete("{0}/{1}".format(self._link("rows").rstrip("/"),
             quote_plus(row_id)))
 
     def batch_delete_rows(self, rows):
@@ -167,7 +172,7 @@ class Table:
             if not "_id" in rows[i]:
                 raise MissingRowIDException()
         data = {'action': 'delete', 'rows': rows}
-        return self._conn.post(self._link("rows"), data)
+        self._conn.post(self._link("rows"), data)
 
     def get_analyses(self):
         """Gets all the analyses corresponding to the table."""
@@ -209,6 +214,7 @@ class Table:
                 data={"_id": analysis_id, "description": description,
                       "type": type, "schema": schema})
         return Analysis(self._conn, r)
+
 
 class Analysis:
     """Gives access to the schema associated with an analysis
@@ -254,11 +260,24 @@ class Analysis:
 
     def delete(self):
         """Deletes the analysis."""
-        return self._conn.delete(self._link('self'))
+        self._conn.delete(self._link('self'))
 
     def get_schema(self):
         """Gets the schema of the analysis."""
         return self._conn.get(self._link('schema'))
+
+    def wait(self, poll=2):
+        """Waits for the running analysis to succeed or fail.
+
+        Arguments:
+        poll -- the number of seconds to wait between updates (default: 2)
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        while self.state == 'running':
+            time.sleep(poll)
+            self.update()
 
     def predict(self, row, count=10):
         """Makes predictions from the analysis."""
