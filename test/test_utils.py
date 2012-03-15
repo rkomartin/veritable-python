@@ -85,9 +85,9 @@ def test_make_schema_headers():
                  'CatB': {'type': 'categorical'},
                  'IntA': {'type': 'count'},
                  'IntB': {'type': 'count'}}
-    headers = ['IntA','IntB','CatA','CatB','Foo']
+    headers = ['IntA', 'IntB', 'CatA', 'CatB', 'Foo']
     schemaRule = [['Int.*', {'type':'count'}],
-                  ['Cat.*', {'type':'categorical'}]  ]
+                  ['Cat.*', {'type':'categorical'}]]
     schema = make_schema(schemaRule, headers=headers)
     assert schema == refSchema
 
@@ -98,30 +98,30 @@ def test_make_schema_rows():
                     'IntA': {'type': 'count'},
                     'IntB': {'type': 'count'}}
     rows = [{'CatA':None, 'CatB':None, 'IntA':None, 'IntB':None, 'Foo':None}]
-    schemaRule = [['Int.*',{'type':'count'}],
-                  ['Cat.*',{'type':'categorical'}]]
+    schemaRule = [['Int.*', {'type':'count'}],
+                  ['Cat.*', {'type':'categorical'}]]
     schema = make_schema(schemaRule, rows=rows)
     assert schema == refSchema
 
 
 @raises(Exception)
 def test_make_schema_noarg_fail():
-    schemaRule = [['Int.*',{'type':'count'}],
-                  ['Cat.*',{'type':'categorical'}]]
+    schemaRule = [['Int.*', {'type':'count'}],
+                  ['Cat.*', {'type':'categorical'}]]
     make_schema(schemaRule)
 
 
 # Invalid Schema
 @raises(DataValidationException)
 def test_missing_schema_type_fail():
-    bschema = {'ColInt':{},'ColFloat':{'type':'real'}}
+    bschema = {'ColInt':{}, 'ColFloat':{'type':'real'}}
     testrows = []
     validate_data(testrows, bschema)
 
 
 @raises(DataValidationException)
 def test_bad_schema_type_fail():
-    bschema = {'ColInt':{'type':'jello'},'ColFloat':{'type':'real'}}
+    bschema = {'ColInt':{'type':'jello'}, 'ColFloat':{'type':'real'}}
     testrows = []
     validate_data(testrows, bschema)
 
@@ -264,6 +264,7 @@ def test_data_nonalphanumeric_ids_fail():
         assert_raises(DataValidationException, validate_data, testrows,
             vschema)
 
+
 # Extra Field Not In Schema
 def test_data_extrafield_pass():
     testrows = [
@@ -314,7 +315,7 @@ def test_data_extrafield_fix():
 
 def test_pred_extrafield_fix():
     testrows = [
-        {'_id':'1','ColInt':3, 'ColFloat':None, 'ColCat':'a', 'ColBool':True},
+        {'_id':'1', 'ColInt':3, 'ColFloat':None, 'ColCat':'a', 'ColBool':True},
         {'ColEx':None, 'ColInt':4, 'ColFloat':None, 'ColCat':'b',
          'ColBool':False}]
     validate_predictions(testrows, vschema, remove_extra_fields=True)
@@ -881,7 +882,7 @@ class TestSummarize:
     def test_summarize_count(self):
         expected, uncertainty = summarize(self.testpreds, 'ColInt')
         assert type(expected) == int
-        assert expected == int(round((3+4+8+11)/4.0))
+        assert expected == int(round((3 + 4 + 8 + 11) / 4.0))
         assert abs(uncertainty - 3.6968) < 0.001
 
     def test_summarize_real(self):
