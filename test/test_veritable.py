@@ -1,6 +1,7 @@
 #! usr/bin/python
 # coding=utf-8
 
+import unittest
 import veritable
 import os
 from nose.plugins.attrib import attr
