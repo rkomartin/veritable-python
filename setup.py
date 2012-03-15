@@ -18,5 +18,5 @@ if __name__ == '__main__':
       maintainer='Max Gasner',
       maintainer_email='max@priorknowledge.com',
       url='http://www.priorknowledge.com/',
-      install_requires=['requests', 'simplejson'],
+      install_requires=['requests'],
       packages=['veritable'])

@@ -228,7 +228,7 @@ def test_data_nonalphanumeric_ids_fail():
     for id in INVALID_IDS:
         testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                     {'_id': id, 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False}]
-        assert_raises(InvalidIDException, validate_data, testrows, vschema)
+        assert_raises(DataValidationException, validate_data, testrows, vschema)
 
 # Extra Field Not In Schema
 def test_data_extrafield_pass():
@@ -263,15 +263,15 @@ def test_data_extrafield_fix():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColEx':4, 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False}]
     validate_data(testrows, vschema, remove_extra_fields=True)
-    assert not(testrows[1].has_key('ColEx'))
+    assert not('ColEx' in testrows[1])
     validate_data(testrows, vschema)
 
 def test_pred_extrafield_fix():
     testrows = [{'_id':'1','ColInt':3, 'ColFloat':None, 'ColCat':'a', 'ColBool':True},
                 {'ColEx':None, 'ColInt':4, 'ColFloat':None, 'ColCat':'b', 'ColBool':False}]
     validate_predictions(testrows, vschema, remove_extra_fields=True)
-    assert not(testrows[0].has_key('_id'))
-    assert not(testrows[1].has_key('ColEx'))
+    assert not('_id' in testrows[0])
+    assert not('ColEx' in testrows[1])
     validate_predictions(testrows, vschema)
 
 # Field value is None
@@ -290,7 +290,7 @@ def test_data_nonefield_fix():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':None, 'ColBool':False}]
     validate_data(testrows, vschema, remove_nones=True)
-    assert not(testrows[1].has_key('ColCat'))
+    assert not('ColCat' in testrows[1])
     validate_data(testrows, vschema)
 
 
@@ -381,14 +381,14 @@ def test_data_nonvalid_int_count_fix():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':'jello', 'ColFloat':4.1, 'ColCat':'b', 'ColBool':False}]
     validate_data(testrows, vschema, convert_types=True, remove_invalids=True)
-    assert not(testrows[1].has_key('ColInt'))
+    assert not('ColInt' in testrows[1])
     validate_data(testrows, vschema)
 
 def test_pred_nonvalid_int_count_fix():
     testrows = [{'ColInt':3, 'ColFloat':None, 'ColCat':'a', 'ColBool':True},
                 {'ColInt':'jello', 'ColFloat':None, 'ColCat':'b', 'ColBool':False}]
     validate_predictions(testrows, vschema, convert_types=True, remove_invalids=True)
-    assert not(testrows[1].has_key('ColInt'))
+    assert not('ColInt' in testrows[1])
     validate_predictions(testrows, vschema)
 
 
@@ -480,14 +480,14 @@ def test_data_nonvalid_float_real_fix():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':'jello', 'ColCat':'b', 'ColBool':False}]
     validate_data(testrows, vschema, convert_types=True, remove_invalids=True)
-    assert not(testrows[1].has_key('ColFloat'))
+    assert not('ColFloat' in testrows[1])
     validate_data(testrows, vschema)
 
 def test_pred_nonvalid_float_real_fix():
     testrows = [{'ColInt':None, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'ColInt':None, 'ColFloat':'jello', 'ColCat':'b', 'ColBool':False}]
     validate_predictions(testrows, vschema, convert_types=True, remove_invalids=True)
-    assert not(testrows[1].has_key('ColFloat'))
+    assert not('ColFloat' in testrows[1])
     validate_predictions(testrows, vschema)
 
 
@@ -660,14 +660,14 @@ def test_data_nonvalid_bool_boolean_fix():
     testrows = [{'_id':'1', 'ColInt':3, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'_id':'2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'jello'}]
     validate_data(testrows, vschema, convert_types=True, remove_invalids=True)
-    assert not(testrows[1].has_key('ColBool'))
+    assert not('ColBool' in testrows[1])
     validate_data(testrows, vschema)
 
 def test_pred_nonvalid_bool_boolean_fix():
     testrows = [{'ColInt':None, 'ColFloat':3.1, 'ColCat':'a', 'ColBool':True},
                 {'ColInt':None, 'ColFloat':4.1, 'ColCat':'b', 'ColBool':'jello'}]
     validate_predictions(testrows, vschema, convert_types=True, remove_invalids=True)
-    assert not(testrows[1].has_key('ColBool'))
+    assert not('ColBool' in testrows[1])
     validate_predictions(testrows, vschema)
 
 
@@ -754,7 +754,7 @@ class TestSummarize:
     def test_summarize_count(self):
         expected, uncertainty = summarize(self.testpreds, 'ColInt')
         assert type(expected) == int
-        assert expected == 7
+        assert expected == int(round((3+4+8+11)/4.0))
         assert abs(uncertainty - 3.6968) < 0.001
 
     def test_summarize_real(self):

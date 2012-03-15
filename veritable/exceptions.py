@@ -55,9 +55,9 @@ class MissingRowIDException(VeritableError):
 class InvalidIDException(VeritableError):
     def __init__(self, s=None):
         if s:
-            self.value = """Specified id """ + s + """ is invalid: alphanumeric and underscore only!"""
+            self.value = """Specified id """ + s + """ is invalid: alphanumeric, underscore, and hyphen only!"""
         else:
-            self.value = """Specified id is invalid: alphanumeric and underscore only!"""
+            self.value = """Specified id is invalid: alphanumeric, underscore,and hyphen only!"""
 
     def __str__(self):
         return repr(self.value)

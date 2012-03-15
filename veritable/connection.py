@@ -1,6 +1,6 @@
 import logging
 import requests
-import simplejson as json
+import json
 import sys
 from gzip import GzipFile
 from io import BytesIO
@@ -27,8 +27,8 @@ def get_response_data(r, debug_log=None):
     """Routes HTTP errors, if any, and translates JSON response data."""
     if r.status_code == requests.codes.ok:
         if debug_log is not None:
-            debug_log(json.loads(r.content))
-        return json.loads(r.content)
+            debug_log(json.loads(r.content.decode('utf-8')))
+        return json.loads(r.content.decode('utf-8'))
     else:
         handle_http_error(r, debug_log)
 
@@ -36,7 +36,7 @@ def get_response_data(r, debug_log=None):
 def handle_http_error(r, debug_log=None):
     """Handles HTTP errors."""
     try:
-        content = json.loads(r.content)
+        content = json.loads(r.content.decode('utf-8'))
         if debug_log is not None:
             debug_log(content)
         message = content["message"]
@@ -61,7 +61,7 @@ def mgzip(buf):
             compresslevel=5,
             fileobj=wbuf
             )
-    zbuf.write(buf)
+    zbuf.write(buf.encode('utf-8'))
     zbuf.close()
     result = wbuf.getvalue()
     wbuf.close()

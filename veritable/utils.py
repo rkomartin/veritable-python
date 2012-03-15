@@ -2,7 +2,10 @@ import time
 import uuid
 from math import floor
 from random import shuffle
-from urlparse import urlparse
+try:
+    from urlparse import urlparse
+except ImportError:
+    from urllib.parse import urlparse    
 import csv
 import re
 import string
@@ -47,18 +50,18 @@ def _validate_schema(schema):
     # Validate a schema
     valid_types = ['boolean', 'categorical', 'real', 'count']
     for k in schema.keys():
-        if not isinstance(k, basestring):
+        if not isinstance(k, str):
             raise InvalidSchemaException()
         v = schema[k]
         if not ('type' in v.keys()):
             raise InvalidSchemaException("""Column '""" + k +
                 """' does not have a 'type' specified. Please specify
-                'type' as one of ['""" + string.join(valid_types, "', '") +
+                'type' as one of ['""" + "', '".join(valid_types) +
                 """']""", col=k)
         if not v['type'] in valid_types:
             raise InvalidSchemaException("""Column '""" + k + """' type '""" +
                 v['type'] + """' is not valid. Please specify 'type' as
-                one of ['""" + string.join(valid_types,"', '") + """']""",
+                one of ['""" + "', '".join(valid_types) + """']""",
                 col=k)
 
 def validate_schema(schema):
@@ -97,11 +100,11 @@ def write_csv(rows, filename, dialect=csv.excel):
         headers = headers.union(r.keys())
     headers = list(headers)
     headers.sort()
-    with open(filename,'wb') as outFile:
+    with open(filename,'w') as outFile:
         writer = csv.writer(outFile, dialect=dialect)
         writer.writerow(headers)
         for r in rows:
-            writer.writerow([('' if not(r.has_key(c))
+            writer.writerow([('' if not(c in r)
                               else '' if r[c] == None
                               else str(r[c])) for c in headers])
 
@@ -114,7 +117,7 @@ def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
             dialect = csv.Sniffer().sniff(f.read(1024))
         f.seek(0)
         reader = csv.reader(f, dialect)
-        header = [h.strip() for h in reader.next()]
+        header = [h.strip() for h in next(reader)]
         if '_id' in header:
             id_col = '_id'
         if id_col is None:
@@ -169,7 +172,7 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
         if assign_ids:
             r['_id'] = str(i)
         elif has_ids:
-            if not(r.has_key('_id')):
+            if not('_id' in r):
                 raise DataValidationException("""Row:'""" + str(i) +
                     """' is missing Key:'_id'""", row=i, col='_id')
             if convert_types:
@@ -181,32 +184,40 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                         """' is """ + str(type(r['_id'])) + """, not a str""",
                         row=i, col='_id')
             if not isinstance(r['_id'], str):
-                if isinstance(r['_id'], unicode):
-                    raise DataValidationException("""Row:'""" + str(i) +
-                        """' Key:'_id' Value:'""" + r['_id'].encode('utf-8') +
-                        """' is """ + str(type(r['_id'])) + """, not a str""",
-                        row=i, col='_id')
-                else:
+                raise DataValidationException("""Row:'""" + str(i) +
+                    """' Key:'_id' Value:'""" + str(r['_id']) +
+                    """' is """ + str(type(r['_id'])) + """, not an ascii str""",
+                    row=i, col='_id')
+            else:
+                try:
+                    r['_id'].encode('utf-8').decode('ascii')
+                except UnicodeDecodeError:
                     raise DataValidationException("""Row:'""" + str(i) +
                         """' Key:'_id' Value:'""" + str(r['_id']) +
-                        """' is """ + str(type(r['_id'])) + """, not a str""",
+                        """' is """ + str(type(r['_id'])) + """, not an ascii str""",
                         row=i, col='_id')
-            _check_id(r['_id'])
+            try:
+                _check_id(r['_id'])
+            except InvalidIDException:
+                raise DataValidationException("""Row:'""" + str(i) +
+                        """' Key:'_id' Value:'""" + str(r['_id']) +
+                        """' is not an alphanumeric/hyphen/underscore only string""",
+                        row=i, col='_id')
             if r['_id'] in unique_ids:
                 raise DataValidationException("""Row:'""" + str(i) +
                     """' Key:'_id' Value:'""" + str(r['_id']) +
                     """' is not unique, conflicts with Row:'""" +
                     str(unique_ids[r['_id']]) + """'""", row=i, col='_id')
             unique_ids[r['_id']] = i
-        elif r.has_key('_id'):
+        elif '_id' in r:
             if remove_extra_fields:
                 r.pop('_id')
             else:
                 raise DataValidationException("""Row:'""" + str(i) +
                     """' Key:'_id' should not be included""", row=i, col='_id')
-        for c in r.keys():
+        for c in list(r.keys()):
             if not(c == '_id'):
-                if not(schema.has_key(c)):
+                if not(c in schema):
                     if remove_extra_fields:
                         r.pop(c)
                     else:
@@ -291,14 +302,14 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                                     """' Key:'""" + c + """' Value:'""" + str(r[c]) +
                                     """' is """ + str(type(r[c])) + """, not a str""",
                                     row=i, col=c)
-                            if not(category_counts.has_key(c)):
+                            if not(c in category_counts):
                                 category_counts[c] = {}
-                            if not(category_counts[c].has_key(r[c])):
+                            if not(r[c] in category_counts[c]):
                                 category_counts[c][r[c]] = 0
                             category_counts[c][r[c]] = category_counts[c][r[c]] + 1
     MAX_CATS = 256
     for c in category_counts.keys():
-        cats = category_counts[c].keys()
+        cats = list(category_counts[c].keys())
         if (len(cats) > MAX_CATS):
             if map_categories:
                 cats.sort(key=lambda cat: category_counts[c][cat])
@@ -310,7 +321,7 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                     else:
                         category_map[cats[j]] = 'Other'
                 for r in rows:
-                    if r.has_key(c):
+                    if c in r:
                         if not(r[c] == None):
                             r[c] = category_map[r[c]]
             else:
@@ -324,7 +335,7 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
             field_fill[c] = 0
         for r in rows:
             for c in r.keys():
-                if not(field_fill.has_key(c)):
+                if not(c in field_fill):
                     field_fill[c] = 0
                 if not(r[c] == None):
                     field_fill[c] = field_fill[c] + 1
