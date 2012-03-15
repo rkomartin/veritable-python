@@ -420,6 +420,21 @@ class Table:
                         type="veritable", force=False):
         """Creates a new analysis of the table.
 
+        Arguments:
+        analysis_id -- the string id of the analysis to create (default: None)
+            Must contain only alphanumerics, underscores, and hyphens.
+            If None, create_analysis will autogenerate a new id for the table.
+        schema -- the analysis schema to use (default: None) The schema must
+            be a Python dict of the form:
+                {'col_1': {type: 'datatype'}, 'col_2': {type: 'datatype'}, ...}
+            where the specified datatype for each column one of ['real',
+            'boolean', 'categorical', 'count'] and is valid for the column.
+        description -- the string description of the analysis to create
+            (default: '')
+        type -- type of analysis; must be "veritable" (default: 'veritable')
+        force -- controls whether create_analysis will overwrite an existing
+            analysis with the same id (default: False)
+
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
@@ -447,8 +462,25 @@ class Table:
 
 
 class Analysis:
-    """Gives access to the schema associated with an analysis
-        and makes predictions."""
+
+    """Represents an analysis resource.
+
+    Instance Attributes:
+    id -- the string id of the table
+    state -- the state of the analysis
+    error -- the detailed error encountered in analysis, if any
+
+    Methods:
+    update --
+    delete -- deletes the table resource.
+    get_schema --
+    wait --
+    predict --
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
+
     def __init__(self, connection, doc):
         self._conn = connection
         self._doc = doc
