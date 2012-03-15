@@ -1,5 +1,6 @@
 import os
 import simplejson
+import time
 from .connection import Connection
 from .exceptions import *
 from urllib import quote_plus
