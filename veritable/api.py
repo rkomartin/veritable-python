@@ -271,7 +271,7 @@ class Analysis:
         """
         while self.state == 'running':
             time.sleep(poll)
-            a.update()
+            self.update()
 
     def predict(self, row, count=10):
         """Makes predictions from the analysis."""
