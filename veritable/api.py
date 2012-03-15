@@ -224,7 +224,7 @@ class Table:
         Arguments:
         connection -- a veritable.connection.Connection object
         doc - the Python object translation of the resource's JSON doc
-        
+
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
@@ -404,6 +404,12 @@ class Table:
     def delete_analysis(self, analysis_id):
         """Deletes an analysis of the table by its id.
 
+        Returns None on success. Silently succeeds on attempts to delete
+        nonexistent resources.
+
+        Arguments:
+        analysis_id -- the string id of the analysis to delete
+        
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
