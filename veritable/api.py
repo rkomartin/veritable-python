@@ -1,5 +1,6 @@
 import os
 import simplejson
+import time
 from .connection import Connection
 from .exceptions import *
 from urllib import quote_plus
@@ -258,6 +259,19 @@ class Analysis:
     def get_schema(self):
         """Gets the schema of the analysis."""
         return self._conn.get(self._link('schema'))
+
+    def wait(self, poll=2):
+        """Waits for the running analysis to succeed or fail.
+
+        Arguments:
+        poll -- the number of seconds to wait between updates (default: 2)
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        while self.state == 'running':
+            time.sleep(poll)
+            self.update()
 
     def predict(self, row, count=10):
         """Makes predictions from the analysis."""
