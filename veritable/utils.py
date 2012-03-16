@@ -4,7 +4,6 @@ See also: https://dev.priorknowledge.com/docs/client/python
 
 """
 
-import time
 import uuid
 from math import floor
 from random import shuffle
@@ -164,8 +163,8 @@ def write_csv(rows, filename, dialect=csv.excel, na_val=''):
         headers = headers.union(r.keys())
     headers = list(headers)
     headers.sort()
-    with open(filename,'w') as outFile:
-        writer = csv.writer(outFile, dialect=dialect)
+    with open(filename, 'w') as out_file:
+        writer = csv.writer(out_file, dialect=dialect)
         writer.writerow(headers)
         for r in rows:
             writer.writerow([(na_val if not c in r
@@ -307,6 +306,7 @@ def validate_predictions(predictions, schema, convert_types=False,
         allow_extra_fields=False, remove_extra_fields=remove_extra_fields,
         allow_empty_columns=True)
 
+
 def _validate(rows, schema, convert_types, allow_nones, remove_nones,
     remove_invalids, reduce_categories, has_ids, assign_ids,
     allow_extra_fields, remove_extra_fields, allow_empty_columns):
@@ -354,7 +354,7 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
             if not isinstance(r['_id'], str):  # invalid type for _id
                     try:
                         str(r['_id'])
-                    except UnicodeEncodeError: # ensure we work in 2.7 and 3
+                    except UnicodeEncodeError:  # ensure we work in 2.7 and 3
                         raise DataValidationException("""Row:'{0}' Key:'_id'
                             is {1}, not an ascii str.""".format(str(i),
                             str(type(r['_id']))), row=i, col='_id')
