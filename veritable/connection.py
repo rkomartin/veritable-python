@@ -13,9 +13,8 @@ from .version import __version__
 USER_AGENT = "veritable-python " + __version__
 
 
-def fully_qualify_url(f):
-    """Decorator ensures that urls passed to the HTTP methods are fully
-        qualified."""
+def _fully_qualify_url(f):
+    # ensures that urls passed to the HTTP methods are fully qualified
     def g(*args, **kwargs):
         url = args[1]
         if not _url_has_scheme(url):
@@ -24,8 +23,8 @@ def fully_qualify_url(f):
     return g
 
 
-def get_response_data(r, debug_log=None):
-    """Routes HTTP errors, if any, and translates JSON response data."""
+def _get_response_data(r, debug_log=None):
+    # routes HTTP errors, if any, and translates JSON response data.
     if r.status_code == requests.codes.ok:
         if debug_log is not None:
             debug_log(json.loads(r.content.decode('utf-8')))
@@ -35,7 +34,7 @@ def get_response_data(r, debug_log=None):
 
 
 def handle_http_error(r, debug_log=None):
-    """Handles HTTP errors."""
+    # handles HTTP errors.
     try:
         content = json.loads(r.content.decode('utf-8'))
         if debug_log is not None:
@@ -54,8 +53,8 @@ def handle_http_error(r, debug_log=None):
         r.raise_for_status()
 
 
-def mgzip(buf):
-    """Gzip middleware."""
+def _mgzip(buf):
+    # gzip middleware.
     wbuf = BytesIO()
     zbuf = GzipFile(
             mode='wb',
@@ -107,7 +106,7 @@ class Connection:
         if self.debug:
             self.logger.debug(x)
 
-    @fully_qualify_url
+    @_fully_qualify_url
     def get(self, url):
         """Wraps GET requests."""
         kwargs = {'headers': {}, 'prefetch': True}
@@ -118,9 +117,9 @@ class Connection:
         if self.debug:
             kwargs['config'] = {'verbose': sys.stderr}
         r = self.session.get(url, **kwargs)
-        return get_response_data(r, self.debug_log)
+        return _get_response_data(r, self.debug_log)
 
-    @fully_qualify_url
+    @_fully_qualify_url
     def post(self, url, data):
         """Wraps POST requests."""
         kwargs = {'headers': {'Content-Type': 'application/json'},
@@ -128,16 +127,16 @@ class Connection:
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
         if not self.disable_gzip:
-            kwargs['data'] = mgzip(json.dumps(data))
+            kwargs['data'] = _mgzip(json.dumps(data))
             kwargs['headers']['Content-Encoding'] = 'gzip'
         else:
             kwargs['data'] = json.dumps(data)
         if self.debug:
             kwargs['config'] = {'verbose': sys.stderr}
         r = self.session.post(url, **kwargs)
-        return get_response_data(r, self.debug_log)
+        return _get_response_data(r, self.debug_log)
 
-    @fully_qualify_url
+    @_fully_qualify_url
     def put(self, url, data):
         """Wraps PUT requests."""
         kwargs = {'headers': {'Content-Type': 'application/json'},
@@ -145,16 +144,16 @@ class Connection:
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
         if not self.disable_gzip:
-            kwargs['data'] = mgzip(json.dumps(data))
+            kwargs['data'] = _mgzip(json.dumps(data))
             kwargs['headers']['Content-Encoding'] = 'gzip'
         else:
             kwargs['data'] = json.dumps(data)
         if self.debug:
             kwargs['config'] = {'verbose': sys.stderr}
         r = self.session.put(url, **kwargs)
-        return get_response_data(r, self.debug_log)
+        return _get_response_data(r, self.debug_log)
 
-    @fully_qualify_url
+    @_fully_qualify_url
     def delete(self, url):
         """Wraps DELETE requests."""
         kwargs = {'headers': {}, 'prefetch': True}
@@ -163,4 +162,4 @@ class Connection:
         if self.debug:
             kwargs['config'] = {'verbose': sys.stderr}
         r = self.session.delete(url, **kwargs)
-        return get_response_data(r, self.debug_log)
+        return _get_response_data(r, self.debug_log)
