@@ -1,5 +1,6 @@
 import os
 import time
+from requests import HTTPError
 from .connection import Connection
 from .exceptions import (APIConnectionException, DuplicateTableException,
     MissingRowIDException, InvalidAnalysisTypeException,
@@ -24,8 +25,10 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
             ssl_verify=ssl_verify, enable_gzip=enable_gzip, debug=debug)
     try:
         connection_test = connection.get("/")
+    except HTTPError:
+        raise
     except:
-        raise(APIConnectionException(api_base_url))
+        raise APIConnectionException(api_base_url)
     status = connection_test['status']
     entropy = connection_test['entropy']
     if status != "SUCCESS" or not isinstance(entropy, float):
