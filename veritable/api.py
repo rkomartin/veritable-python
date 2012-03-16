@@ -471,11 +471,11 @@ class Analysis:
     error -- the detailed error encountered in analysis, if any
 
     Methods:
-    update --
-    delete -- deletes the table resource.
-    get_schema --
-    wait --
-    predict --
+    update -- refreshes the state of the analysis
+    delete -- deletes the analysis resource
+    get_schema -- gets the schema associated with the analysis
+    wait -- waits until the analysis completes
+    predict -- makes predictions from the analysis
 
     See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -498,38 +498,78 @@ class Analysis:
 
     @property
     def id(self):
-        """The id of the analysis."""
+        """The string id of the analysis.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+
         return self._doc['_id']
 
     @property
     def state(self):
-        """The state of the analysis: one of 'succeeded', 'failed',
-            or 'running'."""
+        """The state of the analysis
+
+        A string, one of 'succeeded', 'failed', or 'running'. Run the
+        update method to refresh.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
         return self._doc['state']
 
     @property
     def error(self):
-        """The error, if any, encountered by the analysis."""
+        """The error, if any, encountered by the analysis.
+
+        A Python object with details of the error, or None if the analysis
+        has not failed.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
         if self.state != 'failed':
             return None
         else:
             return self._doc['error']
 
     def update(self):
-        """Manually updates the analysis, checking whether it has succeeded
-            or failed."""
+        """Refreshes the analysis state
+
+        Checks whether the analysis has succeeded or failed, updating the
+        state and error attributes appropriately.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
         self._doc = self._conn.get(self._link('self'))
 
     def delete(self):
-        """Deletes the analysis."""
+        """Deletes the analysis resource.
+
+        Returns None on success. Silently succeeds on attempts to delete
+        nonexistent resources.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
         self._conn.delete(self._link('self'))
 
     def get_schema(self):
-        """Gets the schema of the analysis."""
+        """Gets the schema of the analysis.
+
+        Returns the Python dict representing the analysis schema.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
         return self._conn.get(self._link('schema'))
 
     def wait(self, poll=2):
         """Waits for the running analysis to succeed or fail.
+
+        Returns None when the analysis succeeds or fails, and blocks until
+        it does.
 
         Arguments:
         poll -- the number of seconds to wait between updates (default: 2)
@@ -542,7 +582,17 @@ class Analysis:
             self.update()
 
     def predict(self, row, count=10):
-        """Makes predictions from the analysis."""
+        """Makes predictions from the analysis.
+
+        Returns a list of row dicts including fixed and predicted values.
+
+        Arguments:
+        row -- the row dict whose missing values are to be predicted. These
+            values should be None in the row argument.
+        count -- the number of predictions to make for each missing value
+            (default: 10)
+
+        """
         if self.state == 'running':
             self.update()
         if self.state == 'succeeded':
