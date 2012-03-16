@@ -1,3 +1,9 @@
+"""Tools for connecting to a Veritable API server.
+
+See also: https://dev.priorknowledge.com/docs/client/python
+
+"""
+
 import logging
 import requests
 import json
@@ -69,9 +75,42 @@ def _mgzip(buf):
 
 
 class Connection:
-    """Wraps the raw HTTP requests to the Veritable server."""
+
+    """Wraps the raw HTTP connection to the Veritable server.
+
+    Users should not interact directly with Connection objects. Use
+    veritable.connect as an entry point instead.
+
+    Methods:
+    get -- wraps GET requests
+    post -- wraps POST requests
+    put -- wraps PUT requests
+    delete -- wraps DELETE requests
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
+
     def __init__(self, api_key, api_base_url, ssl_verify=None,
                  enable_gzip=True, debug=False):
+        """Initializes a connection to a Veritable server.
+
+        Users should not invoke directly -- use veritable.connect as the
+        entry point instead. Note that unlike veritable.connect, this
+        method does not check whether an actual Veritable server is present
+        at its target.
+
+        Arguments:
+        api_key -- the API key to use for access
+        api_base_url -- the base url of the API
+        ssl_verify -- controls whether SSL keys are verified. (default: None)
+        enable_gzip -- controls whether requests to and from the API server are
+            gzipped. (default: True)
+        debug -- controls the production of debug messages. (default: False)
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
         if api_key is None:
             raise APIKeyException()
         if api_base_url is None:
@@ -108,7 +147,16 @@ class Connection:
 
     @_fully_qualify_url
     def get(self, url):
-        """Wraps GET requests."""
+        """Wraps GET requests.
+
+        Users should not invoke this method directly.
+
+        Arguments:
+        url -- the URL of the resource to GET
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
         kwargs = {'headers': {}, 'prefetch': True}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
@@ -121,7 +169,17 @@ class Connection:
 
     @_fully_qualify_url
     def post(self, url, data):
-        """Wraps POST requests."""
+        """Wraps POST requests.
+
+        Users should not invoke this method directly.
+
+        Arguments:
+        url -- the URL of the resource to POST to
+        data -- the data to POST (as a Python object)
+        
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
         kwargs = {'headers': {'Content-Type': 'application/json'},
                   'prefetch': True}
         if self.ssl_verify is not None:
@@ -138,7 +196,17 @@ class Connection:
 
     @_fully_qualify_url
     def put(self, url, data):
-        """Wraps PUT requests."""
+        """Wraps PUT requests.
+
+        Users should not invoke this method directly.
+
+        Arguments:
+        url -- the URL of the resource to PUT to
+        data -- the data to PUT (as a Python object)
+        
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
         kwargs = {'headers': {'Content-Type': 'application/json'},
                   'prefetch': True}
         if self.ssl_verify is not None:
@@ -155,7 +223,16 @@ class Connection:
 
     @_fully_qualify_url
     def delete(self, url):
-        """Wraps DELETE requests."""
+        """Wraps DELETE requests.
+
+        Users should not invoke this method directly.
+
+        Arguments:
+        url -- the URL of the resource to DELETE
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
         kwargs = {'headers': {}, 'prefetch': True}
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
