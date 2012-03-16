@@ -101,7 +101,7 @@ class Connection:
         headers = {'User-Agent': USER_AGENT}
         return requests.session(auth=self.auth, headers=headers)
 
-    def debug_log(self, x):
+    def _debug_log(self, x):
         """Debug logging."""
         if self.debug:
             self.logger.debug(x)
@@ -117,7 +117,7 @@ class Connection:
         if self.debug:
             kwargs['config'] = {'verbose': sys.stderr}
         r = self.session.get(url, **kwargs)
-        return _get_response_data(r, self.debug_log)
+        return _get_response_data(r, self._debug_log)
 
     @_fully_qualify_url
     def post(self, url, data):
@@ -134,7 +134,7 @@ class Connection:
         if self.debug:
             kwargs['config'] = {'verbose': sys.stderr}
         r = self.session.post(url, **kwargs)
-        return _get_response_data(r, self.debug_log)
+        return _get_response_data(r, self._debug_log)
 
     @_fully_qualify_url
     def put(self, url, data):
@@ -151,7 +151,7 @@ class Connection:
         if self.debug:
             kwargs['config'] = {'verbose': sys.stderr}
         r = self.session.put(url, **kwargs)
-        return _get_response_data(r, self.debug_log)
+        return _get_response_data(r, self._debug_log)
 
     @_fully_qualify_url
     def delete(self, url):
@@ -162,4 +162,4 @@ class Connection:
         if self.debug:
             kwargs['config'] = {'verbose': sys.stderr}
         r = self.session.delete(url, **kwargs)
-        return _get_response_data(r, self.debug_log)
+        return _get_response_data(r, self._debug_log)
