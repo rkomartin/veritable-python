@@ -290,7 +290,7 @@ class Table:
         return self._conn.get("{0}/{1}".format(self._link("rows").rstrip("/"),
             quote_plus(row_id)))
 
-    def get_rows(self, start=start, limit=limit):
+    def get_rows(self, start=None, limit=None):
         """Gets all the rows of the table.
 
         Returns a list of dicts representing the rows of the table.
