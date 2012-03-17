@@ -46,9 +46,9 @@ class Cursor:
             if self.__start:
                 params.update({'start': self.__start})
             res = self.__connection.get(self.__collection, params=params)
-        try:
+        if 'next' in res['links']:
             self.__next = res['links']['next']
-        except KeyError:
+        else:
             self.__next = None
             self.__last = True
         self.__data = res[self.__collection.split("/")[-1]]
