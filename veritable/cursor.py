@@ -22,6 +22,14 @@ class Cursor:
         self.__connection = connection
         self.__collection = collection
 
+    def __str__(self):
+        return """<veritable.Cursor collection='""" + self.__collection +
+            """' start=""" + self.__start + """ per_page=""" +
+            self.__per_page + """>"""
+
+    def __repr__(self):
+        return self.__str__()
+
     @property 
     def collection(self):
         return self.__collection
