@@ -7,6 +7,7 @@ See also: https://dev.priorknowledge.com/docs/client/python
 import os
 import time
 from requests import HTTPError
+from .cursor import Cursor
 from .connection import Connection
 from .exceptions import (APIConnectionException, DuplicateTableException,
     MissingRowIDException, InvalidAnalysisTypeException,
@@ -289,7 +290,7 @@ class Table:
         return self._conn.get("{0}/{1}".format(self._link("rows").rstrip("/"),
             quote_plus(row_id)))
 
-    def get_rows(self):
+    def get_rows(self, start=start, limit=limit):
         """Gets all the rows of the table.
 
         Returns a list of dicts representing the rows of the table.
@@ -297,7 +298,8 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return self._conn.get(self._link("rows"))["rows"]
+        return Cursor(self._conn, self._link("rows"), start=start,
+            limit=limit)
 
     def upload_row(self, row):
         """Adds a row to the table or updates an existing row.
