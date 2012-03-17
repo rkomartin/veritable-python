@@ -302,11 +302,10 @@ class TestTableOps:
         self.t.batch_delete_rows([{'_id': r["_id"]} for r in rs])
 
     @attr('sync')
-    @raises(HTTPError)
     def test_batch_delete_rows_with_some_deleted(self):
         rs = [{'_id': r["_id"]} for r in self.t.get_rows()]
         rs.append({'_id': 'spurious'})
-        self.t.batch_delete_rows(rs)
+        assert_raises(ServerException, self.t.batch_delete_rows, rs)
 
     @attr('sync')
     def test_batch_delete_rows_faulty(self):
