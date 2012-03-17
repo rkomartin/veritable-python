@@ -11,31 +11,39 @@ from veritable.exceptions import *
 
 TEST_API_KEY = os.getenv("VERITABLE_KEY")
 TEST_BASE_URL = os.getenv("VERITABLE_URL") or "https://api.priorknowledge.com"
+OPTIONS = os.getenv("VERITABLE_NOSETEST_OPTIONS")
+connect_kwargs = {}
+if 'nogzip' in OPTIONS:
+    connect_kwargs.update({'enable_gzip': False})
+if 'nossl' in OPTIONS:
+    connect_kwargs.update({'ssl_verify': False})
 
 INVALID_IDS = ["éléphant", "374.34", "ajfh/d/sfd@#$", u"ひたちの", "", " foo",
     "foo ", " foo ", "foo\n", "foo\nbar"]
 
 
+# FIXME test object representations
+
 class TestConnection:
     def test_create_api(self):
-        veritable.connect(TEST_API_KEY, TEST_BASE_URL)
+        veritable.connect(TEST_API_KEY, TEST_BASE_URL, **connect_kwargs)
 
     def test_create_api_with_debug(self):
-        veritable.connect(TEST_API_KEY, TEST_BASE_URL, debug=True)
+        veritable.connect(TEST_API_KEY, TEST_BASE_URL, debug=True, **connect_kwargs)
 
     def test_create_api_with_invalid_user(self):
         assert_raises(HTTPError, veritable.connect,
-            "completely_invalid_user_id_3426", TEST_BASE_URL)
+            "completely_invalid_user_id_3426", TEST_BASE_URL, **connect_kwargs)
 
     def test_create_api_with_invalid_server(self):
         assert_raises(APIConnectionException, veritable.connect,
-            "foo", "http://www.google.com")
+            "foo", "http://www.google.com", **connect_kwargs)
 
 
 class TestAPI:
     @classmethod
     def setup_class(self):
-        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
+        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL, **connect_kwargs)
 
     @attr('sync')
     def test_get_tables(self):
@@ -122,7 +130,7 @@ class TestAPI:
 class TestRowUploads:
     @classmethod
     def setup_class(self):
-        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
+        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL, **connect_kwargs)
 
     def setup(self):
         self.t = self.API.create_table("bugz", force=True)
@@ -204,7 +212,7 @@ class TestRowUploads:
 class TestTableOps:
     @classmethod
     def setup_class(self):
-        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
+        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL, **connect_kwargs)
 
     def setup(self):
         self.t = self.API.create_table(table_id="bugz", force=True)
@@ -250,6 +258,9 @@ class TestTableOps:
     def test_batch_get_rows(self):
         self.t.get_rows()
 
+# FIXME add tests for paginated get_rows
+# FIXME 
+
     @attr('sync')
     def test_delete_row(self):
         self.t.delete_row("fivebug")
@@ -270,6 +281,8 @@ class TestTableOps:
     def test_batch_delete_rows_by_id_only(self):
         rs = self.t.get_rows()
         self.t.batch_delete_rows([{'_id': r["_id"]} for r in rs])
+
+# FIXME add test for batch_delete_rows_with_some_missing_rows
 
     @attr('sync')
     def test_batch_delete_rows_faulty(self):
@@ -570,7 +583,7 @@ class TestTableOps:
 class TestPredictions:
     @classmethod
     def setup_class(self):
-        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL)
+        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL, **connect_kwargs)
 
     def setup(self):
         self.t = self.API.create_table(table_id="bugz", force=True)
