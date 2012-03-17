@@ -22,8 +22,6 @@ INVALID_IDS = ["éléphant", "374.34", "ajfh/d/sfd@#$", u"ひたちの", "", " f
     "foo ", " foo ", "foo\n", "foo\nbar"]
 
 
-# FIXME test object representations
-
 class TestConnection:
     def test_create_api(self):
         veritable.connect(TEST_API_KEY, TEST_BASE_URL, **connect_kwargs)
@@ -303,7 +301,12 @@ class TestTableOps:
         rs = self.t.get_rows()
         self.t.batch_delete_rows([{'_id': r["_id"]} for r in rs])
 
-# FIXME add test for batch_delete_rows_with_some_missing_rows
+    @attr('sync')
+    @raises(HTTPError)
+    def test_batch_delete_rows_with_some_deleted(self):
+        rs = [{'_id': r["_id"]} for r in self.t.get_rows()]
+        rs.append({'_id': 'spurious'})
+        self.t.batch_delete_rows(rs)
 
     @attr('sync')
     def test_batch_delete_rows_faulty(self):
