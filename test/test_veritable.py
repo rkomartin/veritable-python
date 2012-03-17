@@ -275,7 +275,7 @@ class TestTableOps:
     @attr('sync')
     def test_batch_delete_rows(self):
         rs = self.t.get_rows()
-        self.t.batch_delete_rows(rs)
+        self.t.batch_delete_rows([r for r in rs])
 
     @attr('sync')
     def test_batch_delete_rows_by_id_only(self):
