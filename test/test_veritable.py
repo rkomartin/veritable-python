@@ -28,6 +28,11 @@ class TestConnection:
     def test_create_api(self):
         veritable.connect(TEST_API_KEY, TEST_BASE_URL, **connect_kwargs)
 
+    def test_print_connection(self):
+        api = veritable.connect(TEST_API_KEY, TEST_BASE_URL,
+            **connect_kwargs)
+        print(api._conn)
+
     def test_create_api_with_debug(self):
         veritable.connect(TEST_API_KEY, TEST_BASE_URL, debug=True,
             **connect_kwargs)
@@ -45,7 +50,12 @@ class TestConnection:
 class TestAPI:
     @classmethod
     def setup_class(self):
-        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL, **connect_kwargs)
+        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL,
+            **connect_kwargs)
+
+    @attr('sync')
+    def test_print_API(self):
+        print(self.API)
 
     @attr('sync')
     def test_get_tables(self):
@@ -54,6 +64,12 @@ class TestAPI:
     @attr('sync')
     def test_create_table_autoid(self):
         t = self.API.create_table()
+        t.delete()
+
+    @attr('sync')
+    def test_print_table(self):
+        t = self.API.create_table()
+        print(t)
         t.delete()
 
     @attr('sync')
@@ -304,6 +320,12 @@ class TestTableOps:
     def test_create_analysis_1(self):
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
         self.t.create_analysis(schema, analysis_id="zubble_1", force=True)
+
+    @attr('sync')
+    def test_print_analysis(self):
+        schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
+        a = self.t.create_analysis(schema, analysis_id="zubble_1", force=True)
+        print(a)
 
     @attr('sync')
     def test_create_analysis_2(self):
