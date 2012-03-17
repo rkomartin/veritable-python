@@ -29,11 +29,13 @@ class TestConnection:
         veritable.connect(TEST_API_KEY, TEST_BASE_URL, **connect_kwargs)
 
     def test_create_api_with_debug(self):
-        veritable.connect(TEST_API_KEY, TEST_BASE_URL, debug=True, **connect_kwargs)
+        veritable.connect(TEST_API_KEY, TEST_BASE_URL, debug=True,
+            **connect_kwargs)
 
     def test_create_api_with_invalid_user(self):
         assert_raises(HTTPError, veritable.connect,
-            "completely_invalid_user_id_3426", TEST_BASE_URL, **connect_kwargs)
+            "completely_invalid_user_id_3426", TEST_BASE_URL,
+            **connect_kwargs)
 
     def test_create_api_with_invalid_server(self):
         assert_raises(APIConnectionException, veritable.connect,
@@ -130,7 +132,8 @@ class TestAPI:
 class TestRowUploads:
     @classmethod
     def setup_class(self):
-        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL, **connect_kwargs)
+        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL,
+            **connect_kwargs)
 
     def setup(self):
         self.t = self.API.create_table("bugz", force=True)
@@ -212,16 +215,18 @@ class TestRowUploads:
 class TestTableOps:
     @classmethod
     def setup_class(self):
-        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL, **connect_kwargs)
+        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL,
+            **connect_kwargs)
 
     def setup(self):
         self.t = self.API.create_table(table_id="bugz", force=True)
-        self.t.batch_upload_rows([{'_id': 'onebug', 'zim': 'zam', 'wos': 19.2},
-                         {'_id': 'twobug', 'zim': 'vim', 'wos': 11.3},
-                         {'_id': 'threebug', 'zim': 'fop', 'wos': 17.5},
-                         {'_id': 'fourbug', 'zim': 'zop', 'wos': 10.3},
-                         {'_id': 'fivebug', 'zim': 'zam', 'wos': 9.3},
-                         {'_id': 'sixbug', 'zim': 'zop', 'wos': 18.9}])
+        self.t.batch_upload_rows([
+            {'_id': 'onebug', 'zim': 'zam', 'wos': 19.2},
+            {'_id': 'twobug', 'zim': 'vim', 'wos': 11.3},
+            {'_id': 'threebug', 'zim': 'fop', 'wos': 17.5},
+            {'_id': 'fourbug', 'zim': 'zop', 'wos': 10.3},
+            {'_id': 'fivebug', 'zim': 'zam', 'wos': 9.3},
+            {'_id': 'sixbug', 'zim': 'zop', 'wos': 18.9}])
         self.t2 = self.API.create_table(table_id="test_all_types",
                              description="Test dataset with all datatypes",
                              force=True)
@@ -583,7 +588,8 @@ class TestTableOps:
 class TestPredictions:
     @classmethod
     def setup_class(self):
-        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL, **connect_kwargs)
+        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL,
+            **connect_kwargs)
 
     def setup(self):
         self.t = self.API.create_table(table_id="bugz", force=True)
