@@ -275,10 +275,41 @@ class TestTableOps:
 
     @attr('sync')
     def test_batch_get_rows(self):
-        self.t.get_rows()
+        assert(len([r for r in self.t.get_rows()]) == 6)
 
-# FIXME add tests for paginated get_rows
-# FIXME 
+    @attr('sync')
+    def test_batch_get_rows_start(self):
+        assert(len([r for r in self.t.get_rows(start='onebug')]) == 4)
+
+    @attr('sync')
+    def test_batch_get_rows_limit_0(self):
+        assert(len([r for r in self.t.get_rows(start='onebug',
+            limit=0)]) == 0)
+
+    @attr('sync')
+    def test_batch_get_rows_limit_3(self):
+        assert(len([r for r in self.t.get_rows(start='onebug',
+            limit=3)]) == 3)
+
+    @attr('sync')
+    def test_batch_get_rows_limit_higher_than_numrows(self):
+        assert(len([r for r in self.t.get_rows(start='onebug',
+            limit=100)]) == 4)
+
+    @attr('sync')
+    def test_batch_get_rows_start_within_rows(self):
+        assert(len([r for r in self.t2.get_rows(start='row2')]) == 5)
+
+    @attr('sync')
+    def test_batch_get_rows_start_before(self):
+        assert(len([r for r in self.t2.get_rows(start='row0')]) == 6)
+
+    @attr('sync')
+    def test_batch_get_rows_start_after(self):
+        assert(len([r for r in self.t2.get_rows(start='row7')]) == 0)
+
+# FIXME add separate tests for Cursor class (exercise combos of limit
+#    and per_page)
 
     @attr('sync')
     def test_delete_row(self):
