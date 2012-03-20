@@ -101,6 +101,14 @@ class API:
             raise VeritableError('api has no {0} link'.format(name))
         return self._doc['links'][name]
 
+    def limits(self):
+        """Retrieves the current API limits as a dict.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        return self._conn.get("user/limits")
+
     def table_exists(self, table_id):
         """Checks if a table with the specified id is available to the user.
 
