@@ -11,7 +11,7 @@ from veritable.exceptions import *
 
 TEST_API_KEY = os.getenv("VERITABLE_KEY")
 TEST_BASE_URL = os.getenv("VERITABLE_URL") or "https://api.priorknowledge.com"
-OPTIONS = os.getenv("VERITABLE_NOSETEST_OPTIONS")
+OPTIONS = os.getenv("VERITABLE_NOSETEST_OPTIONS", [])
 connect_kwargs = {}
 if 'nogzip' in OPTIONS:
     connect_kwargs.update({'enable_gzip': False})
