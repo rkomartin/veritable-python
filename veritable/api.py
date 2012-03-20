@@ -291,9 +291,18 @@ class Table:
             quote_plus(row_id)))
 
     def get_rows(self, start=None, limit=None):
-        """Gets all the rows of the table.
+        """Gets the rows of the table.
 
-        Returns a list of dicts representing the rows of the table.
+        Returns an iterator over the rows of the table
+
+        Arguments:
+        start -- The row id from which to start (default: None) Rows whose id
+          fields are greater than or equal to start in lexicographic order
+          will be returned by the iterator. If None, all rows will be
+          returned.
+        limit -- If set to an integer value, will limit the number of rows
+          returned by the iterator. (default: None) If None, the number of
+          rows returned will not be limited.
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
