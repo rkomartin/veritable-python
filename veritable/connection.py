@@ -130,7 +130,7 @@ class Connection:
             self.logger.setLevel(logging.DEBUG)
 
     def __str__(self):
-        return "<veritable.Connection url='" + self._api_base_url + "'>"
+        return "<veritable.Connection url='" + self.api_base_url + "'>"
 
     def __repr__(self):
         return self.__str__()
@@ -146,7 +146,7 @@ class Connection:
             self.logger.debug(x)
 
     @_fully_qualify_url
-    def get(self, url):
+    def get(self, url, **kwargs):
         """Wraps GET requests.
 
         Users should not invoke this method directly.
@@ -157,7 +157,7 @@ class Connection:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        kwargs = {'headers': {}, 'prefetch': True}
+        kwargs.update({'headers': {}, 'prefetch': True})
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
         if not self.disable_gzip:
@@ -168,7 +168,7 @@ class Connection:
         return _get_response_data(r, self._debug_log)
 
     @_fully_qualify_url
-    def post(self, url, data):
+    def post(self, url, data, **kwargs):
         """Wraps POST requests.
 
         Users should not invoke this method directly.
@@ -180,8 +180,8 @@ class Connection:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        kwargs = {'headers': {'Content-Type': 'application/json'},
-                  'prefetch': True}
+        kwargs.update({'headers': {'Content-Type': 'application/json'},
+                  'prefetch': True})
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
         if not self.disable_gzip:
@@ -195,7 +195,7 @@ class Connection:
         return _get_response_data(r, self._debug_log)
 
     @_fully_qualify_url
-    def put(self, url, data):
+    def put(self, url, data, **kwargs):
         """Wraps PUT requests.
 
         Users should not invoke this method directly.
@@ -207,8 +207,8 @@ class Connection:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        kwargs = {'headers': {'Content-Type': 'application/json'},
-                  'prefetch': True}
+        kwargs.update({'headers': {'Content-Type': 'application/json'},
+                  'prefetch': True})
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
         if not self.disable_gzip:
@@ -222,7 +222,7 @@ class Connection:
         return _get_response_data(r, self._debug_log)
 
     @_fully_qualify_url
-    def delete(self, url):
+    def delete(self, url, **kwargs):
         """Wraps DELETE requests.
 
         Users should not invoke this method directly.
@@ -233,7 +233,7 @@ class Connection:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        kwargs = {'headers': {}, 'prefetch': True}
+        kwargs.update({'headers': {}, 'prefetch': True})
         if self.ssl_verify is not None:
             kwargs['verify'] = self.ssl_verify
         if self.debug:

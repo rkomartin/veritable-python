@@ -7,6 +7,7 @@ See also: https://dev.priorknowledge.com/docs/client/python
 import os
 import time
 from requests import HTTPError
+from .cursor import Cursor
 from .connection import Connection
 from .exceptions import (APIConnectionException, DuplicateTableException,
     MissingRowIDException, InvalidAnalysisTypeException,
@@ -100,6 +101,14 @@ class API:
         if name not in self._doc['links']:
             raise VeritableError('api has no {0} link'.format(name))
         return self._doc['links'][name]
+
+    def limits(self):
+        """Retrieves the current API limits as a dict.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        return self._conn.get("user/limits")
 
     def table_exists(self, table_id):
         """Checks if a table with the specified id is available to the user.
@@ -289,15 +298,25 @@ class Table:
         return self._conn.get("{0}/{1}".format(self._link("rows").rstrip("/"),
             quote_plus(row_id)))
 
-    def get_rows(self):
-        """Gets all the rows of the table.
+    def get_rows(self, start=None, limit=None):
+        """Gets the rows of the table.
 
-        Returns a list of dicts representing the rows of the table.
+        Returns an iterator over the rows of the table
+
+        Arguments:
+        start -- The row id from which to start (default: None) Rows whose id
+          fields are greater than or equal to start in lexicographic order
+          will be returned by the iterator. If None, all rows will be
+          returned.
+        limit -- If set to an integer value, will limit the number of rows
+          returned by the iterator. (default: None) If None, the number of
+          rows returned will not be limited.
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return self._conn.get(self._link("rows"))["rows"]
+        return Cursor(self._conn, self._link("rows"), start=start,
+            limit=limit)
 
     def upload_row(self, row):
         """Adds a row to the table or updates an existing row.
@@ -536,6 +555,26 @@ class Analysis:
         else:
             return self._doc['error']
 
+    @property
+    def progress(self):
+        """An estimate of the time remaining for the analysis to complete.
+
+        If the analysis is still running, returns a dict containing the fields:
+        percent -- an integer between 0 and 100 indicating how much of The
+          analysis is complete
+        finished_at_estimate -- a timestamp representing the estimated time
+          at which the analysis will complete 
+
+        If the analysis has succeeded or failed, None.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        if self.state == 'succeeded':
+            return self._doc['progress']
+        else:
+            return None
+    
     def update(self):
         """Refreshes the analysis state
 
