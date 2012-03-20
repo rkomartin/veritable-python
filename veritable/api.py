@@ -538,6 +538,26 @@ class Analysis:
         else:
             return self._doc['error']
 
+    @property
+    def progress(self):
+        """An estimate of the time remaining for the analysis to complete.
+
+        If the analysis is still running, returns a dict containing the fields:
+        percent -- an integer between 0 and 100 indicating how much of The
+          analysis is complete
+        finished_at_estimate -- a timestamp representing the estimated time
+          at which the analysis will complete 
+
+        If the analysis has succeeded or failed, None.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        if self.state == 'succeeded':
+            return self._doc['progress']
+        else:
+            return None
+    
     def update(self):
         """Refreshes the analysis state
 
