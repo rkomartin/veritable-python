@@ -11,7 +11,7 @@ class Cursor:
     See also: https://dev.priorknowledge.com/docs/client/python
 
     """
-    def __init__(self, connection, collection, start=None, per_page=100,
+    def __init__(self, connection, collection, start=None, per_page=1000,
         limit=None):
         self.__data = []
         self.__limit = limit
