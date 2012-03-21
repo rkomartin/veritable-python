@@ -419,7 +419,7 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        r = self._conn.get(_format_url[(]self._link("analyses"), analysis_id],
+        r = self._conn.get(_format_url([self._link("analyses"), analysis_id],
             noquote=[0]))
         return Analysis(self._conn, r)
 
