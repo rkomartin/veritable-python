@@ -335,8 +335,6 @@ class Table:
         else:
             row_id = row["_id"]
             _check_id(row_id)
-            if not isinstance(row_id, basestring):
-                raise TypeError("Row id must be a string")
         self._conn.put(_format_url([self._link("rows"), row_id], noquote=[0]),
             row)
 
