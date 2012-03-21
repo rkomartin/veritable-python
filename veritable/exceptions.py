@@ -7,8 +7,8 @@ class APIKeyException(VeritableError):
     """Raised if an API key is not provided when instantiating a Veritable
         connection."""
     def __init__(self):
-        self.value = """Must provide an API key to instantiate a Veritable
-            connection"""
+        self.value = """Must provide an API key to instantiate a Veritable \
+        connection"""
 
     def __str__(self):
         return repr(self.value)
@@ -18,8 +18,8 @@ class APIBaseURLException(VeritableError):
     """Raised if a base URL is not provided when instantiating a Veritable
         connection."""
     def __init__(self):
-        self.value = """Must provide a base URL to instantiate a Veritable
-            connection"""
+        self.value = """Must provide a base URL to instantiate a Veritable \
+        connection"""
 
     def __str__(self):
         return repr(self.value)
@@ -52,11 +52,11 @@ class InvalidIDException(VeritableError):
     """Raised if an invalid ID is provided."""
     def __init__(self, s=None):
         if s:
-            self.value = """Specified id """ + s + """ is invalid:
-                alphanumeric, underscore, and hyphen only!"""
+            self.value = """Specified id """ + s + """ is invalid: \
+            alphanumeric, underscore, and hyphen only!"""
         else:
-            self.value = """Specified id is invalid: alphanumeric,
-                underscore, and hyphen only!"""
+            self.value = """Specified id is invalid: alphanumeric, \
+            underscore, and hyphen only!"""
 
     def __str__(self):
         return repr(self.value)
@@ -85,8 +85,8 @@ class DuplicateTableException(VeritableError):
     """Raised if an attempt is made to create a table that already exists,
         without overwriting it."""
     def __init__(self, table_id):
-        self.value = """Table with id """ + table_id + """ already exists!
-            Set force=True to override."""
+        self.value = """Table with id """ + table_id + """ already exists! \
+        Set force=True to override."""
 
     def __str__(self):
         return repr(self.value)
@@ -96,8 +96,8 @@ class DuplicateAnalysisException(VeritableError):
     """Raised if an attempt is made to create an analysis that already exists,
         without overwriting it."""
     def __init__(self, analysis_id):
-        self.value = """Analysis with id """ + analysis_id + """ already
-            exists! Set force=True to override."""
+        self.value = """Analysis with id """ + analysis_id + """ already \
+        exists! Set force=True to override."""
 
     def __str__(self):
         return repr(self.value)
@@ -113,7 +113,7 @@ class ServerException(VeritableError):
 
 
 class DataValidationException(VeritableError):
-    """Raised when invalid data is passed to the validation utility
+    """Raised when invalid data is passed to the validation utility \
         functions."""
     def __init__(self, msg, row=None, col=None):
         self.value = msg
