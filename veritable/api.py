@@ -105,7 +105,7 @@ class API:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return self._conn.get(_format_url(["user", "limits"])
+        return self._conn.get(_format_url(["user", "limits"]))
 
     def table_exists(self, table_id):
         """Checks if a table with the specified id is available to the user.
