@@ -50,6 +50,9 @@ def _url_has_scheme(url):
     return urlparse(url)[0] is not ""
 
 def _format_url(path, noquote=[]):
+    # Joins the path elements in path (a collection) with "/"
+    # If the index of a path element is not in noquote, the element
+    # will be quoted using urllib.quote_plus
     for i in range(len(path)):
         if i in noquote:
             path[i] = path[i].rstrip("/").lstrip("/")
