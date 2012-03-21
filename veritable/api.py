@@ -331,6 +331,8 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
+        if not isinstance(row, dict):
+            raise VeritableError("Must provide a row dict to upload!")
         if "_id" not in row:
             raise MissingRowIDException()
         else:
@@ -355,10 +357,12 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        for i in range(len(rows)):
-            if not "_id" in rows[i]:
+        for row in rows:
+            if not isinstance(row, dict):
+                raise VeritableError("Rows must be represented by row dicts.")
+            if not "_id" in row:
                 raise MissingRowIDException()
-            _check_id(rows[i]["_id"])
+            _check_id(row["_id"])
         data = {'action': 'put', 'rows': rows}
         self._conn.post(self._link("rows"), data)
 
@@ -638,6 +642,9 @@ class Analysis:
         if self.state == 'running':
             self.update()
         if self.state == 'succeeded':
+            if not isinstance(row, dict):
+                raise VeritableError("""Must provide a row dict to make \
+                predictions!""")
             return self._conn.post(
             self._link('predict'),
             data={'data': row, 'count': count})
