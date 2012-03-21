@@ -113,7 +113,7 @@ class ServerException(VeritableError):
 
 
 class DataValidationException(VeritableError):
-    """Raised when invalid data is passed to the validation utility \
+    """Raised when invalid data is passed to the validation utility
         functions."""
     def __init__(self, msg, row=None, col=None):
         self.value = msg
