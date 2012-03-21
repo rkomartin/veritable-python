@@ -60,6 +60,9 @@ class Cursor:
     def __iter__(self):
         return self
 
+    def __next__(self):
+        return self.next()
+
     def next(self):
         if len(self.__data) or self._refresh():
             if self.__limit is not None:
