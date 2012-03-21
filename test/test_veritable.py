@@ -711,6 +711,11 @@ class TestPredictions:
             {'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
 
     @attr('sync')
+    def test_make_predictions_with_fixed_int_val_for_float_col(self):
+        self.a2.wait()
+        self.a2.predict({'cat': None, 'ct': None, 'real': 1, 'bool': None})
+
+    @attr('sync')
     def test_delete_analysis_with_instance_method(self):
         self.a2.delete()
 
