@@ -18,8 +18,9 @@ if 'nogzip' in OPTIONS:
 if 'nossl' in OPTIONS:
     connect_kwargs.update({'ssl_verify': False})
 
-INVALID_IDS = ["éléphant", "374.34", "ajfh/d/sfd@#$", u"ひたちの", "", " foo",
-    "foo ", " foo ", "foo\n", "foo\nbar"]
+INVALID_IDS = ["éléphant", "374.34", "ajfh/d/sfd@#$",
+    "\xe3\x81\xb2\xe3\x81\x9f\xe3\x81\xa1\xe3\x81\xae", "", " foo",
+    "foo ", " foo ", "foo\n", "foo\nbar", 3, 1.414, False, True]
 
 
 class TestConnection:
@@ -176,12 +177,12 @@ class TestRowUploads:
 
     @attr('sync')
     def test_table_upload_row_with_int_id(self):
-        assert_raises(TypeError, self.t.upload_row,
+        assert_raises(InvalidIDException, self.t.upload_row,
             {'_id': 3, 'zim': 'zam', 'wos': 19.2})
 
     @attr('sync')
     def test_table_upload_row_with_float_id(self):
-        assert_raises(TypeError, self.t.upload_row,
+        assert_raises(InvalidIDException, self.t.upload_row,
             {'_id': 3.131455, 'zim': 'zam', 'wos': 19.2})
 
     # This should fail per 401264106780/436898020970
@@ -318,12 +319,12 @@ class TestTableOps:
     def test_delete_row(self):
         self.t.delete_row("fivebug")
 
-    # This is expected behavior according to the API spec
-    @unittest.skip('bug filed')
-    @attr('sync')
-    def test_delete_deleted_row(self):
-        self.t.delete_row("fivebug")
-        self.t.delete_row("fivebug")
+    # # This is expected behavior according to the API spec
+    # @unittest.skip('bug filed')
+    # @attr('sync')
+    # def test_delete_deleted_row(self):
+    #     self.t.delete_row("fivebug")
+    #     self.t.delete_row("fivebug")
 
     @attr('sync')
     def test_batch_delete_rows(self):
@@ -479,6 +480,8 @@ class TestTableOps:
             force=True)
         a.wait()
         assert a.state == "succeeded"
+        assert isinstance(a.created_at, str)
+        assert isinstance(a.finished_at, str)
 
     @attr('async')
     def test_create_analysis_with_mismatch_categorical_real(self):
@@ -694,6 +697,13 @@ class TestPredictions:
         self.a2.predict({})
 
     @attr('async')
+    def test_make_prediction_with_multiple_rows(self):
+        self.a2.wait()
+        assert_raises(VeritableError, self.a2.predict, [
+            {'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
+            {'cat': 'b', 'ct': 2, 'real': None, 'bool': False}])
+
+    @attr('async')
     def test_make_prediction_with_list_of_rows_fails(self):
         self.a2.wait()
         assert_raises(VeritableError, self.a2.predict,
@@ -726,12 +736,12 @@ class TestPredictions:
         self.a1.wait()
         self.a1._link('predict')
 
-    @unittest.skip('bug filed')
-    def test_predict_from_columns_not_in_analysis(self):
-        a3 = self.t2.create_analysis(self.schema1, analysis_id="a3",
-            force=True)
-        a3.wait()
-        assert_raises(HTTPError, a3.predict,
-            {'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
-        assert_raises(HTTPError, a3.predict, {'zim': None})
-        assert_raises(HTTPError, a3.predict, {'wos': None})
+    # @unittest.skip('bug filed')
+    # def test_predict_from_failed_analysis(self):
+    #     a3 = self.t2.create_analysis(self.schema1, analysis_id="a3",
+    #         force=True)
+    #     wait_for_analysis(a3)
+    #     assert_raises(ServerException, a3.predict,
+    #         {'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
+    #     assert_raises(ServerException, a3.predict, {'zim': None})
+    #     assert_raises(ServerException, a3.predict, {'wos': None})
