@@ -19,7 +19,7 @@ if 'nossl' in OPTIONS:
     connect_kwargs.update({'ssl_verify': False})
 
 INVALID_IDS = ["éléphant", "374.34", "ajfh/d/sfd@#$", u"ひたちの", "", " foo",
-    "foo ", " foo ", "foo\n", "foo\nbar"]
+    "foo ", " foo ", "foo\n", "foo\nbar", 3, 1.414, False, True]
 
 
 class TestConnection:
