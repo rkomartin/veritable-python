@@ -16,7 +16,7 @@ from .exceptions import (APIConnectionException, DuplicateTableException,
     VeritableError)
 from .utils import (_make_table_id, _make_analysis_id, _check_id,
     _format_url)
-]
+
 BASE_URL = "https://api.priorknowledge.com/"
 
 
