@@ -16,9 +16,12 @@ INVALID_IDS = ["\xc3\xa9l\xc3\xa9phant", "374.34", "ajfh/d/sfd@#$",
 
 def test_format_url():
     assert 'base/path' == _format_url(['base','path'])
-    assert '/base/path' == _format_url(['/base','path'])
-    assert 'base/path/path2' == _format_url(['base/path','path2'],[0])
-    assert '/base/path/path2' == _format_url(['/base/path','path2'],[0])
+    assert '/base/path' == _format_url(['/base','path'],
+        noquote=[0])
+    assert 'base/path/path2' == _format_url(['base/path','path2'],
+        noquote=[0])
+    assert '/base/path/path2' == _format_url(['/base/path','path2'],
+        noquote=[0])
 
 def test_write_read_csv():
     handle, filename = mkstemp()
