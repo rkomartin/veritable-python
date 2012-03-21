@@ -529,8 +529,25 @@ class Analysis:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-
         return self._doc['_id']
+
+    @property
+    def finished_at(self):
+        """The time the analysis completed.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        return self._doc['finished_at']
+
+    @property
+    def created_at(self):
+        """The time the analysis was created.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        return self._doc['created_at']
 
     @property
     def state(self):
