@@ -36,10 +36,10 @@ def _get_response_data(r, debug_log=None):
             debug_log(json.loads(r.content.decode('utf-8')))
         return json.loads(r.content.decode('utf-8'))
     else:
-        handle_http_error(r, debug_log)
+        _handle_http_error(r, debug_log)
 
 
-def handle_http_error(r, debug_log=None):
+def _handle_http_error(r, debug_log=None):
     # handles HTTP errors.
     try:
         content = json.loads(r.content.decode('utf-8'))
