@@ -5,6 +5,7 @@ See also: https://dev.priorknowledge.com/docs/client/python
 """
 
 import os
+import sys
 import time
 from requests import HTTPError
 from .cursor import Cursor
@@ -49,12 +50,13 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
             ssl_verify=ssl_verify, enable_gzip=enable_gzip, debug=debug)
     try:
         connection_test = connection.get("/")
-    except HTTPError:
-        raise
+    except Exception as e:
+        raise APIConnectionException(api_key, api_base_url, e), None, sys.exc_info()[2]
+    try:
+        status = connection_test['status']
+        entropy = connection_test['entropy']
     except:
-        raise APIConnectionException(api_base_url)
-    status = connection_test['status']
-    entropy = connection_test['entropy']
+        raise(APIConnectionException(api_base_url))
     if status != "SUCCESS" or not isinstance(entropy, float):
         raise(APIConnectionException(api_base_url))
     return API(connection)

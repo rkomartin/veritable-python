@@ -27,8 +27,13 @@ class APIBaseURLException(VeritableError):
 
 class APIConnectionException(VeritableError):
     """Raised if a Veritable server is not found at the base URL."""
-    def __init__(self, url):
-        self.value = """No Veritable server at """ + url
+    def __init__(self, key, url, e=None):
+        if e:
+            self.value = ("""No Veritable server found at {0} using API \
+            key {1}""".format(url,key), e)
+        else:
+            self.value = """No Veritable server found at {0} using API \
+            key {1}""".format(url,key)
 
     def __str__(self):
         return repr(self.value)
