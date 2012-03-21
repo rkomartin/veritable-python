@@ -36,7 +36,7 @@ class TestConnection:
             **connect_kwargs)
 
     def test_create_api_with_invalid_user(self):
-        assert_raises(HTTPError, veritable.connect,
+        assert_raises(APIConnectionException, veritable.connect,
             "completely_invalid_user_id_3426", TEST_BASE_URL,
             **connect_kwargs)
 
@@ -310,6 +310,9 @@ class TestTableOps:
 
 # FIXME add separate tests for Cursor class (exercise combos of limit
 #    and per_page)
+# FIXME add row operations on deleted tables tests
+# FIXME make predictions from running analysis
+# FIXME make predictions from failed analysis
 
     @attr('sync')
     def test_delete_row(self):
@@ -724,11 +727,11 @@ class TestPredictions:
         self.a1._link('predict')
 
     @unittest.skip('bug filed')
-    def test_predict_from_failed_analysis(self):
+    def test_predict_from_columns_not_in_analysis(self):
         a3 = self.t2.create_analysis(self.schema1, analysis_id="a3",
             force=True)
-        wait_for_analysis(a3)
-        assert_raises(ServerException, a3.predict,
+        a3.wait()
+        assert_raises(HTTPError, a3.predict,
             {'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
-        assert_raises(ServerException, a3.predict, {'zim': None})
-        assert_raises(ServerException, a3.predict, {'wos': None})
+        assert_raises(HTTPError, a3.predict, {'zim': None})
+        assert_raises(HTTPError, a3.predict, {'wos': None})
