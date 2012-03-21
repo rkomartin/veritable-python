@@ -693,6 +693,13 @@ class TestPredictions:
         self.a2.predict({})
 
     @attr('async')
+    def test_make_prediction_with_multiple_rows(self):
+        self.a2.wait()
+        assert_raises(VeritableError, self.a2.predict, [
+            {'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
+            {'cat': 'b', 'ct': 2, 'real': None, 'bool': False}])
+
+    @attr('async')
     def test_make_prediction_with_list_of_rows_fails(self):
         self.a2.wait()
         assert_raises(VeritableError, self.a2.predict,
