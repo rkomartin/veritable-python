@@ -27,7 +27,12 @@ _alphanumeric = re.compile("^[-_a-zA-Z0-9]+$")
 
 def _check_id(id):
     if not isinstance(id, str) or _alphanumeric.match(id) is None or id[-1] == "\n":
-        raise InvalidIDException(id)
+        try:
+            str(id)
+        except:
+            raise InvalidIDException()
+        else:
+            raise InvalidIDException(str(id))
 
 
 def _make_table_id():
