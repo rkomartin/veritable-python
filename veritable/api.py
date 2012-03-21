@@ -526,9 +526,6 @@ class Analysis:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-<<<<<<< HEAD
-        return self._doc['_id']
-=======
         return str(self._doc['_id'])
 
     @property
