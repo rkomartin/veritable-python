@@ -147,7 +147,7 @@ class API:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        r = self._conn.get(_format_url(["tables", table_id])
+        r = self._conn.get(_format_url(["tables", table_id]))
         return Table(self._conn, r)
 
     def create_table(self, table_id=None, description="", force=False):
