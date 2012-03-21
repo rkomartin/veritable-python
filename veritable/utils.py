@@ -49,10 +49,12 @@ def _url_has_scheme(url):
     # Check if a URL includes a scheme
     return urlparse(url)[0] is not ""
 
-def _format_url(*args):
-    path = []
-    for a in args:
-        path.append(quote_plus(a.rstrip("/").lstrip("/")))
+def _format_url(path, noquote=[]):
+    for i in range(len(path)):
+        if i in noquote:
+            path[i] = path[i].rstrip("/").lstrip("/")
+        else:
+            path[i] = quote_plus(path[i].rstrip("/").lstrip("/"))
     return "/".join(path)
 
 def split_rows(rows, frac=0.5):

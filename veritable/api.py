@@ -105,7 +105,7 @@ class API:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return self._conn.get(_format_url("user", "limits"))
+        return self._conn.get(_format_url(["user", "limits"])
 
     def table_exists(self, table_id):
         """Checks if a table with the specified id is available to the user.
@@ -147,7 +147,7 @@ class API:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        r = self._conn.get(_format_url("tables", table_id))
+        r = self._conn.get(_format_url(["tables", table_id])
         return Table(self._conn, r)
 
     def create_table(self, table_id=None, description="", force=False):
@@ -197,7 +197,7 @@ class API:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        self._conn.delete(_format_url("tables", table_id))
+        self._conn.delete(_format_url(["tables", table_id]))
 
 
 class Table:
@@ -292,7 +292,8 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return self._conn.get(_format_url(self._link("rows"), row_id))
+        return self._conn.get(_format_url([self._link("rows"), row_id],
+            noquote=[0]))
 
     def get_rows(self, start=None, limit=None):
         """Gets the rows of the table.
@@ -336,7 +337,8 @@ class Table:
             _check_id(row_id)
             if not isinstance(row_id, basestring):
                 raise TypeError("Row id must be a string")
-        self._conn.put(_format_url(self._link("rows"), row_id), row)
+        self._conn.put(_format_url([self._link("rows"), row_id], noquote=[0]),
+            row)
 
     def batch_upload_rows(self, rows):
         """Batch adds rows to the table or updates existing rows.
@@ -373,7 +375,7 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        self._conn.delete(_format_url(self._link("rows"), row_id))
+        self._conn.delete(_format_url([self._link("rows"), row_id], noquote=[0]))
 
     def batch_delete_rows(self, rows):
         """Batch deletes rows from the table.
@@ -417,7 +419,8 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        r = self._conn.get(_format_url(self._link("analyses"), analysis_id))
+        r = self._conn.get(_format_url[(]self._link("analyses"), analysis_id],
+            noquote=[0]))
         return Analysis(self._conn, r)
 
     def delete_analysis(self, analysis_id):
@@ -432,7 +435,8 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        self._conn.delete(_format_url(self._link("analyses"), analysis_id))
+        self._conn.delete(_format_url([self._link("analyses"), analysis_id],
+            noquote=[0]))
 
     def create_analysis(self, schema, analysis_id=None, description="",
                         type="veritable", force=False):
