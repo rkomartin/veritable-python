@@ -316,12 +316,12 @@ class TestTableOps:
     def test_delete_row(self):
         self.t.delete_row("fivebug")
 
-    # This is expected behavior according to the API spec
-    @unittest.skip('bug filed')
-    @attr('sync')
-    def test_delete_deleted_row(self):
-        self.t.delete_row("fivebug")
-        self.t.delete_row("fivebug")
+    # # This is expected behavior according to the API spec
+    # @unittest.skip('bug filed')
+    # @attr('sync')
+    # def test_delete_deleted_row(self):
+    #     self.t.delete_row("fivebug")
+    #     self.t.delete_row("fivebug")
 
     @attr('sync')
     def test_batch_delete_rows(self):
@@ -733,12 +733,12 @@ class TestPredictions:
         self.a1.wait()
         self.a1._link('predict')
 
-    @unittest.skip('bug filed')
-    def test_predict_from_failed_analysis(self):
-        a3 = self.t2.create_analysis(self.schema1, analysis_id="a3",
-            force=True)
-        wait_for_analysis(a3)
-        assert_raises(ServerException, a3.predict,
-            {'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
-        assert_raises(ServerException, a3.predict, {'zim': None})
-        assert_raises(ServerException, a3.predict, {'wos': None})
+    # @unittest.skip('bug filed')
+    # def test_predict_from_failed_analysis(self):
+    #     a3 = self.t2.create_analysis(self.schema1, analysis_id="a3",
+    #         force=True)
+    #     wait_for_analysis(a3)
+    #     assert_raises(ServerException, a3.predict,
+    #         {'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
+    #     assert_raises(ServerException, a3.predict, {'zim': None})
+    #     assert_raises(ServerException, a3.predict, {'wos': None})
