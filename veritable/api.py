@@ -12,7 +12,8 @@ from .cursor import Cursor
 from .connection import Connection
 from .exceptions import (APIConnectionException, DuplicateTableException,
     MissingRowIDException, InvalidAnalysisTypeException,
-    DuplicateAnalysisException, VeritableError)
+    DuplicateAnalysisException, MissingLinkException, AnalysisNotReadyException,
+    VeritableError)
 try:
     from urllib import quote_plus
 except ImportError:
@@ -101,7 +102,7 @@ class API:
     def _link(self, name):
         # Retrieves a subresource by name
         if name not in self._doc['links']:
-            raise VeritableError('api has no {0} link'.format(name))
+            raise MissingLinkException("API", name)
         return self._doc['links'][name]
 
     def limits(self):
@@ -254,7 +255,7 @@ class Table:
     def _link(self, name):
         # Retrieves a subresource by name
         if name not in self._doc['links']:
-            raise VeritableError('table has no {0} link'.format(name))
+            raise MissingLinkException("Table", name)
         return self._doc['links'][name]
 
     def _analysis_exists(self, analysis_id):
@@ -517,7 +518,7 @@ class Analysis:
 
     def _link(self, name):
         if name not in self._doc['links']:
-            raise VeritableError('analysis has no {0} link'.format(name))
+            raise MissingLinkException('Analysis', name)
         return self._doc['links'][name]
 
     @property
@@ -527,7 +528,6 @@ class Analysis:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-
         return self._doc['_id']
 
     @property
@@ -644,6 +644,6 @@ class Analysis:
             self._link('predict'),
             data={'data': row, 'count': count})
         elif self.state == 'running':
-            raise VeritableError('Analysis is not yet complete!')
+            raise AnalysisNotReadyException(self.id)
         elif self.state == 'failed':
-            raise VeritableError(self.error)
+            raise AnalysisFailedException(self.id, self.error)

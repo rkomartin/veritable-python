@@ -122,3 +122,33 @@ class DataValidationException(VeritableError):
 
     def __str__(self):
         return repr(self.value)
+
+
+class MissingLinkException(VeritableError):
+    """Raised when a link is missing from the JSON doc of a resource."""
+    def __init__(self, resource, name):
+        self.value = """{0} instance is missing link to {1}""".format(resource,
+            name)
+
+    def __str__(self):
+        return repr(self.value)
+
+class AnalysisNotReadyException(VeritableError):
+    """Raised when predictions are made from an analysis that is
+    still running."""
+    def __init__(self, id):
+        self.value = """Analysis with id {0} is still running and \
+        not yet ready to predict""".format(id)
+
+    def __str__(self):
+        return repr(self.value)
+
+class AnalysisFailedException(VeritableError):
+    """Raised when predictions are made from an analysis that has failed."""
+    def __init__(self, id, e):
+        self.value = """Analysis with id {0} has failed and cannot \
+        predict: {1}""".format(id, e)
+
+    def __str__(self):
+        return repr(self.value)
+
