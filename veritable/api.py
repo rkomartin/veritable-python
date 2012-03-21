@@ -268,7 +268,7 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return self._doc['_id']
+        return str(self._doc['_id'])
 
     def delete(self):
         """Deletes the table resource.
@@ -521,7 +521,7 @@ class Analysis:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return self._doc['_id']
+        return str(self._doc['_id'])
 
     @property
     def finished_at(self):
@@ -530,7 +530,7 @@ class Analysis:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return self._doc['finished_at']
+        return str(self._doc['finished_at'])
 
     @property
     def created_at(self):
@@ -539,7 +539,7 @@ class Analysis:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return self._doc['created_at']
+        return str(self._doc['created_at'])
 
     @property
     def state(self):
@@ -551,7 +551,7 @@ class Analysis:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return self._doc['state']
+        return str(self._doc['state'])
 
     @property
     def error(self):
