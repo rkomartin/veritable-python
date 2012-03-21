@@ -2,7 +2,7 @@
 # coding=utf-8
 
 from veritable.utils import (write_csv, read_csv, make_schema, summarize,
-    validate_data, validate_predictions)
+    validate_data, validate_predictions, _format_url)
 from veritable.exceptions import DataValidationException
 from nose.tools import raises, assert_raises
 from tempfile import mkstemp
@@ -12,6 +12,13 @@ import os
 INVALID_IDS = ["\xc3\xa9l\xc3\xa9phant", "374.34", "ajfh/d/sfd@#$",
     "\xe3\x81\xb2\xe3\x81\x9f\xe3\x81\xa1\xe3\x81\xae", "", " foo",
     "foo ", " foo ", "foo\n", "foo\nbar", 5, 374.34, False]
+
+
+def test_format_url():
+    assert 'base/path' == _format_url('base','path')
+    assert '/base/path' == _format_url('/base','path')
+    assert 'base/path/path2' == _format_url('base/path','path2')
+    assert '/base/path/path2' == _format_url('/base/path','path2')
 
 
 def test_write_read_csv():
