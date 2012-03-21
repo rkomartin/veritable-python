@@ -11,6 +11,10 @@ try:
     from urlparse import urlparse
 except ImportError:
     from urllib.parse import urlparse    
+try:
+    from urllib import quote_plus
+except ImportError:
+    from urllib.parse import quote_plus    
 import csv
 import re
 import string
@@ -40,6 +44,11 @@ def _url_has_scheme(url):
     # Check if a URL includes a scheme
     return urlparse(url)[0] is not ""
 
+def _format_url(*args):
+    path = []
+    for a in args:
+        path.append(quote_plus(a.rstrip("/").lstrip("/")))
+    return "/".join(path)
 
 def split_rows(rows, frac=0.5):
     """Splits a list of dicts representing a dataset into two sets.
