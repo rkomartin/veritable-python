@@ -22,8 +22,7 @@ _alphanumeric = re.compile("^[-_a-zA-Z0-9]+$")
 
 
 def _check_id(id):
-    # Note that this will choke on unicode ids
-    if _alphanumeric.match(id) is None or id[-1] == "\n":
+    if not isinstance(id, str) or _alphanumeric.match(id) is None or id[-1] == "\n":
         raise InvalidIDException(id)
 
 
