@@ -12,11 +12,8 @@ from .connection import Connection
 from .exceptions import (APIConnectionException, DuplicateTableException,
     MissingRowIDException, InvalidAnalysisTypeException,
     DuplicateAnalysisException, VeritableError)
-try:
-    from urllib import quote_plus
-except ImportError:
-    from urllib.parse import quote_plus    
-from .utils import _make_table_id, _make_analysis_id, _check_id
+from .utils import (_make_table_id, _make_analysis_id, _check_id,
+    _format_url)
 
 BASE_URL = "https://api.priorknowledge.com/"
 
@@ -108,7 +105,7 @@ class API:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return self._conn.get("user/limits")
+        return self._conn.get(_format_url(["user", "limits"]))
 
     def table_exists(self, table_id):
         """Checks if a table with the specified id is available to the user.
@@ -150,7 +147,7 @@ class API:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        r = self._conn.get("/tables/{0}".format(quote_plus(table_id)))
+        r = self._conn.get(_format_url(["tables", table_id]))
         return Table(self._conn, r)
 
     def create_table(self, table_id=None, description="", force=False):
@@ -184,7 +181,7 @@ class API:
                 raise DuplicateTableException(table_id)
             else:
                 self.delete_table(table_id)
-        r = self._conn.post("/tables",
+        r = self._conn.post("tables",
                 data={"_id": table_id, "description": description})
         return Table(self._conn, r)
 
@@ -200,7 +197,7 @@ class API:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        self._conn.delete("/tables/{0}".format(quote_plus(table_id)))
+        self._conn.delete(_format_url(["tables", table_id]))
 
 
 class Table:
@@ -271,7 +268,7 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return self._doc['_id']
+        return str(self._doc['_id'])
 
     def delete(self):
         """Deletes the table resource.
@@ -295,8 +292,8 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return self._conn.get("{0}/{1}".format(self._link("rows").rstrip("/"),
-            quote_plus(row_id)))
+        return self._conn.get(_format_url([self._link("rows"), row_id],
+            noquote=[0]))
 
     def get_rows(self, start=None, limit=None):
         """Gets the rows of the table.
@@ -331,15 +328,15 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
+        if not isinstance(row, dict):
+            raise VeritableError("Must provide a row dict to upload!")
         if "_id" not in row:
             raise MissingRowIDException()
         else:
             row_id = row["_id"]
             _check_id(row_id)
-            if not isinstance(row_id, basestring):
-                raise TypeError("Row id must be a string")
-        self._conn.put("{0}/{1}".format(self._link("rows").rstrip("/"),
-            quote_plus(row_id)), row)
+        self._conn.put(_format_url([self._link("rows"), row_id], noquote=[0]),
+            row)
 
     def batch_upload_rows(self, rows):
         """Batch adds rows to the table or updates existing rows.
@@ -355,10 +352,12 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        for i in range(len(rows)):
-            if not "_id" in rows[i]:
+        for row in rows:
+            if not isinstance(row, dict):
+                raise VeritableError("Rows must be represented by row dicts.")
+            if not "_id" in row:
                 raise MissingRowIDException()
-            _check_id(rows[i]["_id"])
+            _check_id(row["_id"])
         data = {'action': 'put', 'rows': rows}
         self._conn.post(self._link("rows"), data)
 
@@ -374,8 +373,7 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        self._conn.delete("{0}/{1}".format(self._link("rows").rstrip("/"),
-            quote_plus(row_id)))
+        self._conn.delete(_format_url([self._link("rows"), row_id], noquote=[0]))
 
     def batch_delete_rows(self, rows):
         """Batch deletes rows from the table.
@@ -419,8 +417,8 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        r = self._conn.get("{0}/{1}".format(self._link("analyses").rstrip("/"),
-            quote_plus(analysis_id)))
+        r = self._conn.get(_format_url([self._link("analyses"), analysis_id],
+            noquote=[0]))
         return Analysis(self._conn, r)
 
     def delete_analysis(self, analysis_id):
@@ -435,8 +433,8 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        self._conn.delete("{0}/{1}".format(self._link("analyses").rstrip("/"),
-            quote_plus(analysis_id)))
+        self._conn.delete(_format_url([self._link("analyses"), analysis_id],
+            noquote=[0]))
 
     def create_analysis(self, schema, analysis_id=None, description="",
                         type="veritable", force=False):
@@ -525,8 +523,25 @@ class Analysis:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
+        return str(self._doc['_id'])
 
-        return self._doc['_id']
+    @property
+    def finished_at(self):
+        """The time the analysis completed.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        return str(self._doc['finished_at'])
+
+    @property
+    def created_at(self):
+        """The time the analysis was created.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        return str(self._doc['created_at'])
 
     @property
     def state(self):
@@ -538,7 +553,7 @@ class Analysis:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return self._doc['state']
+        return str(self._doc['state'])
 
     @property
     def error(self):
@@ -638,6 +653,9 @@ class Analysis:
         if self.state == 'running':
             self.update()
         if self.state == 'succeeded':
+            if not isinstance(row, dict):
+                raise VeritableError("""Must provide a row dict to make \
+                predictions!""")
             return self._conn.post(
             self._link('predict'),
             data={'data': row, 'count': count})

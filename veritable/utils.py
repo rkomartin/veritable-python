@@ -11,6 +11,10 @@ try:
     from urlparse import urlparse
 except ImportError:
     from urllib.parse import urlparse    
+try:
+    from urllib import quote_plus
+except ImportError:
+    from urllib.parse import quote_plus    
 import csv
 import re
 import string
@@ -22,9 +26,13 @@ _alphanumeric = re.compile("^[-_a-zA-Z0-9]+$")
 
 
 def _check_id(id):
-    # Note that this will choke on unicode ids
-    if _alphanumeric.match(id) is None or id[-1] == "\n":
-        raise InvalidIDException(id)
+    if not isinstance(id, str) or _alphanumeric.match(id) is None or id[-1] == "\n":
+        try:
+            str(id)
+        except:
+            raise InvalidIDException()
+        else:
+            raise InvalidIDException(str(id))
 
 
 def _make_table_id():
@@ -41,6 +49,22 @@ def _url_has_scheme(url):
     # Check if a URL includes a scheme
     return urlparse(url)[0] is not ""
 
+def _format_url(path, noquote=[]):
+    # Joins the path elements in path (a collection) with "/"
+    # If the index of a path element is not in noquote, the element
+    # will be quoted using urllib.quote_plus
+    for i in range(len(path)):
+        if i == 0:
+            if i in noquote:
+                path[i] = path[i].rstrip("/")
+            else:
+                path[i] = quote_plus(path[i].rstrip("/"))
+        else:
+            if i in noquote:
+                path[i] = path[i].rstrip("/").lstrip("/")
+            else:
+                path[i] = quote_plus(path[i].rstrip("/").lstrip("/"))
+    return "/".join(path)
 
 def split_rows(rows, frac=0.5):
     """Splits a list of dicts representing a dataset into two sets.
