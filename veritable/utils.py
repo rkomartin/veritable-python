@@ -54,10 +54,16 @@ def _format_url(path, noquote=[]):
     # If the index of a path element is not in noquote, the element
     # will be quoted using urllib.quote_plus
     for i in range(len(path)):
-        if i in noquote:
-            path[i] = path[i].rstrip("/").lstrip("/")
+        if i == 0:
+            if i in noquote:
+                path[i] = path[i].rstrip("/")
+            else:
+                path[i] = quote_plus(path[i].rstrip("/"))
         else:
-            path[i] = quote_plus(path[i].rstrip("/").lstrip("/"))
+            if i in noquote:
+                path[i] = path[i].rstrip("/").lstrip("/")
+            else:
+                path[i] = quote_plus(path[i].rstrip("/").lstrip("/"))
     return "/".join(path)
 
 def split_rows(rows, frac=0.5):
