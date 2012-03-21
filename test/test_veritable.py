@@ -476,6 +476,8 @@ class TestTableOps:
             force=True)
         a.wait()
         assert a.state == "succeeded"
+        assert isinstance(a.created_at, str)
+        assert isinstance(a.finished_at, str)
 
     @attr('async')
     def test_create_analysis_with_mismatch_categorical_real(self):
