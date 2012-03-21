@@ -176,12 +176,12 @@ class TestRowUploads:
 
     @attr('sync')
     def test_table_upload_row_with_int_id(self):
-        assert_raises(TypeError, self.t.upload_row,
+        assert_raises(InvalidIDException, self.t.upload_row,
             {'_id': 3, 'zim': 'zam', 'wos': 19.2})
 
     @attr('sync')
     def test_table_upload_row_with_float_id(self):
-        assert_raises(TypeError, self.t.upload_row,
+        assert_raises(InvalidIDException, self.t.upload_row,
             {'_id': 3.131455, 'zim': 'zam', 'wos': 19.2})
 
     # This should fail per 401264106780/436898020970
