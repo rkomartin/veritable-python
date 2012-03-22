@@ -2,6 +2,7 @@
 # coding=utf-8
 
 import veritable
+import random
 import unittest
 import os
 from nose.plugins.attrib import attr
@@ -73,7 +74,7 @@ class TestAPI:
 
     @attr('sync')
     def test_create_table_with_id(self):
-        t = self.API.create_table("foo", force=True)
+        t = self.API.create_table("foo" + str(random.random()), force=True)
         t.delete()
 
     @attr('sync')
@@ -86,62 +87,57 @@ class TestAPI:
 
     @attr('sync')
     def test_create_table_with_description(self):
-        t = self.API.create_table("bar", "A table of humbuggery", force=True)
-        t.delete()
-
-    @attr('sync')
-    def test_get_table(self):
-        t = self.API.create_table("hoo", force=True)
-        t = self.API.get_table("hoo")
+        t = self.API.create_table("foo" + str(random.random()), description="A table of humbuggery")
         t.delete()
 
     @attr('sync')
     def test_get_table_by_id_attr(self):
-        t = self.API.create_table("hoo", force=True)
+        t = self.API.create_table()
         t = self.API.get_table(t.id)
         t.delete()
 
     @attr('sync')
     def test_delete_table(self):
-        t = self.API.create_table("woo", force=True)
-        t = self.API.get_table("woo")
+        t = self.API.create_table()
         t.delete()
 
     @attr('sync')
     def test_delete_deleted_table(self):
-        t = self.API.create_table("humm", force=True)
+        t = self.API.create_table()
         t.delete()
         assert_raises(ServerException, t.delete)
 
     @attr('sync')
     def test_create_deleted_table(self):
-        t = self.API.create_table("pumm", force=True)
+        t = self.API.create_table()
+        id = t.id
         t.delete()
-        t = self.API.create_table("pumm")
+        t = self.API.create_table(t.id)
         t.delete()
 
     @attr('sync')
     def test_get_deleted_table(self):
-        t = self.API.create_table("rum", force=True)
+        t = self.API.create_table()
+        id = t.id
         t.delete()
-        assert_raises(ServerException, self.API.get_table, "rum")
+        assert_raises(ServerException, self.API.get_table, id)
 
     @attr('sync')
     def test_create_duplicate_tables(self):
-        t = self.API.create_table("dumb", force=True)
-        assert_raises(DuplicateTableException, self.API.create_table, "dumb")
+        t = self.API.create_table()
+        assert_raises(DuplicateTableException, self.API.create_table, t.id)
         t.delete()
 
     @attr('sync')
     def test_create_duplicate_tables_force(self):
-        t = self.API.create_table("grimble", force=True)
-        t = self.API.create_table("grimble", force=True)
+        t = self.API.create_table()
+        t = self.API.create_table(t.id)
         t.delete()
 
     @attr('sync')
     def test_delete_table_by_id(self):
-        self.API.create_table("gramble", force=True)
-        self.API.delete_table("gramble")
+        self.API.create_table()
+        self.API.delete_table(t.id)
 
 
 class TestRowUploads:
@@ -151,7 +147,7 @@ class TestRowUploads:
             **connect_kwargs)
 
     def setup(self):
-        self.t = self.API.create_table("bugz", force=True)
+        self.t = self.API.create_table()
 
     def teardown(self):
         self.t.delete()
@@ -234,7 +230,7 @@ class TestTableOps:
             **connect_kwargs)
 
     def setup(self):
-        self.t = self.API.create_table(table_id="bugz", force=True)
+        self.t = self.API.create_table()
         self.t.batch_upload_rows([
             {'_id': 'onebug', 'zim': 'zam', 'wos': 19.2},
             {'_id': 'twobug', 'zim': 'vim', 'wos': 11.3},
@@ -242,9 +238,7 @@ class TestTableOps:
             {'_id': 'fourbug', 'zim': 'zop', 'wos': 10.3},
             {'_id': 'fivebug', 'zim': 'zam', 'wos': 9.3},
             {'_id': 'sixbug', 'zim': 'zop', 'wos': 18.9}])
-        self.t2 = self.API.create_table(table_id="test_all_types",
-                             description="Test dataset with all datatypes",
-                             force=True)
+        self.t2 = self.API.create_table()
         self.t2.batch_upload_rows(
         [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
          {'_id': 'row2', 'cat': 'b', 'ct': 0, 'real': 0.92131, 'bool': False},
@@ -653,7 +647,7 @@ class TestPredictions:
             **connect_kwargs)
 
     def setup(self):
-        self.t = self.API.create_table(table_id="bugz", force=True)
+        self.t = self.API.create_table()
         self.t.batch_upload_rows([{'_id': 'onebug', 'zim': 'zam', 'wos': 19.2},
                          {'_id': 'twobug', 'zim': 'vim', 'wos': 11.3},
                          {'_id': 'threebug', 'zim': 'fop', 'wos': 17.5},
@@ -664,8 +658,7 @@ class TestPredictions:
             'wos': {'type': 'real'}}
         self.a1 = self.t.create_analysis(self.schema1, analysis_id="a1",
             force=True)
-        self.t2 = self.API.create_table(table_id="test_all_types",
-            description="Test dataset with all datatypes", force=True)
+        self.t2 = self.API.create_table()
         self.t2.batch_upload_rows(
         [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
          {'_id': 'row2', 'cat': 'b', 'ct': 0, 'real': 0.92131, 'bool': False},
