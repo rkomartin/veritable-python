@@ -5,13 +5,14 @@ See also: https://dev.priorknowledge.com/docs/client/python
 """
 
 import os
+import sys
 import time
-from requests import HTTPError
 from .cursor import Cursor
 from .connection import Connection
 from .exceptions import (APIConnectionException, DuplicateTableException,
     MissingRowIDException, InvalidAnalysisTypeException,
-    DuplicateAnalysisException, VeritableError)
+    DuplicateAnalysisException, MissingLinkException,
+    AnalysisNotReadyException, AnalysisFailedException, VeritableError)
 from .utils import (_make_table_id, _make_analysis_id, _check_id,
     _format_url)
 
@@ -46,12 +47,13 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
             ssl_verify=ssl_verify, enable_gzip=enable_gzip, debug=debug)
     try:
         connection_test = connection.get("/")
-    except HTTPError:
-        raise
+    except Exception as e:
+        raise APIConnectionException(api_key, api_base_url, e, sys.exc_info()[2]) 
+    try:
+        status = connection_test['status']
+        entropy = connection_test['entropy']
     except:
-        raise APIConnectionException(api_base_url)
-    status = connection_test['status']
-    entropy = connection_test['entropy']
+        raise(APIConnectionException(api_base_url))
     if status != "SUCCESS" or not isinstance(entropy, float):
         raise(APIConnectionException(api_base_url))
     return API(connection)
@@ -96,7 +98,7 @@ class API:
     def _link(self, name):
         # Retrieves a subresource by name
         if name not in self._doc['links']:
-            raise VeritableError('api has no {0} link'.format(name))
+            raise MissingLinkException("API", name)
         return self._doc['links'][name]
 
     def limits(self):
@@ -249,7 +251,7 @@ class Table:
     def _link(self, name):
         # Retrieves a subresource by name
         if name not in self._doc['links']:
-            raise VeritableError('table has no {0} link'.format(name))
+            raise MissingLinkException("Table", name)
         return self._doc['links'][name]
 
     def _analysis_exists(self, analysis_id):
@@ -373,7 +375,8 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        self._conn.delete(_format_url([self._link("rows"), row_id], noquote=[0]))
+        self._conn.delete(_format_url([self._link("rows"), row_id],
+            noquote=[0]))
 
     def batch_delete_rows(self, rows):
         """Batch deletes rows from the table.
@@ -429,7 +432,7 @@ class Table:
 
         Arguments:
         analysis_id -- the string id of the analysis to delete
-        
+
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
@@ -513,7 +516,7 @@ class Analysis:
 
     def _link(self, name):
         if name not in self._doc['links']:
-            raise VeritableError('analysis has no {0} link'.format(name))
+            raise MissingLinkException('Analysis', name)
         return self._doc['links'][name]
 
     @property
@@ -578,7 +581,7 @@ class Analysis:
         percent -- an integer between 0 and 100 indicating how much of The
           analysis is complete
         finished_at_estimate -- a timestamp representing the estimated time
-          at which the analysis will complete 
+          at which the analysis will complete
 
         If the analysis has succeeded or failed, None.
 
@@ -589,7 +592,7 @@ class Analysis:
             return self._doc['progress']
         else:
             return None
-    
+
     def update(self):
         """Refreshes the analysis state
 
@@ -660,6 +663,6 @@ class Analysis:
             self._link('predict'),
             data={'data': row, 'count': count})
         elif self.state == 'running':
-            raise VeritableError('Analysis is not yet complete!')
+            raise AnalysisNotReadyException(self.id)
         elif self.state == 'failed':
-            raise VeritableError(self.error)
+            raise AnalysisFailedException(self.id, self.error)
