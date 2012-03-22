@@ -74,7 +74,7 @@ class TestAPI:
 
     @attr('sync')
     def test_create_table_with_id(self):
-        t = self.API.create_table("foo" + str(random.randint(0,100000000)),
+        t = self.API.create_table("foo" + str(random.randint(0, 100000000)),
             force=True)
         t.delete()
 
@@ -88,7 +88,7 @@ class TestAPI:
 
     @attr('sync')
     def test_create_table_with_description(self):
-        t = self.API.create_table("foo" + str(random.randint(100000000)),
+        t = self.API.create_table("foo" + str(random.randint(0, 100000000)),
             description="A table of humbuggery")
         t.delete()
 
@@ -133,7 +133,7 @@ class TestAPI:
     @attr('sync')
     def test_create_duplicate_tables_force(self):
         t = self.API.create_table()
-        t = self.API.create_table(t.id)
+        t = self.API.create_table(t.id, force=True)
         t.delete()
 
     @attr('sync')
