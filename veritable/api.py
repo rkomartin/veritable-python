@@ -48,8 +48,7 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
     try:
         connection_test = connection.get("/")
     except Exception as e:
-        raise APIConnectionException(api_key, api_base_url,
-            e), None, sys.exc_info()[2]
+        raise APIConnectionException(api_key, api_base_url, e), None, sys.exc_info()[2]
     try:
         status = connection_test['status']
         entropy = connection_test['entropy']
