@@ -30,10 +30,10 @@ class APIConnectionException(VeritableError):
     def __init__(self, key, url, e=None):
         if e:
             self.value = ("""No Veritable server found at {0} using API \
-            key {1}""".format(url,key), e)
+            key {1}""".format(url, key), e)
         else:
             self.value = """No Veritable server found at {0} using API \
-            key {1}""".format(url,key)
+            key {1}""".format(url, key)
 
     def __str__(self):
         return repr(self.value)
@@ -133,6 +133,7 @@ class MissingLinkException(VeritableError):
     def __str__(self):
         return repr(self.value)
 
+
 class AnalysisNotReadyException(VeritableError):
     """Raised when predictions are made from an analysis that is
     still running."""
@@ -143,6 +144,7 @@ class AnalysisNotReadyException(VeritableError):
     def __str__(self):
         return repr(self.value)
 
+
 class AnalysisFailedException(VeritableError):
     """Raised when predictions are made from an analysis that has failed."""
     def __init__(self, id, e):
@@ -151,4 +153,3 @@ class AnalysisFailedException(VeritableError):
 
     def __str__(self):
         return repr(self.value)
-
