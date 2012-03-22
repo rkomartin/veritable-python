@@ -7,13 +7,12 @@ See also: https://dev.priorknowledge.com/docs/client/python
 import os
 import sys
 import time
-from requests import HTTPError
 from .cursor import Cursor
 from .connection import Connection
 from .exceptions import (APIConnectionException, DuplicateTableException,
     MissingRowIDException, InvalidAnalysisTypeException,
-    DuplicateAnalysisException, MissingLinkException, AnalysisNotReadyException,
-    VeritableError)
+    DuplicateAnalysisException, MissingLinkException,
+    AnalysisNotReadyException, AnalysisFailedException, VeritableError)
 from .utils import (_make_table_id, _make_analysis_id, _check_id,
     _format_url)
 
@@ -49,7 +48,8 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
     try:
         connection_test = connection.get("/")
     except Exception as e:
-        raise APIConnectionException(api_key, api_base_url, e), None, sys.exc_info()[2]
+        raise APIConnectionException(api_key, api_base_url,
+            e), None, sys.exc_info()[2]
     try:
         status = connection_test['status']
         entropy = connection_test['entropy']
@@ -376,7 +376,8 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        self._conn.delete(_format_url([self._link("rows"), row_id], noquote=[0]))
+        self._conn.delete(_format_url([self._link("rows"), row_id],
+            noquote=[0]))
 
     def batch_delete_rows(self, rows):
         """Batch deletes rows from the table.
@@ -432,7 +433,7 @@ class Table:
 
         Arguments:
         analysis_id -- the string id of the analysis to delete
-        
+
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
@@ -581,7 +582,7 @@ class Analysis:
         percent -- an integer between 0 and 100 indicating how much of The
           analysis is complete
         finished_at_estimate -- a timestamp representing the estimated time
-          at which the analysis will complete 
+          at which the analysis will complete
 
         If the analysis has succeeded or failed, None.
 
@@ -592,7 +593,7 @@ class Analysis:
             return self._doc['progress']
         else:
             return None
-    
+
     def update(self):
         """Refreshes the analysis state
 
