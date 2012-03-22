@@ -138,7 +138,7 @@ class TestAPI:
 
     @attr('sync')
     def test_delete_table_by_id(self):
-        self.API.create_table()
+        t = self.API.create_table()
         self.API.delete_table(t.id)
 
 
