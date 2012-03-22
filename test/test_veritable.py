@@ -3,11 +3,9 @@
 
 import veritable
 import random
-import unittest
 import os
 from nose.plugins.attrib import attr
 from nose.tools import assert_raises
-from requests.exceptions import HTTPError
 from veritable.exceptions import *
 
 TEST_API_KEY = os.getenv("VERITABLE_KEY")
@@ -114,7 +112,7 @@ class TestAPI:
         t = self.API.create_table()
         id = t.id
         t.delete()
-        t = self.API.create_table(t.id)
+        t = self.API.create_table(id)
         t.delete()
 
     @attr('sync')

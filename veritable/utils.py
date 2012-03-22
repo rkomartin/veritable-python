@@ -10,14 +10,13 @@ from random import shuffle
 try:
     from urlparse import urlparse
 except ImportError:
-    from urllib.parse import urlparse    
+    from urllib.parse import urlparse
 try:
     from urllib import quote_plus
 except ImportError:
-    from urllib.parse import quote_plus    
+    from urllib.parse import quote_plus
 import csv
 import re
-import string
 from .exceptions import (InvalidIDException, InvalidSchemaException,
     VeritableError, DataValidationException)
 
@@ -49,6 +48,7 @@ def _url_has_scheme(url):
     # Check if a URL includes a scheme
     return urlparse(url)[0] is not ""
 
+
 def _format_url(path, noquote=[]):
     # Joins the path elements in path (a collection) with "/"
     # If the index of a path element is not in noquote, the element
@@ -65,6 +65,7 @@ def _format_url(path, noquote=[]):
             else:
                 path[i] = quote_plus(path[i].rstrip("/").lstrip("/"))
     return "/".join(path)
+
 
 def split_rows(rows, frac=0.5):
     """Splits a list of dicts representing a dataset into two sets.
