@@ -545,7 +545,6 @@ class Analysis:
 
         """
         return str(self._doc['created_at'])
->>>>>>> master
 
     @property
     def state(self):
