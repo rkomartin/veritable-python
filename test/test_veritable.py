@@ -81,7 +81,7 @@ class TestAPI:
     def test_create_table_with_id_json_roundtrip(self):
         id = json.loads(json.dumps(
             {'id': "foo" + str(random.randint(0, 100000000))}))['id']
-        t = self.API.create_table(id), force=True)
+        t = self.API.create_table(id, force=True)
         t.delete()
 
     @attr('sync')
