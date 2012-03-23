@@ -359,6 +359,7 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
+        rs = []
         if not isinstance(per_page, int) or not per_page > 0:
             raise VeritableError("Page size must be an int greater than 0")
         for row in rows:
@@ -366,16 +367,21 @@ class Table:
                 raise VeritableError("Rows must be represented by row dicts.")
             if not "_id" in row:
                 raise MissingRowIDException()
+            row["_id"] = _handle_unicode_id(row["_id"])
             _check_id(row["_id"])
-        i = 0
-        l = len(rows)
-        while i < l:
-            if i + per_page > l:
-                data = {'action': 'put', 'rows': rows[i:l]}
-            else:
-                data = {'action': 'put', 'rows': rows[i:i+per_page]}
+            rs.append(row)
+        batch = []
+        i = 1
+        for r in rs:
+            batch.append(r)
+            if i == per_page:
+                data = {'action': 'put', 'rows': batch}
+                self._conn.post(self._link('rows'), data)
+                i = 1
+                batch = []
+        if len(batch) > 0:
+            data = {'action': 'put', 'rows': batch}
             self._conn.post(self._link('rows'), data)
-            i = i + per_page
 
     def delete_row(self, row_id):
         """Deletes a row from the table by its id.

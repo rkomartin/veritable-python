@@ -224,11 +224,27 @@ class TestRowUploads:
 
     @attr('sync')
     def test_batch_upload_rows_multipage(self):
-        rs = []
-        for i in range(10421):
-            rs.append({'_id': str(i), 'zim': 'zop', 'wos': random.random(),
-                'fop': random.randint(0,1000)})
-        self.t.batch_upload_rows(rs)
+        for nrows in [0, 331, 1000, 1421, 2000]:
+            t2 = self.API.create_table()
+            rs = []
+            for i in range(nrows):
+                rs.append({'_id': "r" + str(i), 'zim': 'zop', 'wos': random.random(),
+                    'fop': random.randint(0,1000)})
+            print(nrows)
+            self.t.batch_upload_rows(rs)
+            t2.batch_upload_rows(rs)
+            rowiter = t2.get_rows()
+            print(len(list(self.t.get_rows())))
+            print(len(list(t2.get_rows())))
+            assert(len(list(self.t.get_rows())) == nrows)
+            self.t.batch_delete_rows([{'_id': str(row['_id'])} for row in rs])
+            self.t.batch_upload_rows(t2.get_rows())
+            print(len(list(self.t.get_rows())))
+            assert(len(list(self.t.get_rows())) == nrows)
+            self.t.batch_delete_rows([{'_id': str(row['_id'])} for row in rs])
+            t2.delete()
+
+    # FIXME check roundtrips to make sure ids remain valid
 
     @attr('sync')
     def test_batch_upload_rows_multipage_raise_exception(self):
@@ -236,7 +252,9 @@ class TestRowUploads:
         for i in range(10000):
             rs.append({'_id': str(i), 'zim': 'zop', 'wos': random.random(),
                 'fop': random.randint(0,1000)})
-        assert_raises(VeritableError, self.t.batch_upload_rows, rs, per_page=0)
+        for pp in [0, -5, 2.31, "foo", False]:
+            assert_raises(VeritableError, self.t.batch_upload_rows,
+                rs, per_page=pp)
 
 
 class TestTableOps:
