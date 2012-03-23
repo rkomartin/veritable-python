@@ -14,7 +14,7 @@ from .exceptions import (APIConnectionException, DuplicateTableException,
     DuplicateAnalysisException, MissingLinkException,
     AnalysisNotReadyException, AnalysisFailedException, VeritableError)
 from .utils import (_make_table_id, _make_analysis_id, _check_id,
-    _format_url)
+    _format_url, _handle_unicode_id)
 
 BASE_URL = "https://api.priorknowledge.com/"
 
@@ -173,6 +173,7 @@ class API:
             autogen = True
             table_id = _make_table_id()
         else:
+            table_id = _handle_unicode_id(table_id)
             _check_id(table_id)
             autogen = False
         if self.table_exists(table_id):
@@ -335,7 +336,7 @@ class Table:
         if "_id" not in row:
             raise MissingRowIDException()
         else:
-            row_id = row["_id"]
+            row_id = _handle_unicode_id(row["_id"])
             _check_id(row_id)
         self._conn.put(_format_url([self._link("rows"), row_id], noquote=[0]),
             row)
@@ -480,6 +481,7 @@ class Table:
             autogen = True
             analysis_id = _make_analysis_id()
         else:
+            analysis_id = _handle_unicode_id(analysis_id)
             _check_id(analysis_id)
             autogen = False
         if self._analysis_exists(analysis_id):
