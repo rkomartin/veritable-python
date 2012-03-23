@@ -340,8 +340,11 @@ class Table:
         self._conn.put(_format_url([self._link("rows"), row_id], noquote=[0]),
             row)
 
-    def batch_upload_rows(self, rows):
+    def batch_upload_rows(self, rows, per_page=1000):
         """Batch adds rows to the table or updates existing rows.
+
+        By default, paginates requests in chunks of 1000 rows. This
+        parameter can be adjusted.
 
         Returns None on success.
 
@@ -350,18 +353,28 @@ class Table:
             must contain an '_id' key whose value is a string containing only
             alphanumerics, underscores, and hyphens, and is unique in the
             table.
+        per_page - the number of rows to upload per HTTP request (default: 1000)
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
+        if not isinstance(per_page, int) or not per_page > 0:
+            raise VeritableError("Page size must be an int greater than 0")
         for row in rows:
             if not isinstance(row, dict):
                 raise VeritableError("Rows must be represented by row dicts.")
             if not "_id" in row:
                 raise MissingRowIDException()
             _check_id(row["_id"])
-        data = {'action': 'put', 'rows': rows}
-        self._conn.post(self._link("rows"), data)
+        i = 0
+        l = len(rows)
+        while i < l:
+            if i + per_page > l:
+                data = {'action': 'put', 'rows': rows[i:l]}
+            else:
+                data = {'action': 'put', 'rows': rows[i:i+per_page]}
+            self._conn.post(self._link('rows'), data)
+            i = i + per_page
 
     def delete_row(self, row_id):
         """Deletes a row from the table by its id.

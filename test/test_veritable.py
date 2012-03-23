@@ -222,6 +222,22 @@ class TestRowUploads:
              {'zim': 'zop', 'wos': 18.9},
              {'_id': 'sixbug', 'zim': 'fop', 'wos': 18.3}])
 
+    @attr('sync')
+    def test_batch_upload_rows_multipage(self):
+        rs = []
+        for i in range(10421):
+            rs.append({'_id': str(i), 'zim': 'zop', 'wos': random.random(),
+                'fop': random.randint(0,1000)})
+        self.t.batch_upload_rows(rs)
+
+    @attr('sync')
+    def test_batch_upload_rows_multipage_raise_exception(self):
+        rs = []
+        for i in range(10000):
+            rs.append({'_id': str(i), 'zim': 'zop', 'wos': random.random(),
+                'fop': random.randint(0,1000)})
+        assert_raises(VeritableError, self.t.batch_upload_rows, rs, per_page=0)
+
 
 class TestTableOps:
     @classmethod
