@@ -4,6 +4,7 @@
 import veritable
 import random
 import os
+import json
 from nose.plugins.attrib import attr
 from nose.tools import assert_raises
 from veritable.exceptions import *
@@ -74,6 +75,13 @@ class TestAPI:
     def test_create_table_with_id(self):
         t = self.API.create_table("foo" + str(random.randint(0, 100000000)),
             force=True)
+        t.delete()
+
+    @attr('sync')
+    def test_create_table_with_id_json_roundtrip(self):
+        id = json.loads(json.dumps(
+            {'id': "foo" + str(random.randint(0, 100000000))}))['id']
+        t = self.API.create_table(id), force=True)
         t.delete()
 
     @attr('sync')
@@ -157,6 +165,12 @@ class TestRowUploads:
         self.t.upload_row({'_id': 'onebug', 'zim': 'zam', 'wos': 19.2})
 
     @attr('sync')
+    def test_table_upload_row_with_id_json_roundtrip(self):
+        id = json.loads(json.dumps(
+            {'id': "foo" + str(random.randint(0, 100000000))}))['id']
+        self.t.upload_row({'_id': id, 'zim': 'zam', 'wos': 19.2})
+
+    @attr('sync')
     def test_upload_row_with_invalid_id(self):
         for id in INVALID_IDS:
             assert_raises(InvalidIDException, self.t.upload_row,
@@ -201,10 +215,13 @@ class TestRowUploads:
 
     @attr('sync')
     def test_batch_upload_rows(self):
+        id = json.loads(json.dumps(
+            {'id': "sevenbug"}))['id']
         self.t.batch_upload_rows(
             [{'_id': 'fourbug', 'zim': 'zop', 'wos': 10.3},
              {'_id': 'fivebug', 'zim': 'zam', 'wos': 9.3},
-             {'_id': 'sixbug', 'zim': 'zop', 'wos': 18.9}])
+             {'_id': 'sixbug', 'zim': 'zop', 'wos': 18.9},
+             {'_id': id, 'zim': 'zop', 'wos': 14.9}])
 
     @attr('sync')
     def test_batch_upload_rows_with_invalid_ids(self):
@@ -395,6 +412,20 @@ class TestTableOps:
     @attr('sync')
     def test_create_analysis_2(self):
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
+        self.t.create_analysis(schema, description="Foolish",
+            analysis_id="zubble_2", force=True)
+
+    @attr('sync')
+    def test_create_analysis_with_id(self):
+        schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
+        self.t.create_analysis(schema, description="Foolish",
+            analysis_id="zubble_2", force=True)
+
+    @attr('sync')
+    def test_create_table_with_id_json_roundtrip(self):
+        schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
+        id = json.loads(json.dumps(
+            {'id': "zubble2"}))['id']
         self.t.create_analysis(schema, description="Foolish",
             analysis_id="zubble_2", force=True)
 
