@@ -359,6 +359,9 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
+        self._batch_modify_rows('put', rows, per_page)
+
+    def _batch_modify_rows(self, action, rows, per_page):
         rs = []
         if not isinstance(per_page, int) or not per_page > 0:
             raise VeritableError("Page size must be an int greater than 0")
@@ -371,13 +374,14 @@ class Table:
             _check_id(row["_id"])
             rs.append(row)
         batch = []
-        i = 1
+        i = 0
         for r in rs:
             batch.append(r)
+            i = i+1
             if i == per_page:
-                data = {'action': 'put', 'rows': batch}
+                data = {'action': action, 'rows': batch}
                 self._conn.post(self._link('rows'), data)
-                i = 1
+                i = 0
                 batch = []
         if len(batch) > 0:
             data = {'action': 'put', 'rows': batch}
@@ -398,7 +402,7 @@ class Table:
         self._conn.delete(_format_url([self._link("rows"), row_id],
             noquote=[0]))
 
-    def batch_delete_rows(self, rows):
+    def batch_delete_rows(self, rows, per_page=1000):
         """Batch deletes rows from the table.
 
         Returns None on success. Silently succeeds on attempts to delete
@@ -412,11 +416,7 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        for i in range(len(rows)):
-            if not "_id" in rows[i]:
-                raise MissingRowIDException()
-        data = {'action': 'delete', 'rows': rows}
-        self._conn.post(self._link("rows"), data)
+        self._batch_modify_rows('delete', rows, per_page)
 
     def get_analyses(self):
         """Gets all the analyses of the table.
