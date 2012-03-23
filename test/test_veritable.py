@@ -655,8 +655,9 @@ class TestTableOps:
                   'real': {'type': 'real'},
                   'bool': {'type': 'boolean'}
                   }
-        self.t2.create_analysis(schema, analysis_id="test_analysis_1",
+        a = self.t2.create_analysis(schema, analysis_id="test_analysis_1",
             force=True)
+        a.wait()
         self.t2.create_analysis(schema, analysis_id="test_analysis_2",
             force=True)
         self.t2.get_analyses()
