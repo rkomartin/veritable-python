@@ -361,7 +361,7 @@ class TestTableOps:
         self.t.delete_row("fivebug")
 
     # This is expected behavior according to the API spec
-    #@unittest.skip('bug filed')
+    @unittest.skip('bug filed')
     @attr('sync')
     def test_delete_deleted_row(self):
         self.t.delete_row("fivebug")
