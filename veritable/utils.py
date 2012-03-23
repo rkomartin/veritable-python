@@ -250,6 +250,50 @@ def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
             table.append(r)
     return table
 
+def clean_data(rows, schema, convert_types=True, remove_nones=True,
+    remove_invalids=True, reduce_categories=True, assign_ids=True,
+    remove_extra_fields=True):
+    """Cleans up a list of row dicts in accordance with an analysis schema.
+
+    Raises a DataValidationException containing further details if the data
+    does not validate against the schema.
+
+    Note: This function mutates its rows argument. If clean_data raises an
+    exception, values in some rows may be converted while others are left in
+    their original state.
+
+    Arguments:
+    rows -- the list of row dicts to clean up
+    schema -- an analysis schema specifying the types of the columns appearing
+        in the rows being cleaned
+    convert_types -- controls whether clean_data will attempt to convert
+        cells in a column to be of the correct type (default: True)
+    remove_nones -- controls whether clean_data will automatically remove
+        cells containing the value None (default: True)
+    remove_invalids -- controls whether clean_data will automatically
+        remove cells that are invalid for a given column (default: True)
+    reduce_categories -- controls whether clean_data will automatically
+        reduce the number of categories in categorical columns with too many
+        categories (default: True) If True, the largest categories in a
+        column will be preserved, up to the allowable limit, and the other
+        categories will be binned as "Other".
+    assign_ids -- controls whether clean_data will automatically assign new
+        ids to the rows (default: True) If True, rows will be numbered
+        sequentially. If the rows have an existing '_id' column,
+        remove_extra_fields must also be set to True (default) to avoid raising
+        a DataValidationException.
+    remove_extra_fields -- controls whether clean_data will automatically
+        remove columns that are not contained in the schema (default: True)
+        If assign_ids is True (default), will also remove the '_id' column.
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
+    return _validate(rows, schema, convert_types=convert_types,
+        allow_nones=False, remove_nones=remove_nones,
+        remove_invalids=remove_invalids, reduce_categories=reduce_categories,
+        has_ids=True, assign_ids=assign_ids, allow_extra_fields=True,
+        remove_extra_fields=remove_extra_fields, allow_empty_columns=False)
 
 def validate_data(rows, schema, convert_types=False, remove_nones=False,
     remove_invalids=False, reduce_categories=False, assign_ids=False,
