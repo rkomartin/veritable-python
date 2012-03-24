@@ -14,7 +14,7 @@ from .exceptions import (APIConnectionException, DuplicateTableException,
     DuplicateAnalysisException, MissingLinkException,
     AnalysisNotReadyException, AnalysisFailedException, VeritableError)
 from .utils import (_make_table_id, _make_analysis_id, _check_id,
-    _format_url)
+    _format_url, _handle_unicode_id)
 
 BASE_URL = "https://api.priorknowledge.com/"
 
@@ -173,6 +173,7 @@ class API:
             autogen = True
             table_id = _make_table_id()
         else:
+            table_id = _handle_unicode_id(table_id)
             _check_id(table_id)
             autogen = False
         if self.table_exists(table_id):
@@ -335,13 +336,16 @@ class Table:
         if "_id" not in row:
             raise MissingRowIDException()
         else:
-            row_id = row["_id"]
+            row_id = _handle_unicode_id(row["_id"])
             _check_id(row_id)
         self._conn.put(_format_url([self._link("rows"), row_id], noquote=[0]),
             row)
 
-    def batch_upload_rows(self, rows):
+    def batch_upload_rows(self, rows, per_page=1000):
         """Batch adds rows to the table or updates existing rows.
+
+        By default, paginates requests in chunks of 1000 rows. This
+        parameter can be adjusted.
 
         Returns None on success.
 
@@ -350,18 +354,38 @@ class Table:
             must contain an '_id' key whose value is a string containing only
             alphanumerics, underscores, and hyphens, and is unique in the
             table.
+        per_page - the number of rows to upload per HTTP request (default: 1000)
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
+        self._batch_modify_rows('put', rows, per_page)
+
+    def _batch_modify_rows(self, action, rows, per_page):
+        rs = []
+        if not isinstance(per_page, int) or not per_page > 0:
+            raise VeritableError("Page size must be an int greater than 0")
         for row in rows:
             if not isinstance(row, dict):
                 raise VeritableError("Rows must be represented by row dicts.")
             if not "_id" in row:
                 raise MissingRowIDException()
+            row["_id"] = _handle_unicode_id(row["_id"])
             _check_id(row["_id"])
-        data = {'action': 'put', 'rows': rows}
-        self._conn.post(self._link("rows"), data)
+            rs.append(row)
+        batch = []
+        i = 0
+        for r in rs:
+            batch.append(r)
+            i = i+1
+            if i == per_page:
+                data = {'action': action, 'rows': batch}
+                self._conn.post(self._link('rows'), data)
+                i = 0
+                batch = []
+        if len(batch) > 0:
+            data = {'action': 'put', 'rows': batch}
+            self._conn.post(self._link('rows'), data)
 
     def delete_row(self, row_id):
         """Deletes a row from the table by its id.
@@ -378,7 +402,7 @@ class Table:
         self._conn.delete(_format_url([self._link("rows"), row_id],
             noquote=[0]))
 
-    def batch_delete_rows(self, rows):
+    def batch_delete_rows(self, rows, per_page=1000):
         """Batch deletes rows from the table.
 
         Returns None on success. Silently succeeds on attempts to delete
@@ -392,11 +416,7 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        for i in range(len(rows)):
-            if not "_id" in rows[i]:
-                raise MissingRowIDException()
-        data = {'action': 'delete', 'rows': rows}
-        self._conn.post(self._link("rows"), data)
+        self._batch_modify_rows('delete', rows, per_page)
 
     def get_analyses(self):
         """Gets all the analyses of the table.
@@ -467,6 +487,7 @@ class Table:
             autogen = True
             analysis_id = _make_analysis_id()
         else:
+            analysis_id = _handle_unicode_id(analysis_id)
             _check_id(analysis_id)
             autogen = False
         if self._analysis_exists(analysis_id):

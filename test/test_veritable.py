@@ -1,9 +1,13 @@
 #! usr/bin/python
 # coding=utf-8
 
+# NOTE: for py.26 compatibility, comment tests out to skip them -- don't use
+# unittest.skip
+
 import veritable
 import random
 import os
+import json
 from nose.plugins.attrib import attr
 from nose.tools import assert_raises
 from veritable.exceptions import *
@@ -74,6 +78,13 @@ class TestAPI:
     def test_create_table_with_id(self):
         t = self.API.create_table("foo" + str(random.randint(0, 100000000)),
             force=True)
+        t.delete()
+
+    @attr('sync')
+    def test_create_table_with_id_json_roundtrip(self):
+        id = json.loads(json.dumps(
+            {'id': "foo" + str(random.randint(0, 100000000))}))['id']
+        t = self.API.create_table(id, force=True)
         t.delete()
 
     @attr('sync')
@@ -157,6 +168,12 @@ class TestRowUploads:
         self.t.upload_row({'_id': 'onebug', 'zim': 'zam', 'wos': 19.2})
 
     @attr('sync')
+    def test_table_upload_row_with_id_json_roundtrip(self):
+        id = json.loads(json.dumps(
+            {'id': "foo" + str(random.randint(0, 100000000))}))['id']
+        self.t.upload_row({'_id': id, 'zim': 'zam', 'wos': 19.2})
+
+    @attr('sync')
     def test_upload_row_with_invalid_id(self):
         for id in INVALID_IDS:
             assert_raises(InvalidIDException, self.t.upload_row,
@@ -201,10 +218,13 @@ class TestRowUploads:
 
     @attr('sync')
     def test_batch_upload_rows(self):
+        id = json.loads(json.dumps(
+            {'id': "sevenbug"}))['id']
         self.t.batch_upload_rows(
             [{'_id': 'fourbug', 'zim': 'zop', 'wos': 10.3},
              {'_id': 'fivebug', 'zim': 'zam', 'wos': 9.3},
-             {'_id': 'sixbug', 'zim': 'zop', 'wos': 18.9}])
+             {'_id': 'sixbug', 'zim': 'zop', 'wos': 18.9},
+             {'_id': id, 'zim': 'zop', 'wos': 14.9}])
 
     @attr('sync')
     def test_batch_upload_rows_with_invalid_ids(self):
@@ -221,6 +241,36 @@ class TestRowUploads:
             [{'zim': 'zop', 'wos': 10.3}, {'zim': 'zam', 'wos': 9.3},
              {'zim': 'zop', 'wos': 18.9},
              {'_id': 'sixbug', 'zim': 'fop', 'wos': 18.3}])
+
+    @attr('sync')
+    def test_batch_upload_rows_multipage(self):
+        for nrows in [0, 331, 1000, 1421, 2000]:
+            t2 = self.API.create_table()
+            rs = []
+            for i in range(nrows):
+                rs.append({'_id': "r" + str(i), 'zim': 'zop', 'wos': random.random(),
+                    'fop': random.randint(0,1000)})
+            self.t.batch_upload_rows(rs)
+            t2.batch_upload_rows(rs)
+            rowiter = t2.get_rows()
+            assert(len(list(self.t.get_rows())) == nrows)
+            self.t.batch_delete_rows([{'_id': str(row['_id'])} for row in rs])
+            self.t.batch_upload_rows(t2.get_rows())
+            assert(len(list(self.t.get_rows())) == nrows)
+            self.t.batch_delete_rows([{'_id': str(row['_id'])} for row in rs])
+            t2.delete()
+
+    # FIXME check roundtrips to make sure ids remain valid
+
+    @attr('sync')
+    def test_batch_upload_rows_multipage_raise_exception(self):
+        rs = []
+        for i in range(10000):
+            rs.append({'_id': str(i), 'zim': 'zop', 'wos': random.random(),
+                'fop': random.randint(0,1000)})
+        for pp in [0, -5, 2.31, "foo", False]:
+            assert_raises(VeritableError, self.t.batch_upload_rows,
+                rs, per_page=pp)
 
 
 class TestTableOps:
@@ -313,8 +363,7 @@ class TestTableOps:
     def test_delete_row(self):
         self.t.delete_row("fivebug")
 
-    # # This is expected behavior according to the API spec
-    # @unittest.skip('bug filed')
+    # This is expected behavior according to the API spec
     # @attr('sync')
     # def test_delete_deleted_row(self):
     #     self.t.delete_row("fivebug")
@@ -334,7 +383,7 @@ class TestTableOps:
     def test_batch_delete_rows_with_some_deleted(self):
         rs = [{'_id': r["_id"]} for r in self.t.get_rows()]
         rs.append({'_id': 'spurious'})
-        assert_raises(ServerException, self.t.batch_delete_rows, rs)
+        self.t.batch_delete_rows(rs)
 
     @attr('sync')
     def test_batch_delete_rows_faulty(self):
@@ -361,6 +410,20 @@ class TestTableOps:
     @attr('sync')
     def test_create_analysis_2(self):
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
+        self.t.create_analysis(schema, description="Foolish",
+            analysis_id="zubble_2", force=True)
+
+    @attr('sync')
+    def test_create_analysis_with_id(self):
+        schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
+        self.t.create_analysis(schema, description="Foolish",
+            analysis_id="zubble_2", force=True)
+
+    @attr('sync')
+    def test_create_table_with_id_json_roundtrip(self):
+        schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
+        id = json.loads(json.dumps(
+            {'id': "zubble2"}))['id']
         self.t.create_analysis(schema, description="Foolish",
             analysis_id="zubble_2", force=True)
 
@@ -730,7 +793,6 @@ class TestPredictions:
         self.a1.wait()
         self.a1._link('predict')
 
-    # @unittest.skip('bug filed')
     # def test_predict_from_failed_analysis(self):
     #     a3 = self.t2.create_analysis(self.schema1, analysis_id="a3",
     #         force=True)
