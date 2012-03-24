@@ -25,11 +25,14 @@ _alphanumeric = re.compile("^[-_a-zA-Z0-9]+$")
 
 
 def _handle_unicode_id(id):
-    if isinstance(id, str) or isinstance(id, unicode):
-        try:
-            id = str(id)
-        except:
-            pass
+    try:
+        if isinstance(id, basestring):
+            try:
+                id = str(id)
+            except:
+                pass
+    except:
+        pass
     return id
     
 def _check_id(id):
