@@ -342,6 +342,36 @@ def validate_data(rows, schema, convert_types=False, remove_nones=False,
         has_ids=True, assign_ids=assign_ids, allow_extra_fields=True,
         remove_extra_fields=remove_extra_fields, allow_empty_columns=False)
 
+def clean_predictions(predictions, schema, convert_types=True,
+    remove_invalids=True, remove_extra_fields=True):
+    """Cleans up a predictions request in accordance with an analysis schema.
+
+    Raises a DataValidationException containing further details if the predictions
+    request does not validate against the schema.
+
+    Note: This function mutates its predictions argument. If clean_predictions
+    raises an exception, values in some columns may be converted while others
+    are left in their original state.
+
+    Arguments:
+    predictions -- the predictions request to clean up
+    schema -- an analysis schema specifying the types of the columns appearing
+        in the dataset
+    convert_types -- controls whether clean_predictions will attempt to convert
+        fixed cells in a column to be of the correct type (default: True)
+    remove_invalids -- controls whether clean_predictions will automatically
+        remove fixed cells that are invalid for a given column (default: True)
+    remove_extra_fields -- controls whether clean_predictions will automatically
+        remove columns that are not contained in the schema (default: True)
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
+    return _validate(predictions, schema, convert_types=convert_types,
+        allow_nones=True, remove_nones=False, remove_invalids=remove_invalids,
+        reduce_categories=False, has_ids=False, assign_ids=False,
+        allow_extra_fields=False, remove_extra_fields=remove_extra_fields,
+        allow_empty_columns=True)
 
 def validate_predictions(predictions, schema, convert_types=False,
     remove_invalids=False, remove_extra_fields=False):
