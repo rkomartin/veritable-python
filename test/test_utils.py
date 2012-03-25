@@ -387,7 +387,7 @@ def test_data_nonefield_fix():
         {'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
         {'_id': '2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':None,
          'ColBool':False}]
-        tr = copy(testrows)
+    tr = copy(testrows)
     validate_data(testrows, vschema, remove_nones=True)
     assert not('ColCat' in testrows[1])
     validate_data(testrows, vschema)
@@ -670,17 +670,16 @@ def test_pred_nonvalid_float_real_fix():
 
 
 # Non-str Category
-@raises(DataValidationException)
 def test_data_non_str_cat_fail():
     testrows = [
         {'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
         {'_id': '2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':3, 'ColBool':False}]
+    assert_raises(DataValidationException, validate_data, testrows, vschema)
     try:
         validate_data(testrows, vschema)
     except DataValidationException as e:
         assert e.row == 1
         assert e.col == 'ColCat'
-        raise
 
 
 @raises(DataValidationException)
@@ -699,9 +698,13 @@ def test_data_non_str_cat_fix():
     testrows = [
         {'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
         {'_id': '2', 'ColInt':4, 'ColFloat':4.1, 'ColCat':3, 'ColBool':False}]
+    tr = copy(testrows)
     validate_data(testrows, vschema, convert_types=True)
     assert testrows[1]['ColCat'] == '3'
     validate_data(testrows, vschema)
+    clean_data(tr, vschema)
+    assert tr[1]['ColCat'] == '3'
+    validate_data(tr, vschema)
 
 
 def test_pred_non_str_cat_fix():
@@ -713,17 +716,16 @@ def test_pred_non_str_cat_fix():
 
 
 # Non-bool boolean
-@raises(DataValidationException)
 def test_data_non_bool_boolean_fail():
     testrows = [
         {'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
         {'_id': '2', 'ColInt':4, 'ColFloat':4.1, 'ColCat': 'b', 'ColBool': '0'}]
+    assert_raises(DataValidationException, validate_data, testrows, vschema)
     try:
         validate_data(testrows, vschema)
     except DataValidationException as e:
         assert e.row == 1
         assert e.col == 'ColBool'
-        raise
 
 
 @raises(DataValidationException)
@@ -749,10 +751,15 @@ def test_data_non_bool_boolean_truefix():
     {'_id': '8', 'ColInt':4, 'ColFloat':4.1, 'ColCat': 'b', 'ColBool': 'YES'},
     {'_id': '9', 'ColInt':4, 'ColFloat':4.1, 'ColCat': 'b', 'ColBool': 'Y'},
     {'_id': '10', 'ColInt':4, 'ColFloat':4.1, 'ColCat': 'b', 'ColBool': 'y'}]
+    tr = copy(testrows)
     validate_data(testrows, vschema, convert_types=True)
     for r in testrows:
         assert r['ColBool'] == True
     validate_data(testrows, vschema)
+    clean_data(tr, vschema)
+    for r in tr:
+        assert r['ColBool'] == True
+    validate_data(tr, vschema)
 
 
 def test_pred_non_bool_boolean_truefix():
@@ -782,10 +789,15 @@ def test_data_non_bool_boolean_falsefix():
     {'_id': '8', 'ColInt':4, 'ColFloat':4.1, 'ColCat': 'b', 'ColBool': 'NO'},
     {'_id': '9', 'ColInt':4, 'ColFloat':4.1, 'ColCat': 'b', 'ColBool': 'N'},
     {'_id': '10', 'ColInt':4, 'ColFloat':4.1, 'ColCat': 'b', 'ColBool': 'n'}]
+    tr = copy(testrows)
     validate_data(testrows, vschema, convert_types=True)
     for r in testrows:
         assert r['ColBool'] == False
     validate_data(testrows, vschema)
+    clean_data(tr, vschema)
+    for r in tr:
+        assert r['ColBool'] == False
+    validate_data(tr, vschema)
 
 
 def test_pred_non_bool_boolean_falsefix():
@@ -805,18 +817,17 @@ def test_pred_non_bool_boolean_falsefix():
 
 
 # Non-valid-bool boolean
-@raises(DataValidationException)
 def test_data_nonvalid_bool_boolean_fail():
     testrows = [
         {'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
         {'_id': '2', 'ColInt':4, 'ColFloat':4.1, 'ColCat': 'b',
          'ColBool': 'jello'}]
+    assert_raises(DataValidationException, validate_data, testrows, vschema)
     try:
         validate_data(testrows, vschema)
     except DataValidationException as e:
         assert e.row == 1
         assert e.col == 'ColBool'
-        raise
 
 
 @raises(DataValidationException)
@@ -831,17 +842,18 @@ def test_pred_nonvalid_bool_boolean_fail():
         raise
 
 
-@raises(DataValidationException)
 def test_data_nonvalid_bool_boolean_fixfail():
     testrows = [{'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a',
         'ColBool':True}, {'_id': '2', 'ColInt':4, 'ColFloat':4.1, 'ColCat': 'b',
         'ColBool': 'jello'}]
+    tr = copy(testrows)
+    assert_raises(DataValidationException, clean_data, tr, vschema)
+    assert_raises(DataValidationException, validate_data, tr, vschema)
     try:
         validate_data(testrows, vschema, convert_types=True)
     except DataValidationException as e:
         assert e.row == 1
         assert e.col == 'ColBool'
-        raise
 
 
 @raises(DataValidationException)
