@@ -3,7 +3,8 @@
 
 from copy import deepcopy
 from veritable.utils import (write_csv, read_csv, make_schema, summarize,
-    validate_data, validate_predictions, _format_url)
+    validate_data, validate_predictions, _format_url, clean_data,
+    clean_predictions)
 from veritable.exceptions import DataValidationException
 from nose.tools import raises, assert_raises
 from tempfile import mkstemp
