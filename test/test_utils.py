@@ -504,7 +504,6 @@ def test_pred_nonvalid_int_count_fixfail():
         {'ColInt': 'jello', 'ColFloat':None, 'ColCat': 'b', 'ColBool':False}]
     assert_raises(DataValidationException, validate_predictions, testrows,
         vschema, convert_types=True)
-    assert_raises(DataValidationException, clean_predictions, testrows, vschema)
     try:
         validate_predictions(testrows, vschema, convert_types=True)
     except DataValidationException as e:
@@ -639,8 +638,6 @@ def test_pred_nonvalid_float_real_fixfail():
         {'ColInt':None, 'ColFloat': 'jello', 'ColCat': 'b', 'ColBool':False}]
     assert_raises(DataValidationException, validate_predictions, testrows,
         vschema, convert_types=True)
-    assert_raises(DataValidationException, clean_predictions, testrows,
-        vschema)
     try:
         validate_predictions(testrows, vschema, convert_types=True)
     except DataValidationException as e:
