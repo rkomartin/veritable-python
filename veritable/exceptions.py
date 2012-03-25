@@ -1,25 +1,7 @@
 class VeritableError(Exception):
     """Base class for exceptions in veritable-python."""
-    pass
-
-
-class APIKeyException(VeritableError):
-    """Raised if an API key is not provided when instantiating a Veritable
-        connection."""
-    def __init__(self):
-        self.value = """Must provide an API key to instantiate a Veritable \
-        connection"""
-
-    def __str__(self):
-        return repr(self.value)
-
-
-class APIBaseURLException(VeritableError):
-    """Raised if a base URL is not provided when instantiating a Veritable
-        connection."""
-    def __init__(self):
-        self.value = """Must provide a base URL to instantiate a Veritable \
-        connection"""
+    def __init__(self, value):
+        self.value = value
 
     def __str__(self):
         return repr(self.value)
