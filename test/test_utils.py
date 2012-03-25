@@ -491,14 +491,8 @@ def test_data_nonvalid_int_count_fixfail():
          'ColBool':False}]
     assert_raises(DataValidationException, validate_data, testrows, vschema,
         convert_types=True)
-    assert_raises(DataValidationException, clean_data, testrows, vschema)
     try:
         validate_data(testrows, vschema, convert_types=True)
-    except DataValidationException as e:
-        assert e.row == 1
-        assert e.col == 'ColInt'
-    try:
-        clean_data(testrows, vschema)
     except DataValidationException as e:
         assert e.row == 1
         assert e.col == 'ColInt'
@@ -632,14 +626,8 @@ def test_data_nonvalid_float_real_fixfail():
          'ColBool':False}]
     assert_raises(DataValidationException, validate_data, testrows, vschema,
         convert_types=True)
-    assert_raises(DataValidationException, clean_data, testrows, vschema)
     try:
         validate_data(testrows, vschema, convert_types=True)
-    except DataValidationException as e:
-        assert e.row == 1
-        assert e.col == 'ColFloat'
-    try:
-        clean_data(testrows, vschema)
     except DataValidationException as e:
         assert e.row == 1
         assert e.col == 'ColFloat'
@@ -879,7 +867,6 @@ def test_data_nonvalid_bool_boolean_fixfail():
         'ColBool':True}, {'_id': '2', 'ColInt':4, 'ColFloat':4.1, 'ColCat': 'b',
         'ColBool': 'jello'}]
     tr = deepcopy(testrows)
-    assert_raises(DataValidationException, clean_data, tr, vschema)
     assert_raises(DataValidationException, validate_data, tr, vschema)
     try:
         validate_data(testrows, vschema, convert_types=True)
