@@ -251,7 +251,7 @@ def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
     return table
 
 def clean_data(rows, schema, convert_types=True, remove_nones=True,
-    remove_invalids=True, reduce_categories=True, assign_ids=True,
+    remove_invalids=True, reduce_categories=True, assign_ids=False,
     remove_extra_fields=True):
     """Cleans up a list of row dicts in accordance with an analysis schema.
 
@@ -278,7 +278,7 @@ def clean_data(rows, schema, convert_types=True, remove_nones=True,
         column will be preserved, up to the allowable limit, and the other
         categories will be binned as "Other".
     assign_ids -- controls whether clean_data will automatically assign new
-        ids to the rows (default: True) If True, rows will be numbered
+        ids to the rows (default: False) If True, rows will be numbered
         sequentially. If the rows have an existing '_id' column,
         remove_extra_fields must also be set to True (default) to avoid raising
         a DataValidationException.
