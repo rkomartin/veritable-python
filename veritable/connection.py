@@ -52,10 +52,12 @@ def _handle_http_error(r, debug_log=None):
     else:
         if r.status_code == requests.codes.not_found:
             raise ServerException("""HTTP Error {0} Not Found -- {1}: \
-            {2}""".format(r.status_code, code, message), code, message)
+            {2}""".format(r.status_code, code, message), r.status_code,
+            code, message)
         if r.status_code == requests.codes.bad_request:
             raise ServerException("""HTTP Error {0} Bad Request -- {1}: \
-                {2}""".format(r.status_code, code, message), code, message)
+            {2}""".format(r.status_code, code, message), r.status_code,
+                code, message)
         r.raise_for_status()
 
 
@@ -242,7 +244,7 @@ class Connection:
         try:
             res = _get_response_data(r, self._debug_log)
         except ServerException as e:
-            if not e.code == requests.codes.not_found:
+            if not e.status == requests.codes.not_found:
                 raise e
         except:
             raise
