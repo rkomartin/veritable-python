@@ -105,8 +105,10 @@ class DuplicateAnalysisException(VeritableError):
 
 class ServerException(VeritableError):
     """Raised when an error is returned by the Veritable server."""
-    def __init__(self, val="unknown"):
+    def __init__(self, val="unknown", code=None, message=None):
         self.value = """Error reported by server: """ + val
+        self.code = code
+        self.message = message
 
     def __str__(self):
         return repr(self.value)
