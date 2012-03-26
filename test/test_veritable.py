@@ -364,10 +364,10 @@ class TestTableOps:
         self.t.delete_row("fivebug")
 
     # This is expected behavior according to the API spec
-    # @attr('sync')
-    # def test_delete_deleted_row(self):
-    #     self.t.delete_row("fivebug")
-    #     self.t.delete_row("fivebug")
+    @attr('sync')
+    def test_delete_deleted_row(self):
+        self.t.delete_row("fivebug")
+        self.t.delete_row("fivebug")
 
     @attr('sync')
     def test_batch_delete_rows(self):
