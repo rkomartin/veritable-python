@@ -242,7 +242,7 @@ class Connection:
         try:
             res = _get_response_data(r, self._debug_log)
         except ServerException as e:
-            if not e.code == "404":
+            if not e.code == requests.codes.not_found:
                 raise e
         except:
             raise
