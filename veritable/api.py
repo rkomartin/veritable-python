@@ -9,8 +9,7 @@ import sys
 import time
 from .cursor import Cursor
 from .connection import Connection
-from .exceptions import (APIConnectionException, DuplicateTableException,
-    MissingRowIDException, InvalidAnalysisTypeException,
+from .exceptions import (MissingRowIDException, InvalidAnalysisTypeException,
     DuplicateAnalysisException, MissingLinkException,
     AnalysisNotReadyException, AnalysisFailedException, VeritableError)
 from .utils import (_make_table_id, _make_analysis_id, _check_id,
@@ -48,14 +47,20 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
     try:
         connection_test = connection.get("/")
     except Exception as e:
-        raise APIConnectionException(api_key, api_base_url, e, sys.exc_info()[2]) 
+        raise VeritableError("""Error connecting to server: No Veritable \
+        server found at {0} using API key {1}""".format(api_base_url,
+            api_key), internal=e, internal_traceback=sys.exc_info()[2])
     try:
         status = connection_test['status']
         entropy = connection_test['entropy']
     except:
-        raise(APIConnectionException(api_base_url))
+        raise VeritableError("""Error connecting to server: No Veritable \
+        server found at {0} using API key {1}""".format(api_base_url,
+            api_key))
     if status != "SUCCESS" or not isinstance(entropy, float):
-        raise(APIConnectionException(api_base_url))
+        raise VeritableError("""Error connecting to server: No Veritable \
+        server found at {0} using API key {1}""".format(api_base_url,
+            api_key))
     return API(connection)
 
 
@@ -181,7 +186,9 @@ class API:
                 return self.create_table(table_id=None,
                             description=description, force=False)
             if not force:
-                raise DuplicateTableException(table_id)
+                raise VeritableError("""Can't create table with id {0}: \
+                table already exists. Set force=True to
+                override.""".format(table_id))
             else:
                 self.delete_table(table_id)
         r = self._conn.post("tables",
