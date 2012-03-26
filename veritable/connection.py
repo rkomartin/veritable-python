@@ -239,4 +239,11 @@ class Connection:
         if self.debug:
             kwargs['config'] = {'verbose': sys.stderr}
         r = self.session.delete(url, **kwargs)
-        return _get_response_data(r, self._debug_log)
+        try:
+            res = _get_response_data(r, self._debug_log)
+        except ServerException as e:
+            if not e.code == "404":
+                raise e
+        except:
+            raise
+        return res
