@@ -11,8 +11,7 @@ import sys
 from gzip import GzipFile
 from io import BytesIO
 from requests.auth import HTTPBasicAuth
-from .exceptions import (ServerException, APIKeyException,
-    APIBaseURLException)
+from .exceptions import VeritableError
 from .utils import _url_has_scheme
 from .version import __version__
 
@@ -51,13 +50,13 @@ def _handle_http_error(r, debug_log=None):
         r.raise_for_status()
     else:
         if r.status_code == requests.codes.not_found:
-            raise ServerException("""HTTP Error {0} Not Found -- {1}: \
-            {2}""".format(r.status_code, code, message), r.status_code,
-            code, message)
+            raise VeritableError("""HTTP Error {0} Not Found -- {1}: \
+            {2}""".format(r.status_code, code, message), status=r.status_code,
+                code=code, message=message)
         if r.status_code == requests.codes.bad_request:
-            raise ServerException("""HTTP Error {0} Bad Request -- {1}: \
-            {2}""".format(r.status_code, code, message), r.status_code,
-                code, message)
+            raise VeritableError("""HTTP Error {0} Bad Request -- {1}: \
+            {2}""".format(r.status_code, code, message), status=r.status_code,
+                code=code, message=message)
         r.raise_for_status()
 
 
@@ -114,9 +113,11 @@ class Connection:
 
         """
         if api_key is None:
-            raise APIKeyException()
+            raise VeritableError("""Must provide an API key to instantiate a \
+            connection to a Veritable server.""")
         if api_base_url is None:
-            raise APIBaseURLException()
+            raise VeritableError("""Must provide a base URL to instantiate a \
+            connection to a Veritable server.""")
         self.api_key = api_key
         self.api_base_url = api_base_url.rstrip("/")
         self.auth = HTTPBasicAuth(self.api_key, "")
@@ -243,7 +244,7 @@ class Connection:
         r = self.session.delete(url, **kwargs)
         try:
             res = _get_response_data(r, self._debug_log)
-        except ServerException as e:
+        except VeritableError as e:
             if not e.status == requests.codes.not_found:
                 raise e
             res = None
