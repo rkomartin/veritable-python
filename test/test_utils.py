@@ -753,8 +753,7 @@ def test_data_nonvalid_bool_boolean_fixfail():
     testrows = [{'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a',
         'ColBool':True}, {'_id': '2', 'ColInt':4, 'ColFloat':4.1, 'ColCat': 'b',
         'ColBool': 'jello'}]
-    assert_raises(DataValidationException, validate_data, testrows, vschema,
-        remove_invalids=False)
+    assert_raises(DataValidationException, validate_data, testrows, vschema)
     try:
         clean_data(testrows, vschema, remove_invalids=False)
     except DataValidationException as e:
