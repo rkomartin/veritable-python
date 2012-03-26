@@ -246,6 +246,7 @@ class Connection:
         except ServerException as e:
             if not e.status == requests.codes.not_found:
                 raise e
+            res = None
         except:
             raise
         return res
