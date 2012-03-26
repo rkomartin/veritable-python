@@ -24,6 +24,17 @@ from .exceptions import (InvalidIDException, InvalidSchemaException,
 _alphanumeric = re.compile("^[-_a-zA-Z0-9]+$")
 
 
+def _handle_unicode_id(id):
+    try:
+        if isinstance(id, basestring):
+            try:
+                id = str(id)
+            except:
+                pass
+    except:
+        pass
+    return id
+    
 def _check_id(id):
     if not isinstance(id, str) or _alphanumeric.match(id) is None or id[-1] == "\n":
         try:
