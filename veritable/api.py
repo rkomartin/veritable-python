@@ -9,9 +9,7 @@ import sys
 import time
 from .cursor import Cursor
 from .connection import Connection
-from .exceptions import (MissingRowIDException, InvalidAnalysisTypeException,
-    DuplicateAnalysisException, MissingLinkException,
-    AnalysisNotReadyException, AnalysisFailedException, VeritableError)
+from .exceptions import VeritableError
 from .utils import (_make_table_id, _make_analysis_id, _check_id,
     _format_url, _handle_unicode_id)
 
@@ -103,7 +101,8 @@ class API:
     def _link(self, name):
         # Retrieves a subresource by name
         if name not in self._doc['links']:
-            raise MissingLinkException("API", name)
+            raise VeritableError("""API instance is missing link \
+            to {0}""".format(name))
         return self._doc['links'][name]
 
     def limits(self):
@@ -259,7 +258,8 @@ class Table:
     def _link(self, name):
         # Retrieves a subresource by name
         if name not in self._doc['links']:
-            raise MissingLinkException("Table", name)
+            raise VeritableError("""Table instance is missing link \
+            to {0}""".format(name))
         return self._doc['links'][name]
 
     def _analysis_exists(self, analysis_id):
@@ -339,9 +339,10 @@ class Table:
 
         """
         if not isinstance(row, dict):
-            raise VeritableError("Must provide a row dict to upload!")
+            raise VeritableError("""Must provide a row dict to upload.""")
         if "_id" not in row:
-            raise MissingRowIDException()
+            raise VeritableError("""Rows must contain row ids in the _id \
+            field.""")
         else:
             row_id = _handle_unicode_id(row["_id"])
             _check_id(row_id)
@@ -376,7 +377,8 @@ class Table:
             if not isinstance(row, dict):
                 raise VeritableError("Rows must be represented by row dicts.")
             if not "_id" in row:
-                raise MissingRowIDException()
+                raise VeritableError("""Rows must contain row ids in the _id \
+                field.""")
             row["_id"] = _handle_unicode_id(row["_id"])
             _check_id(row["_id"])
             rs.append(row)
@@ -489,7 +491,7 @@ class Table:
 
         """
         if type != "veritable":
-            raise InvalidAnalysisTypeException()
+            raise VeritableError("Invalid analysis type.")
         if analysis_id is None:
             autogen = True
             analysis_id = _make_analysis_id()
@@ -503,7 +505,9 @@ class Table:
                         description=description, analysis_id=None,
                         type=type, force=False)
             if not force:
-                raise DuplicateAnalysisException(analysis_id)
+                raise VeritableError("""Can't create analysis with id {0}: \
+                analysis already exists. Set force=True to
+                override.""".format(analysis_id))
             else:
                 self.delete_analysis(analysis_id)
         r = self._conn.post(self._link("analyses"),
@@ -544,7 +548,8 @@ class Analysis:
 
     def _link(self, name):
         if name not in self._doc['links']:
-            raise MissingLinkException('Analysis', name)
+            raise VeritableError("""Analysis instance is missing link \
+            to {0}""".format(name))
         return self._doc['links'][name]
 
     @property
@@ -691,6 +696,8 @@ class Analysis:
             self._link('predict'),
             data={'data': row, 'count': count})
         elif self.state == 'running':
-            raise AnalysisNotReadyException(self.id)
+            raise VeritableError("""Analysis with id {0} is still running \
+            and not yet ready to predict""".format(self.id))
         elif self.state == 'failed':
-            raise AnalysisFailedException(self.id, self.error)
+            raise VeritableError("""Analysis with id {0} has failed and \
+                cannot predict: {1}""".format(self.id, self.error))
