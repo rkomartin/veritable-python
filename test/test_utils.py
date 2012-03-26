@@ -246,7 +246,7 @@ def test_data_missing_id_fix():
     validate_data(testrows, vschema, assign_ids=True)
     assert testrows[0]['_id'] != testrows[1]['_id']
     validate_data(testrows, vschema)
-    clean_data(tr, vschema)
+    clean_data(tr, vschema, assign_ids=True)
     assert tr[0]['_id'] != tr[1]['_id']
     validate_data(tr, vschema)
 
@@ -478,7 +478,6 @@ def test_pred_nonvalid_int_count_fail():
         assert e.col == 'ColInt'
 
 
-@raises(DataValidationException)
 def test_data_nonvalid_int_count_fixfail():
     testrows = [
         {'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
