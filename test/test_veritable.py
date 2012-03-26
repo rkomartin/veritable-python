@@ -116,7 +116,7 @@ class TestAPI:
     def test_delete_deleted_table(self):
         t = self.API.create_table()
         t.delete()
-        assert_raises(ServerException, t.delete)
+        t.delete()
 
     @attr('sync')
     def test_create_deleted_table(self):
@@ -364,10 +364,10 @@ class TestTableOps:
         self.t.delete_row("fivebug")
 
     # This is expected behavior according to the API spec
-    # @attr('sync')
-    # def test_delete_deleted_row(self):
-    #     self.t.delete_row("fivebug")
-    #     self.t.delete_row("fivebug")
+    @attr('sync')
+    def test_delete_deleted_row(self):
+        self.t.delete_row("fivebug")
+        self.t.delete_row("fivebug")
 
     @attr('sync')
     def test_batch_delete_rows(self):
@@ -690,8 +690,8 @@ class TestTableOps:
         self.t2.delete_analysis("delete_me")
 
     @attr('sync')
-    def test_delete_analysis_fails(self):
-        assert_raises(ServerException, self.t2.delete_analysis, "foobar")
+    def test_delete_deleted_analysis(self):
+        self.t2.delete_analysis("foobar")
 
     @attr('sync')
     def test_get_analysis_schema(self):
