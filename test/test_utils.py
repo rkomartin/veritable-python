@@ -73,13 +73,6 @@ def test_read_csv_map_id():
         refrows[i]['_id'] = refrows[i]['myID']
         refrows[i].pop('myID')
         assert testrows[i] == refrows[i]
-    testrows = read_csv(filename, id_col='myID', dialect=csv.excel)
-    clean_data(testrows, cschema)
-    assert len(testrows) == len(refrows)
-    for i in range(len(testrows)):
-        refrows[i]['_id'] = refrows[i]['myID']
-        refrows[i].pop('myID')
-        assert testrows[i] == refrows[i]
     os.remove(filename)
 
 
@@ -410,7 +403,8 @@ def test_data_non_int_count_fail():
         {'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
         {'_id': '2', 'ColInt': '4', 'ColFloat':4.1, 'ColCat': 'b',
          'ColBool':False}]
-    assert_raises(validate_data, testrows, vschema)
+    assert_raises(DataValidationException, validate_data, testrows,
+        vschema)
     try:
         validate_data(testrows, vschema)
     except DataValidationException as e:
@@ -422,7 +416,8 @@ def test_pred_non_int_count_fail():
     testrows = [
         {'ColInt':3, 'ColFloat':None, 'ColCat': 'a', 'ColBool':True},
         {'ColInt': '4', 'ColFloat':None, 'ColCat': 'b', 'ColBool':False}]
-    assert_raises(validate_predictions, testrows, vschema)
+    assert_raises(DataValidationException, validate_predictions, testrows,
+        vschema)
     try:
         validate_predictions(testrows, vschema)
     except DataValidationException as e:
