@@ -116,7 +116,7 @@ class TestAPI:
     def test_delete_deleted_table(self):
         t = self.API.create_table()
         t.delete()
-        assert_raises(ServerException, t.delete)
+        t.delete()
 
     @attr('sync')
     def test_create_deleted_table(self):
@@ -690,8 +690,8 @@ class TestTableOps:
         self.t2.delete_analysis("delete_me")
 
     @attr('sync')
-    def test_delete_analysis_fails(self):
-        assert_raises(ServerException, self.t2.delete_analysis, "foobar")
+    def test_delete_deleted_analysis(self):
+        self.t2.delete_analysis("foobar")
 
     @attr('sync')
     def test_get_analysis_schema(self):
