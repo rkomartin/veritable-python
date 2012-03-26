@@ -433,9 +433,10 @@ def test_data_nonvalid_int_count_fixfail():
         {'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
         {'_id': '2', 'ColInt': 'jello', 'ColFloat':4.1, 'ColCat': 'b',
          'ColBool':False}]
-    assert_raises(DataValidationException, clean_data, testrows, vschema)
+    assert_raises(DataValidationException, clean_data, testrows, vschema,
+        remove_invalids=False)
     try:
-        clean_data(testrows, vschema)
+        clean_data(testrows, vschema, remove_invalids=False)
     except DataValidationException as e:
         assert e.row == 1
         assert e.col == 'ColInt'
@@ -446,9 +447,9 @@ def test_pred_nonvalid_int_count_fixfail():
         {'ColInt':3, 'ColFloat':None, 'ColCat': 'a', 'ColBool':True},
         {'ColInt': 'jello', 'ColFloat':None, 'ColCat': 'b', 'ColBool':False}]
     assert_raises(DataValidationException, clean_predictions, testrows,
-        vschema)
+        vschema, remove_invalids=False)
     try:
-        clean_predictions(testrows, vschema)
+        clean_predictions(testrows, vschema, remove_invalids=False)
     except DataValidationException as e:
         assert e.row == 1
         assert e.col == 'ColInt'
@@ -549,9 +550,10 @@ def test_data_nonvalid_float_real_fixfail():
         {'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
         {'_id': '2', 'ColInt':4, 'ColFloat': 'jello', 'ColCat': 'b',
          'ColBool':False}]
-    assert_raises(DataValidationException, clean_data, testrows, vschema)
+    assert_raises(DataValidationException, clean_data, testrows, vschema,
+        remove_invalids=False)
     try:
-        clean_data(testrows, vschema)
+        clean_data(testrows, vschema, remove_invalids=False)
     except DataValidationException as e:
         assert e.row == 1
         assert e.col == 'ColFloat'
@@ -562,9 +564,9 @@ def test_pred_nonvalid_float_real_fixfail():
         {'ColInt':None, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
         {'ColInt':None, 'ColFloat': 'jello', 'ColCat': 'b', 'ColBool':False}]
     assert_raises(DataValidationException, clean_predictions, testrows,
-        vschema)
+        vschema, remove_invalids=False)
     try:
-        clean_predictions(testrows, vschema)
+        clean_predictions(testrows, vschema, remove_invalids=False)
     except DataValidationException as e:
         assert e.row == 1
         assert e.col == 'ColFloat'
@@ -751,9 +753,10 @@ def test_data_nonvalid_bool_boolean_fixfail():
     testrows = [{'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a',
         'ColBool':True}, {'_id': '2', 'ColInt':4, 'ColFloat':4.1, 'ColCat': 'b',
         'ColBool': 'jello'}]
-    assert_raises(DataValidationException, validate_data, testrows, vschema)
+    assert_raises(DataValidationException, validate_data, testrows, vschema,
+        remove_invalids=False)
     try:
-        clean_data(testrows, vschema)
+        clean_data(testrows, vschema, remove_invalids=False)
     except DataValidationException as e:
         assert e.row == 1
         assert e.col == 'ColBool'
@@ -763,9 +766,9 @@ def test_pred_nonvalid_bool_boolean_fixfail():
     testrows = [{'ColInt':None, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
         {'ColInt':None, 'ColFloat':4.1, 'ColCat': 'b', 'ColBool': 'jello'}]
     assert_raises(DataValidationException, clean_predictions, testrows,
-        vschema)
+        vschema, remove_invalids=False)
     try:
-        clean_predictions(testrows, vschema)
+        clean_predictions(testrows, vschema, remove_invalids=False)
     except DataValidationException as e:
         assert e.row == 1
         assert e.col == 'ColBool'
