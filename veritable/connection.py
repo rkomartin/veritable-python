@@ -50,11 +50,13 @@ def _handle_http_error(r, debug_log=None):
         r.raise_for_status()
     else:
         if r.status_code == requests.codes.not_found:
-            raise VeritableError("""HTTP Error 404 Not Found -- {0}: \
-            {1}""".format(code, message))
+            raise ServerException("""HTTP Error {0} Not Found -- {1}: \
+            {2}""".format(r.status_code, code, message), r.status_code,
+            code, message)
         if r.status_code == requests.codes.bad_request:
-            raise VeritableError("""HTTP Error 400 Bad Request -- {0}: \
-                {1}""".format(code, message))
+            raise ServerException("""HTTP Error {0} Bad Request -- {1}: \
+            {2}""".format(r.status_code, code, message), r.status_code,
+                code, message)
         r.raise_for_status()
 
 
@@ -240,4 +242,12 @@ class Connection:
         if self.debug:
             kwargs['config'] = {'verbose': sys.stderr}
         r = self.session.delete(url, **kwargs)
-        return _get_response_data(r, self._debug_log)
+        try:
+            res = _get_response_data(r, self._debug_log)
+        except ServerException as e:
+            if not e.status == requests.codes.not_found:
+                raise e
+            res = None
+        except:
+            raise
+        return res
