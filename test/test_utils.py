@@ -804,10 +804,10 @@ def test_data_too_many_cats_fail():
         rid = rid + 2
     testrows.append({'_id':str(rid), 'ColCat':str(maxCols - 1)})
     testrows.append({'_id':str(rid + 1), 'ColCat':str(maxCols)})
-    assert_raises(DataValidationException, clean_data,
+    assert_raises(DataValidationException, validate_data,
         testrows, eschema)
     try:
-        clean_data(testrows, eschema)
+        validate_data(testrows, eschema)
     except DataValidationException as e:
         assert e.col == 'ColCat'
 
@@ -826,9 +826,9 @@ def test_pred_too_many_cats_fail():
     testrows.append({'ColCat':str(maxCols - 1)})
     testrows.append({'ColCat':str(maxCols)})
     assert_raises(DataValidationException,
-        clean_predictions, testrows, eschema)
+        validate_predictions, testrows, eschema)
     try:
-        clean_predictions(testrows, eschema)
+        validate_predictions(testrows, eschema)
     except DataValidationException as e:
         assert e.col == 'ColCat'
 
