@@ -51,17 +51,6 @@ class InvalidSchemaException(Exception):
         return repr(self.value)
 
 
-class DuplicateTableException(VeritableError):
-    """Raised if an attempt is made to create a table that already exists,
-        without overwriting it."""
-    def __init__(self, table_id):
-        self.value = """Table with id """ + table_id + """ already exists! \
-        Set force=True to override."""
-
-    def __str__(self):
-        return repr(self.value)
-
-
 class DuplicateAnalysisException(VeritableError):
     """Raised if an attempt is made to create an analysis that already exists,
         without overwriting it."""
