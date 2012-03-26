@@ -44,7 +44,7 @@ def test_write_read_csv():
     for i in range(len(testrows)):
         assert testrows[i] == refrows[i]
     testrows = read_csv(filename, dialect=csv.excel)
-    clean_data(testrows)
+    clean_data(testrows, cschema)
     assert len(testrows) == len(refrows)
     for i in range(len(testrows)):
         assert testrows[i] == refrows[i]
@@ -74,7 +74,7 @@ def test_read_csv_map_id():
         refrows[i].pop('myID')
         assert testrows[i] == refrows[i]
     testrows = read_csv(filename, id_col='myID', dialect=csv.excel)
-    clean_data(testrows)
+    clean_data(testrows, cschema)
     assert len(testrows) == len(refrows)
     for i in range(len(testrows)):
         refrows[i]['_id'] = refrows[i]['myID']
@@ -102,7 +102,7 @@ def test_read_csv_assign_id():
         refrows[i]['_id'] = str(i + 1)
         assert testrows[i] == refrows[i]
     testrows = read_csv(filename, dialect=csv.excel)
-    clean_data(testrows)
+    clean_data(testrows, cschema)
     assert len(testrows) == len(refrows)
     for i in range(len(testrows)):
         refrows[i]['_id'] = str(i + 1)
@@ -294,7 +294,7 @@ def test_data_nonstring_id_fix():
     validate_data(testrows, vschema, convert_types=True)
     assert testrows[1]['_id'] == '2'
     validate_data(testrows, vschema)
-    clean_data(tr, vschema, convert_types=True)
+    clean_data(tr, vschema)
     assert tr[1]['_id'] == '2'
     validate_data(tr, vschema)
 
