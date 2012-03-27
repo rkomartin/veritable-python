@@ -109,7 +109,10 @@ def _validate_schema(schema):
     valid_types = ['boolean', 'categorical', 'real', 'count']
     for k in schema.keys():
         if not isinstance(k, str):
-            raise VeritableError("""Invalid schema specification.""")
+            try:
+                isinstance(k, basestring)
+            except:
+                raise VeritableError("""Invalid schema specification.""")
         v = schema[k]
         if not ('type' in v.keys()):
             raise VeritableError("""Invalid schema specification: \

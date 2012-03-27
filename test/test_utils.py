@@ -3,11 +3,12 @@
 
 from veritable.utils import (write_csv, read_csv, make_schema, summarize,
     validate_data, validate_predictions, _format_url, clean_data,
-    clean_predictions)
+    clean_predictions, _validate_schema)
 from veritable.exceptions import VeritableError
 from nose.tools import raises, assert_raises
 from tempfile import mkstemp
 import csv
+import json
 import os
 
 INVALID_IDS = ["\xc3\xa9l\xc3\xa9phant", "374.34", "ajfh/d/sfd@#$",
@@ -136,6 +137,8 @@ def test_bad_schema_type_fail():
     assert_raises(VeritableError, validate_data, testrows, bschema)
     assert_raises(VeritableError, clean_data, testrows, bschema)
 
+def test_unicode_schema_py2():
+    _validate_schema(json.loads(json.dumps({'a': {'type': 'real'}})))
 
 vschema = {
     'ColInt': {'type': 'count'},
