@@ -692,12 +692,15 @@ class Analysis:
             if not isinstance(row, dict):
                 raise VeritableError("""Must provide a row dict to make \
                 predictions!""")
-            return self._conn.post(
-            self._link('predict'),
+            res =  self._conn.post(self._link('predict'),
             data={'data': row, 'count': count})
+            if not isinstance(res, list):
+                raise VeritableError("""Error making predictions: \
+                {0}""".format(res))
+            return res
         elif self.state == 'running':
             raise VeritableError("""Analysis with id {0} is still running \
             and not yet ready to predict""".format(self.id))
         elif self.state == 'failed':
             raise VeritableError("""Analysis with id {0} has failed and \
-                cannot predict: {1}""".format(self.id, self.error))
+            cannot predict: {1}""".format(self.id, self.error))
