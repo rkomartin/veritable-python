@@ -472,6 +472,8 @@ class Table:
                         type="veritable", force=False):
         """Creates a new analysis of the table.
 
+        Returns a veritable.api.Analysis instance.
+
         Arguments:
         analysis_id -- the string id of the analysis to create (default: None)
             Must contain only alphanumerics, underscores, and hyphens.
@@ -677,13 +679,15 @@ class Analysis:
     def predict(self, row, count=10):
         """Makes predictions from the analysis.
 
-        Returns a list of row dicts including fixed and predicted values.
+        Returns a veritable.api.Prediction instance.
 
         Arguments:
         row -- the row dict whose missing values are to be predicted. These
             values should be None in the row argument.
         count -- the number of predictions to make for each missing value
             (default: 10)
+
+        See also: https://dev.priorknowledge.com/docs/client/python
 
         """
         if self.state == 'running':
@@ -706,6 +710,33 @@ class Analysis:
             cannot predict: {1}""".format(self.id, self.error))
 
 class Prediction(dict):
+    """Represents predictions responses.
+
+    A dictionary whose keys are the columns in the prediction request,
+    and whose values are point estimates for those columns. For fixed
+    columns, the value is the fixed value. For predicted values, the
+    point estimate varies by datatype:
+    
+    real -- mean
+    count -- mean rounded to the nearest integer
+    categorical -- mode
+    boolean -- mode
+
+    Instance attributes:
+    distribution -- the underlying predicted distribution as a list of
+      row dicts
+    uncertainty -- a dict whose keys are the columns in the prediction
+      request and whose values are uncertainty measures associated with
+      each point estimate. A higher value indicates greater uncertainty.
+      These measures vary by datatype:
+          real -- standard deviation
+          count -- standard deviation
+          categorical -- total probability of all non-modal values
+          boolean -- probability of the non-modal value
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
     def __init__(self, distribution):
         self.distribution = distribution
         self.uncertainty = {}
