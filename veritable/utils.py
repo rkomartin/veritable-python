@@ -622,12 +622,14 @@ def summarize(predictions, col):
     elif isinstance(vals[0], (str, bool)):
         e = max(vals, key=vals.count)
         c = 1 - (sum([1.0 for v in vals if v == e]) / float(cnt))
+        if isinstance(vals[0], bool):
+            return (bool(e), c)
         return (e, c)
     else:
         try:
             if isinstance(vals[0], basestring):
                 e = max(vals, key=vals.count)
                 c = 1 - (sum([1.0 for v in vals if v == e]) / float(cnt))
-                return (e, c)
+                return (str(e), c)
         except:
             pass

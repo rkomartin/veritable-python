@@ -752,7 +752,7 @@ class TestPredictions:
         assert(isinstance(pr, dict))
         assert(isinstance(pr, veritable.api.Prediction))
         assert(isinstance(pr.uncertainty, dict))
-        for k in pr.keys:
+        for k in pr.keys():
             assert(isinstance(pr[k], type(o[k])))
             assert(isinstance(pr.uncertainty[k], float))
             assert(pr[k] == o[k] or r[k] is None)
