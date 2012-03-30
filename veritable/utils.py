@@ -609,7 +609,11 @@ def summarize(predictions, col):
     """
     vals = [p[col] for p in predictions]
     cnt = len(vals)
-    if isinstance(vals[0], (int, float)):
+    if isinstance(vals[0], (str, bool)): # don't change the order of the tests
+        e = max(vals, key=vals.count)
+        c = 1 - (sum([1.0 for v in vals if v == e]) / float(cnt))
+        return (e, c)
+    elif isinstance(vals[0], (int, float)):
         e = sum(vals) / float(cnt)  # use the mean
         if cnt == 1:
             c = 0
@@ -619,12 +623,6 @@ def summarize(predictions, col):
             return (int(round(e, 0)), c)
         else:
             return (e, c)
-    elif isinstance(vals[0], (str, bool)):
-        e = max(vals, key=vals.count)
-        c = 1 - (sum([1.0 for v in vals if v == e]) / float(cnt))
-        if isinstance(vals[0], bool):
-            return (bool(e), c)
-        return (e, c)
     else:
         try:
             if isinstance(vals[0], basestring):

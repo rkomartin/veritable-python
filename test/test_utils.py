@@ -899,7 +899,6 @@ class TestSummarize:
     def test_summarize_bool(self):
         for tp in [self.testpreds, self.testpreds2]:
             expected, uncertainty = summarize(tp, 'ColBool')
-            print(expected)
             assert isinstance(expected, bool)
             assert expected == False
             assert abs(uncertainty - 0.25) < 0.001

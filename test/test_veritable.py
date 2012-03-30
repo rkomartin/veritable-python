@@ -746,18 +746,24 @@ class TestPredictions:
     @attr('async')
     def test_make_prediction(self):
         self.a2.wait()
-        o = {'cat': 'b', 'ct': 2, 'real': 3.1, 'bool': False}
-        r = {'cat': 'b', 'ct': 2, 'real': None, 'bool': False}
+        o = json.loads(json.dumps({'cat': 'b', 'ct': 2, 'real': 3.1, 'bool': False}))
+        r = json.loads(json.dumps({'cat': 'b', 'ct': 2, 'real': None, 'bool': False}))
         pr = self.a2.predict(r)
         assert(isinstance(pr, dict))
         assert(isinstance(pr, veritable.api.Prediction))
         assert(isinstance(pr.uncertainty, dict))
         for k in pr.keys():
-            assert(isinstance(pr[k], type(o[k])))
+            try:
+                if isinstance(o[k], basestring):
+                    assert(isinstance(pr[k], basestring))
+                else:
+                    assert(isinstance(pr[k], type(o[k])))
+            except:
+                assert(isinstance(pr[k], type(o[k])))
             assert(isinstance(pr.uncertainty[k], float))
             assert(pr[k] == o[k] or r[k] is None)
-        assert(isinstance(prediction.distribution, list))
-        for d in prediction.distribution:
+        assert(isinstance(pr.distribution, list))
+        for d in pr.distribution:
             assert(isinstance(d, dict))
 
     @attr('async')
