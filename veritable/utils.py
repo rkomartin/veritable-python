@@ -624,3 +624,11 @@ def summarize(predictions, col):
         e = max(vals, key=vals.count)
         c = 1 - (sum([1.0 for v in vals if v == e]) / float(cnt))
         return (e, c)
+    else:
+        try:
+            if coltype in (basestring):
+                e = max(vals, key=vals.count)
+                c = 1 - (sum([1.0 for v in vals if v == e]) / float(cnt))
+                return (e, c)
+        except:
+            pass
