@@ -746,7 +746,19 @@ class TestPredictions:
     @attr('async')
     def test_make_prediction(self):
         self.a2.wait()
-        self.a2.predict({'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
+        o = {'cat': 'b', 'ct': 2, 'real': 3.1, 'bool': False}
+        r = {'cat': 'b', 'ct': 2, 'real': None, 'bool': False}
+        pr = self.a2.predict(r)
+        assert(isinstance(pr, dict))
+        assert(isinstance(pr, veritable.api.Prediction))
+        assert(isinstance(pr.uncertainty, dict))
+        for k in pr.keys:
+            assert(isinstance(pr[k], type(o[k])))
+            assert(isinstance(pr.uncertainty[k], float))
+            assert(pr[k] == o[k] or r[k] is None)
+        assert(isinstance(prediction.distribution, list))
+        for d in prediction.distribution:
+            assert(isinstance(d, dict))
 
     @attr('async')
     def test_make_prediction_with_empty_row(self):

@@ -11,7 +11,7 @@ from .cursor import Cursor
 from .connection import Connection
 from .exceptions import VeritableError
 from .utils import (_make_table_id, _make_analysis_id, _check_id,
-    _format_url, _handle_unicode_id)
+    _format_url, _handle_unicode_id, summarize)
 
 BASE_URL = "https://api.priorknowledge.com/"
 
@@ -692,15 +692,23 @@ class Analysis:
             if not isinstance(row, dict):
                 raise VeritableError("""Must provide a row dict to make \
                 predictions!""")
-            res =  self._conn.post(self._link('predict'),
-            data={'data': row, 'count': count})
+            res = self._conn.post(self._link('predict'),
+                data={'data': row, 'count': count})
             if not isinstance(res, list):
                 raise VeritableError("""Error making predictions: \
                 {0}""".format(res))
-            return res
+            return Prediction(res)
         elif self.state == 'running':
             raise VeritableError("""Analysis with id {0} is still running \
             and not yet ready to predict""".format(self.id))
         elif self.state == 'failed':
             raise VeritableError("""Analysis with id {0} has failed and \
             cannot predict: {1}""".format(self.id, self.error))
+
+class Prediction(dict):
+    def __init__(self, distribution):
+        self.distribution = distribution
+        self.uncertainty = {}
+        for k in distribution[0].keys():
+            self[k], self.uncertainty[k] = summarize(distribution, k)
+        
