@@ -676,7 +676,7 @@ class Analysis:
             time.sleep(poll)
             self.update()
 
-    def predict(self, row, count=10):
+    def predict(self, row, count=100):
         """Makes predictions from the analysis.
 
         Returns a veritable.api.Prediction instance.
@@ -684,8 +684,9 @@ class Analysis:
         Arguments:
         row -- the row dict whose missing values are to be predicted. These
             values should be None in the row argument.
-        count -- the number of predictions to make for each missing value
-            (default: 10)
+        count -- the number of samples from the joint predictive distribution
+            to return. the number of samples allowed by the API is limited on
+            a per-user basis.
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
