@@ -45,19 +45,19 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
     try:
         connection_test = connection.get("/")
     except Exception as e:
-        raise VeritableError("""Error connecting to server: No Veritable \
-        server found at {0} using API key {1}""".format(api_base_url,
+        raise VeritableError("Error connecting to server: No Veritable " \
+        "server found at {0} using API key {1}".format(api_base_url,
             api_key), internal=e, internal_traceback=sys.exc_info()[2])
     try:
         status = connection_test['status']
         entropy = connection_test['entropy']
     except:
-        raise VeritableError("""Error connecting to server: No Veritable \
-        server found at {0} using API key {1}""".format(api_base_url,
+        raise VeritableError("Error connecting to server: No Veritable " \
+        "server found at {0} using API key {1}".format(api_base_url,
             api_key))
     if status != "SUCCESS" or not isinstance(entropy, float):
-        raise VeritableError("""Error connecting to server: No Veritable \
-        server found at {0} using API key {1}""".format(api_base_url,
+        raise VeritableError("Error connecting to server: No Veritable " \
+        "server found at {0} using API key {1}".format(api_base_url,
             api_key))
     return API(connection)
 
@@ -101,8 +101,8 @@ class API:
     def _link(self, name):
         # Retrieves a subresource by name
         if name not in self._doc['links']:
-            raise VeritableError("""API instance is missing link \
-            to {0}""".format(name))
+            raise VeritableError("API instance is missing link "\
+            "to {0}".format(name))
         return self._doc['links'][name]
 
     def limits(self):
@@ -185,9 +185,9 @@ class API:
                 return self.create_table(table_id=None,
                             description=description, force=False)
             if not force:
-                raise VeritableError("""Can't create table with id {0}: \
-                table already exists. Set force=True to
-                override.""".format(table_id))
+                raise VeritableError("Can't create table with id {0}: " \
+                "table already exists. Set force=True to " \
+                "override.".format(table_id))
             else:
                 self.delete_table(table_id)
         r = self._conn.post("tables",
@@ -258,8 +258,8 @@ class Table:
     def _link(self, name):
         # Retrieves a subresource by name
         if name not in self._doc['links']:
-            raise VeritableError("""Table instance is missing link \
-            to {0}""".format(name))
+            raise VeritableError("Table instance is missing link " \
+            "to {0}".format(name))
         return self._doc['links'][name]
 
     def _analysis_exists(self, analysis_id):
@@ -339,10 +339,10 @@ class Table:
 
         """
         if not isinstance(row, dict):
-            raise VeritableError("""Must provide a row dict to upload.""")
+            raise VeritableError("Must provide a row dict to upload.")
         if "_id" not in row:
-            raise VeritableError("""Rows must contain row ids in the _id \
-            field.""")
+            raise VeritableError("Rows must contain row ids in the _id " \
+            "field.")
         else:
             row_id = _handle_unicode_id(row["_id"])
             _check_id(row_id)
@@ -377,8 +377,8 @@ class Table:
             if not isinstance(row, dict):
                 raise VeritableError("Rows must be represented by row dicts.")
             if not "_id" in row:
-                raise VeritableError("""Rows must contain row ids in the _id \
-                field.""")
+                raise VeritableError("Rows must contain row ids in the _id "\
+                "field.")
             row["_id"] = _handle_unicode_id(row["_id"])
             _check_id(row["_id"])
             rs.append(row)
@@ -505,9 +505,9 @@ class Table:
                         description=description, analysis_id=None,
                         type=type, force=False)
             if not force:
-                raise VeritableError("""Can't create analysis with id {0}: \
-                analysis already exists. Set force=True to
-                override.""".format(analysis_id))
+                raise VeritableError("Can't create analysis with id {0}: " \
+                "analysis already exists. Set force=True to " \
+                "override.".format(analysis_id))
             else:
                 self.delete_analysis(analysis_id)
         r = self._conn.post(self._link("analyses"),
@@ -548,8 +548,8 @@ class Analysis:
 
     def _link(self, name):
         if name not in self._doc['links']:
-            raise VeritableError("""Analysis instance is missing link \
-            to {0}""".format(name))
+            raise VeritableError("Analysis instance is missing link " \
+            "to {0}".format(name))
         return self._doc['links'][name]
 
     @property
@@ -690,17 +690,51 @@ class Analysis:
             self.update()
         if self.state == 'succeeded':
             if not isinstance(row, dict):
-                raise VeritableError("""Must provide a row dict to make \
-                predictions!""")
+                raise VeritableError("Must provide a row dict to make "\
+                "predictions!")
             res =  self._conn.post(self._link('predict'),
             data={'data': row, 'count': count})
             if not isinstance(res, list):
-                raise VeritableError("""Error making predictions: \
-                {0}""".format(res))
-            return res
+                raise VeritableError("Error making predictions: " \
+                "{0}".format(res))
+            return Prediction(res)
         elif self.state == 'running':
-            raise VeritableError("""Analysis with id {0} is still running \
-            and not yet ready to predict""".format(self.id))
+            raise VeritableError("Analysis with id {0} is still running " \
+            "and not yet ready to predict".format(self.id))
         elif self.state == 'failed':
-            raise VeritableError("""Analysis with id {0} has failed and \
-            cannot predict: {1}""".format(self.id, self.error))
+            raise VeritableError("Analysis with id {0} has failed and " \
+            "cannot predict: {1}".format(self.id, self.error))
+
+class Prediction(dict):
+    """Represents predictions responses.
+
+    A dictionary whose keys are the columns in the prediction request,
+    and whose values are point estimates for those columns. For fixed
+    columns, the value is the fixed value. For predicted values, the
+    point estimate varies by datatype:
+    
+    real -- mean
+    count -- mean rounded to the nearest integer
+    categorical -- mode
+    boolean -- mode
+
+    Instance attributes:
+    distribution -- the underlying predicted distribution as a list of
+      row dicts
+    uncertainty -- a dict whose keys are the columns in the prediction
+      request and whose values are uncertainty measures associated with
+      each point estimate. A higher value indicates greater uncertainty.
+      These measures vary by datatype:
+          real -- standard deviation
+          count -- standard deviation
+          categorical -- total probability of all non-modal values
+          boolean -- probability of the non-modal value
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
+    def __init__(self, distribution):
+        self.distribution = distribution
+        self.uncertainty = {}
+        for k in distribution[0].keys():
+            self[k], self.uncertainty[k] = summarize(distribution, k)
