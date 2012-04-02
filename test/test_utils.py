@@ -873,27 +873,32 @@ class TestSummarize:
             {'ColInt':4, 'ColFloat':4.1, 'ColCat': 'b', 'ColBool':False},
             {'ColInt':8, 'ColFloat':8.1, 'ColCat': 'b', 'ColBool':False},
             {'ColInt':11, 'ColFloat':2.1, 'ColCat': 'c', 'ColBool':True}]
+        self.testpreds2 = json.loads(json.dumps(self.testpreds))
 
     def test_summarize_count(self):
-        expected, uncertainty = summarize(self.testpreds, 'ColInt')
-        assert type(expected) == int
-        assert expected == int(round((3 + 4 + 8 + 11) / 4.0))
-        assert abs(uncertainty - 3.6968) < 0.001
+        for tp in [self.testpreds, self.testpreds2]:
+            expected, uncertainty = summarize(tp, 'ColInt')
+            assert isinstance(expected, int)
+            assert expected == int(round((3 + 4 + 8 + 11) / 4.0))
+            assert abs(uncertainty - 3.6968) < 0.001
 
     def test_summarize_real(self):
-        expected, uncertainty = summarize(self.testpreds, 'ColFloat')
-        assert type(expected) == float
-        assert abs(expected - 4.35) < 0.001
-        assert abs(uncertainty - 2.6299) < 0.001
+        for tp in [self.testpreds, self.testpreds2]:
+            expected, uncertainty = summarize(tp, 'ColFloat')
+            assert isinstance(expected, float)
+            assert abs(expected - 4.35) < 0.001
+            assert abs(uncertainty - 2.6299) < 0.001
 
     def test_summarize_cat(self):
-        expected, uncertainty = summarize(self.testpreds, 'ColCat')
-        assert type(expected) == str
-        assert expected == 'b'
-        assert abs(uncertainty - 0.5) < 0.001
+        for tp in [self.testpreds, self.testpreds2]:
+            expected, uncertainty = summarize(tp, 'ColCat')
+            assert isinstance(expected, str)
+            assert expected == 'b'
+            assert abs(uncertainty - 0.5) < 0.001
 
     def test_summarize_bool(self):
-        expected, uncertainty = summarize(self.testpreds, 'ColBool')
-        assert type(expected) == bool
-        assert expected == False
-        assert abs(uncertainty - 0.25) < 0.001
+        for tp in [self.testpreds, self.testpreds2]:
+            expected, uncertainty = summarize(tp, 'ColBool')
+            assert isinstance(expected, bool)
+            assert expected == False
+            assert abs(uncertainty - 0.25) < 0.001

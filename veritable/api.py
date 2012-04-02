@@ -11,7 +11,7 @@ from .cursor import Cursor
 from .connection import Connection
 from .exceptions import VeritableError
 from .utils import (_make_table_id, _make_analysis_id, _check_id,
-    _format_url, _handle_unicode_id)
+    _format_url, _handle_unicode_id, summarize)
 
 BASE_URL = "https://api.priorknowledge.com/"
 
@@ -472,6 +472,8 @@ class Table:
                         type="veritable", force=False):
         """Creates a new analysis of the table.
 
+        Returns a veritable.api.Analysis instance.
+
         Arguments:
         analysis_id -- the string id of the analysis to create (default: None)
             Must contain only alphanumerics, underscores, and hyphens.
@@ -674,16 +676,19 @@ class Analysis:
             time.sleep(poll)
             self.update()
 
-    def predict(self, row, count=10):
+    def predict(self, row, count=100):
         """Makes predictions from the analysis.
 
-        Returns a list of row dicts including fixed and predicted values.
+        Returns a veritable.api.Prediction instance.
 
         Arguments:
         row -- the row dict whose missing values are to be predicted. These
             values should be None in the row argument.
-        count -- the number of predictions to make for each missing value
-            (default: 10)
+        count -- the number of samples from the joint predictive distribution
+            to return. the number of samples allowed by the API is limited on
+            a per-user basis.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
 
         """
         if self.state == 'running':
@@ -692,15 +697,50 @@ class Analysis:
             if not isinstance(row, dict):
                 raise VeritableError("""Must provide a row dict to make \
                 predictions!""")
-            res =  self._conn.post(self._link('predict'),
-            data={'data': row, 'count': count})
+            res = self._conn.post(self._link('predict'),
+                data={'data': row, 'count': count})
             if not isinstance(res, list):
                 raise VeritableError("""Error making predictions: \
                 {0}""".format(res))
-            return res
+            return Prediction(res)
         elif self.state == 'running':
             raise VeritableError("""Analysis with id {0} is still running \
             and not yet ready to predict""".format(self.id))
         elif self.state == 'failed':
             raise VeritableError("""Analysis with id {0} has failed and \
             cannot predict: {1}""".format(self.id, self.error))
+
+class Prediction(dict):
+    """Represents predictions responses.
+
+    A dictionary whose keys are the columns in the prediction request,
+    and whose values are point estimates for those columns. For fixed
+    columns, the value is the fixed value. For predicted values, the
+    point estimate varies by datatype:
+    
+    real -- mean
+    count -- mean rounded to the nearest integer
+    categorical -- mode
+    boolean -- mode
+
+    Instance attributes:
+    distribution -- the underlying predicted distribution as a list of
+      row dicts
+    uncertainty -- a dict whose keys are the columns in the prediction
+      request and whose values are uncertainty measures associated with
+      each point estimate. A higher value indicates greater uncertainty.
+      These measures vary by datatype:
+          real -- standard deviation
+          count -- standard deviation
+          categorical -- total probability of all non-modal values
+          boolean -- probability of the non-modal value
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
+    def __init__(self, distribution):
+        self.distribution = distribution
+        self.uncertainty = {}
+        for k in distribution[0].keys():
+            self[k], self.uncertainty[k] = summarize(distribution, k)
+        
