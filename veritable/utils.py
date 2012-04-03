@@ -613,20 +613,27 @@ def summarize(predictions, col):
     See also: https://dev.priorknowledge.com/docs/client/python
 
     """
-    coltype = type(predictions[0][col])
     vals = [p[col] for p in predictions]
     cnt = len(vals)
-    if coltype in (int, float):
+    if isinstance(vals[0], (str, bool)): # don't change the order of the tests
+        e = max(vals, key=vals.count)
+        c = 1 - (sum([1.0 for v in vals if v == e]) / float(cnt))
+        return (e, c)
+    elif isinstance(vals[0], (int, float)):
         e = sum(vals) / float(cnt)  # use the mean
         if cnt == 1:
             c = 0
         else:
             c = pow(sum([pow(v - e, 2) for v in vals]) / float(cnt - 1), 0.5)
-        if coltype == int:
+        if isinstance(vals[0], int):
             return (int(round(e, 0)), c)
         else:
             return (e, c)
-    elif coltype in (str, bool):
-        e = max(vals, key=vals.count)
-        c = 1 - (sum([1.0 for v in vals if v == e]) / float(cnt))
-        return (e, c)
+    else:
+        try:
+            if isinstance(vals[0], basestring):
+                e = max(vals, key=vals.count)
+                c = 1 - (sum([1.0 for v in vals if v == e]) / float(cnt))
+                return (str(e), c)
+        except:
+            pass
