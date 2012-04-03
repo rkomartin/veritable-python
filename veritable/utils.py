@@ -491,13 +491,9 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                             except:
                                 if remove_invalids:  # flag for removal
                                     r[c] = None
-                            else:
-                                if not r[c] >= 0:
-                                    raise VeritableError("Row:'{0}' Key:'{1}' " \
-                                    "Value:'{2}' is {3}, not a non-negative " \
-                                    "int".format(str(i), c, str(r[c]),
-                                    str(type(r[c]))), row=i, col=c)
                         if r[c] is None:  # remove flagged values
+                            r.pop(c)
+                        elif remove_invalids and isinstance(r[c], int) and r[c] < 0:
                             r.pop(c)
                         else:
                             if not isinstance(r[c], int) or not r[c] >= 0:  # catch invalids
