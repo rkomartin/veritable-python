@@ -39,12 +39,12 @@ def _check_id(id):
         try:
             str(id)
         except:
-            raise VeritableError("""Specified id is invalid: \
-            alphanumeric, underscore, and hyphen only!""")
+            raise VeritableError("Specified id is invalid: " \
+            "alphanumeric, underscore, and hyphen only!")
         else:
-            raise VeritableError("""Specified id {0} is invalid: \
-            alphanumeric, underscore, and hyphen \
-            only!""".format(str(id)))
+            raise VeritableError("Specified id {0} is invalid: " \
+            "alphanumeric, underscore, and hyphen " \
+            "only!".format(str(id)))
 
 
 def _make_table_id():
@@ -112,17 +112,17 @@ def _validate_schema(schema):
             try:
                 isinstance(k, basestring)
             except:
-                raise VeritableError("""Invalid schema specification.""")
+                raise VeritableError("Invalid schema specification.")
         v = schema[k]
         if not ('type' in v.keys()):
-            raise VeritableError("""Invalid schema specification: \
-            Column '{0}' does not have a 'type' specified. Please \
-            specify 'type' as one of ['{1}']""".format(k,
+            raise VeritableError("Invalid schema specification: " \
+            "Column '{0}' does not have a 'type' specified. Please " \
+            "specify 'type' as one of ['{1}']".format(k,
                 "', '".join(valid_types), col=k))
         if not v['type'] in valid_types:
-            raise VeritableError("""Invalid schema specification: \
-            Column '{0}' type '{1}' is not valid. Please specify \
-            'type' as one of ['{2}']""".format(k, v['type'],
+            raise VeritableError("Invalid schema specification: " \
+            "Column '{0}' type '{1}' is not valid. Please specify " \
+            "'type' as one of ['{2}']".format(k, v['type'],
                 "', '".join(valid_types), col=k))
 
 
@@ -169,7 +169,7 @@ def make_schema(schema_rule, headers=None, rows=None):
 
     """
     if headers is None and rows is None:
-        raise Exception("Either headers or rows must be provided")
+        raise VeritableError("Either headers or rows must be provided!")
     if headers is None:
         headers = set()
         for r in rows:
@@ -417,44 +417,44 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
             r['_id'] = str(i)
         elif has_ids:   # we expect an _id column
             if not '_id' in r:
-                raise VeritableError("""Row: {0}  is missing
-                Key:'_id'""".format(str(i)), row=i, col='_id')
+                raise VeritableError("Row: {0}  is missing " \
+                "Key:'_id'".format(str(i)), row=i, col='_id')
             if convert_types:   # attempt to convert _id to string
                 try:
                     r['_id'] = str(r['_id'])
                 except UnicodeDecodeError:  # catch and use str.encode
-                    raise VeritableError("""Row:'{0}' Key:'_id' Value:'{1}' \
-                    is {2}, not a str""".format(str(i),
+                    raise VeritableError("Row:'{0}' Key:'_id' Value:'{1}' " \
+                    "is {2}, not a str".format(str(i),
                         r['_id'].encode('utf-8'), str(type(r['_id']))), row=i,
                         col='_id')
             if not isinstance(r['_id'], str):  # invalid type for _id
                     try:
                         str(r['_id'])
                     except UnicodeEncodeError:  # ensure we work in 2.7 and 3
-                        raise VeritableError("""Row:'{0}' Key:'_id' is {1}, \
-                        not an ascii str.""".format(str(i),
+                        raise VeritableError("Row:'{0}' Key:'_id' is {1}, " \
+                        "not an ascii str.".format(str(i),
                             str(type(r['_id']))), row=i, col='_id')
                     else:
-                        raise VeritableError("""Row:'{0}' Key:'_id' \
-                        Value:'{1}' is {2}, not an ascii \
-                        str.""".format(str(i), r['_id'], str(type(r['_id']))),
+                        raise VeritableError("Row:'{0}' Key:'_id' " \
+                        "Value:'{1}' is {2}, not an ascii " \
+                        "str.".format(str(i), r['_id'], str(type(r['_id']))),
                             row=i, col='_id')
             else:
                 try:
                     r['_id'].encode('utf-8').decode('ascii')
                 except UnicodeDecodeError:
-                    raise VeritableError("""Row:'{0}' Key:'_id' Value:'{1}' \
-                    is {2}, not an ascii str.""".format(str(i), str(r['_id']),
+                    raise VeritableError("Row:'{0}' Key:'_id' Value:'{1}' " \
+                    "is {2}, not an ascii str.".format(str(i), str(r['_id']),
                         str(type(r['_id']))), row=i, col='_id')
             try:  # make sure _id is alphanumeric
                 _check_id(r['_id'])
             except VeritableError:
-                raise VeritableError("""Row:'{0}' Key:'_id' Value:'{1}' must \
-                contain only alphanumerics, underscores, and \
-                hyphens""".format(str(i), str(r['_id'])), row=i, col='_id')
+                raise VeritableError("Row:'{0}' Key:'_id' Value:'{1}' must " \
+                "contain only alphanumerics, underscores, and " \
+                "hyphens".format(str(i), str(r['_id'])), row=i, col='_id')
             if r['_id'] in unique_ids:
-                raise VeritableError("""Row:'{0}' Key:'_id' Value:'{1}' is \
-                not unique, conflicts with Row:'{2}'""".format(str(i),
+                raise VeritableError("Row:'{0}' Key:'_id' Value:'{1}' is " \
+                "not unique, conflicts with Row:'{2}'".format(str(i),
                     str(r['_id']), str(unique_ids[r['_id']])), row=i,
                     col='_id')
             unique_ids[r['_id']] = i
@@ -462,8 +462,8 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
             if remove_extra_fields:  # just remove it
                 r.pop('_id')
             else:
-                raise VeritableError("""Row:'{0}' Key:'_id' should not be \
-                included""".format(str(i)), row=i, col='_id')
+                raise VeritableError("Row:'{0}' Key:'_id' should not be " \
+                "included".format(str(i)), row=i, col='_id')
         for c in list(r.keys()):
             if c != '_id':
                 if not c in schema:  # keys missing from schema
@@ -471,17 +471,17 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                         r.pop(c)
                     else:
                         if not allow_extra_fields:  # or silently allow
-                            raise VeritableError("""Row:'{0}' Key: '{1}' is \
-                            not defined in schema""".format(str(i), c), row=i,
+                            raise VeritableError("Row:'{0}' Key: '{1}' is "\
+                            "not defined in schema".format(str(i), c), row=i,
                                 col=c)
                 elif r[c] is None:  # None values
                     if remove_nones:  # remove
                         r.pop(c)
                     else:
                         if not allow_nones:  # or silently allow
-                            raise VeritableError("""Row:'{0}' Key:'{1}' \
-                            should be removed because it has value
-                            None""".format(str(i), c), row=i, col=c)
+                            raise VeritableError("Row:'{0}' Key:'{1}' " \
+                            "should be removed because it has value " \
+                            "None".format(str(i), c), row=i, col=c)
                 else:  # keys present in schema
                     coltype = schema[c]['type']  # check the column type
                     if coltype == 'count':
@@ -493,11 +493,13 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                                     r[c] = None
                         if r[c] is None:  # remove flagged values
                             r.pop(c)
+                        elif remove_invalids and isinstance(r[c], int) and r[c] < 0:
+                            r.pop(c)
                         else:
-                            if not isinstance(r[c], int):  # catch invalids
-                                raise VeritableError("""Row:'{0}' Key:'{1}' \
-                                Value:'{2}' is {3}, not an \
-                                int""".format(str(i), c, str(r[c]),
+                            if not isinstance(r[c], int) or not r[c] >= 0:  # catch invalids
+                                raise VeritableError("Row:'{0}' Key:'{1}' " \
+                                "Value:'{2}' is {3}, not a non-negative " \
+                                "int".format(str(i), c, str(r[c]),
                                     str(type(r[c]))), row=i, col=c)
                     elif coltype == 'real':
                         if convert_types:  # try converting to float
@@ -510,9 +512,9 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                             r.pop(c)
                         else:
                             if not isinstance(r[c], float):  # catch invalids
-                                raise VeritableError("""Row:'{0}' Key: '{1}' \
-                                Value: '{2}' is {3}, not a \
-                                float""".format(str(i), c, str(r[c]),
+                                raise VeritableError("Row:'{0}' Key: '{1}' " \
+                                "Value: '{2}' is {3}, not a " \
+                                "float".format(str(i), c, str(r[c]),
                                     str(type(r[c]))), row=i, col=c)
                     elif coltype == 'boolean':
                         if convert_types:  # try converting to bool
@@ -531,9 +533,9 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                             r.pop(c)
                         else:
                             if not isinstance(r[c], bool):  # catch invalids
-                                raise VeritableError("""Row:'{0}' Key:'{1}' \
-                                Value:'{2}' is {3}, not a \
-                                bool""".format(str(i), c, str(r[c]),
+                                raise VeritableError("Row:'{0}' Key:'{1}' " \
+                                "Value:'{2}' is {3}, not a " \
+                                "bool".format(str(i), c, str(r[c]),
                                     str(type(r[c]))), row=i, col=c)
                     elif coltype == 'categorical':
                         if convert_types:  # try converting to str
@@ -546,9 +548,9 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                             r.pop(c)
                         else:
                             if not isinstance(r[c], str):  # catch invalids
-                                raise VeritableError("""Row:'{0}' Key:'{1}' \
-                                Value:'{2}' is {3}, not a \
-                                str""".format(str(i), c, str(r[c]),
+                                raise VeritableError("Row:'{0}' Key:'{1}' " \
+                                "Value:'{2}' is {3}, not a " \
+                                "str".format(str(i), c, str(r[c]),
                                     str(type(r[c]))), row=i, col=c)
                             if not c in category_counts:  # increment count
                                 category_counts[c] = {}
@@ -578,15 +580,15 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                         if r[c] is not None:
                             r[c] = category_map[r[c]]  # convert the values
             else:
-                raise VeritableError("""Categorical column '{0}' has {1} \
-                unique values which exceeds the limit of {2}.""".format(c,
+                raise VeritableError("Categorical column '{0}' has {1} " \
+                "unique values which exceeds the limit of {2}.".format(c,
                     str(len(category_counts[c].keys())), str(MAX_CATS)),
                     col=c)
     if not allow_empty_columns:
         for (c, fill) in field_fill.items():
             if fill == 0:
-                raise VeritableError("""Column '{0}' does not have any \
-                values""".format(c), col=c)
+                raise VeritableError("Column '{0}' does not have any " \
+                "values".format(c), col=c)
 
 
 def summarize(predictions, col):

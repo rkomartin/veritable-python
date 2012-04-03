@@ -476,6 +476,79 @@ def test_pred_nonvalid_int_count_fix():
     assert not('ColInt' in testrows[1])
     validate_predictions(testrows, vschema)
 
+def test_data_negative_int_count_fail():
+    testrows = [
+        {'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
+        {'_id': '2', 'ColInt': -4, 'ColFloat':4.1, 'ColCat': 'b',
+         'ColBool':False}]
+    assert_raises(VeritableError, validate_data, testrows,
+        vschema)
+    try:
+        validate_data(testrows, vschema)
+    except VeritableError as e:
+        assert e.row == 1
+        assert e.col == 'ColInt'
+
+
+def test_pred_negative_int_count_fail():
+    testrows = [
+        {'ColInt':3, 'ColFloat':None, 'ColCat': 'a', 'ColBool':True},
+        {'ColInt': -4, 'ColFloat':None, 'ColCat': 'b', 'ColBool':False}]
+    assert_raises(VeritableError, validate_predictions, testrows,
+        vschema)
+    try:
+        validate_predictions(testrows, vschema)
+    except VeritableError as e:
+        assert e.row == 1
+        assert e.col == 'ColInt'
+
+def test_data_negative_int_count_fixfail():
+    testrows = [
+        {'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
+        {'_id': '2', 'ColInt': -3, 'ColFloat':4.1, 'ColCat': 'b',
+         'ColBool':False}]
+    assert_raises(VeritableError, clean_data, testrows, vschema,
+        remove_invalids=False)
+    try:
+        clean_data(testrows, vschema, remove_invalids=False)
+    except VeritableError as e:
+        assert e.row == 1
+        assert e.col == 'ColInt'
+
+
+def test_pred_negative_int_count_fixfail():
+    testrows = [
+        {'ColInt':3, 'ColFloat':None, 'ColCat': 'a', 'ColBool':True},
+        {'ColInt': -3, 'ColFloat':None, 'ColCat': 'b', 'ColBool':False}]
+    assert_raises(VeritableError, clean_predictions, testrows,
+        vschema, remove_invalids=False)
+    try:
+        clean_predictions(testrows, vschema, remove_invalids=False)
+    except VeritableError as e:
+        assert e.row == 1
+        assert e.col == 'ColInt'
+
+def test_data_negative_int_count_fix():
+    testrows = [
+        {'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
+        {'_id': '2', 'ColInt': -3, 'ColFloat':4.1, 'ColCat': 'b',
+         'ColBool':False}]
+    assert_raises(VeritableError, clean_data, testrows, vschema,
+        remove_invalids=False)
+    clean_data(testrows, vschema)
+    assert not('ColInt' in testrows[1])
+
+
+def test_pred_negative_int_count_fix():
+    testrows = [
+        {'ColInt':3, 'ColFloat':None, 'ColCat': 'a', 'ColBool':True},
+        {'ColInt': -3, 'ColFloat':None, 'ColCat': 'b', 'ColBool':False}]
+    assert_raises(VeritableError, clean_predictions, testrows,
+        vschema, remove_invalids=False)
+    clean_predictions(testrows, vschema)
+    assert not('ColInt' in testrows[1])
+
+
 # Non-float Real
 def test_data_non_float_real_fail():
     testrows = [

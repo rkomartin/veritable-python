@@ -26,8 +26,8 @@ class Cursor:
         self.__collection = collection
 
     def __str__(self):
-        return """<veritable.Cursor collection='{0}' start={1} \
-            per_page={2}>""".format(self.__collection, self.__start,
+        return "<veritable.Cursor collection='{0}' start={1} " \
+            "per_page={2}>".format(self.__collection, self.__start,
             self.__per_page)
 
     def __repr__(self):
