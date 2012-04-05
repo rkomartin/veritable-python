@@ -660,20 +660,29 @@ class Analysis:
         """
         return self._conn.get(self._link('schema'))
 
-    def wait(self, poll=2):
+    def wait(self, max_time=None, poll=2):
         """Waits for the running analysis to succeed or fail.
 
         Returns None when the analysis succeeds or fails, and blocks until
-        it does.
+        it does. If a timeout is specified, raises a VeritableError if the
+        timeout has elapsed without the analysis completing.
 
         Arguments:
+        max_time -- the number of seconds after which to return or raise an
+          exception. If this is None, analysis.wait will block indefinitely.
         poll -- the number of seconds to wait between updates (default: 2)
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
+        elapsed = 0
         while self.state == 'running':
             time.sleep(poll)
+            if max_time is not None:
+                elapsed += poll
+                if elapsed > max_time:
+                    raise VeritableError("Maximum time of {0} " \
+                    "exceeded".format(max_time))
             self.update()
 
     def predict(self, row, count=100):
