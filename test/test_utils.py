@@ -141,6 +141,9 @@ def test_bad_schema_type_fail():
 def test_unicode_schema_py2():
     _validate_schema(json.loads(json.dumps({'a': {'type': 'real'}})))
 
+def test_invalid_schema_underscore():
+    assert_raises(VeritableError, _validate_schema, {'_': {'type': 'count'}})
+
 vschema = {
     'ColInt': {'type': 'count'},
     'ColFloat': {'type': 'real'},
