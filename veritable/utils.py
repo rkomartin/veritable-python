@@ -112,7 +112,13 @@ def _validate_schema(schema):
             try:
                 isinstance(k, basestring)
             except:
-                raise VeritableError("Invalid schema specification.")
+                try:
+                    str(k)
+                except:
+                    raise VeritableError("Invalid schema specification.")
+                else:
+                    raise VeritableError("Invalid schema specification: " \
+                    "{0} is not a valid column name.".format(str(id)))
         v = schema[k]
         if not ('type' in v.keys()):
             raise VeritableError("Invalid schema specification: " \
