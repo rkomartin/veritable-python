@@ -675,11 +675,12 @@ class Analysis:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
+        elapsed = 0
         while self.state == 'running':
             time.sleep(poll)
             if max_time is not None:
-                max_time -= poll
-                if max_time <= 0:
+                elapsed += poll
+                if elapsed > max_time:
                     raise VeritableError("Maximum time of {0} " \
                     "exceeded".format(max_time))
             self.update()
