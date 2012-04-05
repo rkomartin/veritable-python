@@ -660,7 +660,7 @@ class Analysis:
         """
         return self._conn.get(self._link('schema'))
 
-    def wait(self, max_time, poll=2):
+    def wait(self, max_time=None, poll=2):
         """Waits for the running analysis to succeed or fail.
 
         Returns None when the analysis succeeds or fails, and blocks until
