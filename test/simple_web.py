@@ -4,6 +4,7 @@ from flask import Flask, request
 import os
 from veritable.connection import USER_AGENT
 
+
 class GzipMiddleware(object):
     def __init__(self,
                  app,
@@ -18,7 +19,10 @@ class GzipMiddleware(object):
         if 'gzip' in environ.get('HTTP_CONTENT_ENCODING', ''):
             print("Unzipping request body")
             zlength = int(environ.get('CONTENT_LENGTH', '0'))
-            rbytes = environ['wsgi.input'].read(zlength) if zlength > 0 else environ['wsgi.input'].read()
+            if zlength > 0:
+                rbytes = environ['wsgi.input'].read(zlength)
+            else:
+                rbytes = environ['wsgi.input'].read()
             environ['wsgi.input'].close()
             rbuf = BytesIO(rbytes)
             zbuf = GzipFile(
@@ -32,7 +36,7 @@ class GzipMiddleware(object):
             environ.pop('HTTP_CONTENT_ENCODING')
             environ['CONTENT_LENGTH'] = str(wbuf.tell())
             wbuf.seek(0)
-            environ['wsgi.input'] = wbuf        
+            environ['wsgi.input'] = wbuf
 
         # Handle gzipping responses if client can accept gzip
         # Reference: http://pylonsbook.com/en/1.1/the-web-server-gateway-interface-wsgi.html
@@ -46,6 +50,7 @@ class GzipMiddleware(object):
             fileobj=wbuf
             )
         start_response_args = []
+
         def dummy_start_response(status, headers, exc_info=None):
             start_response_args.append(status)
             start_response_args.append(headers)
@@ -63,7 +68,7 @@ class GzipMiddleware(object):
         headers = []
         for name, value in start_response_args[1]:
             if name.lower() != 'content-length':
-                 headers.append((name, value))
+                headers.append((name, value))
         headers.append(('Content-Length', str(len(result))))
         headers.append(('Content-Encoding', 'gzip'))
         start_response(start_response_args[0], headers, start_response_args[2])
@@ -73,30 +78,35 @@ class GzipMiddleware(object):
 app = Flask(__name__)
 app.wsgi_app = GzipMiddleware(app.wsgi_app)
 
+
 @app.route("/echopost", methods=['POST'])
 def echopost():
     assert request.headers['User-Agent'] == USER_AGENT
     return request.data
+
 
 @app.route("/echoput", methods=['PUT'])
 def echoput():
     assert request.headers['User-Agent'] == USER_AGENT
     return request.data
 
+
 @app.route("/echoget/<content>", methods=['GET'])
 def echoget(content):
     assert request.headers['User-Agent'] == USER_AGENT
-    return '"'+content+'"'
+    return '"' + content + '"'
+
 
 @app.route("/echodelete/<content>", methods=['DELETE'])
 def echodelete(content):
     assert request.headers['User-Agent'] == USER_AGENT
-    return '"'+content+'"'
+    return '"' + content + '"'
+
 
 @app.route("/inst/echoget2/<content>", methods=['GET'])
-def echoget(content):
+def echoget2(content):
     assert request.headers['User-Agent'] == USER_AGENT
-    return '"'+content+'"'
+    return '"' + content + '"'
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

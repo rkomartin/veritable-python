@@ -1,40 +1,129 @@
+"""Tools for working with veritable-python.
+
+See also: https://dev.priorknowledge.com/docs/client/python
+
+"""
+
 import os
-import simplejson
+import sys
+import time
+from .cursor import Cursor
 from .connection import Connection
-from .exceptions import *
-from .utils import _make_table_id, _make_analysis_id, _format_url
+from .exceptions import VeritableError
+from .utils import (_make_table_id, _make_analysis_id, _check_id,
+    _format_url, _handle_unicode_id, summarize)
 
 BASE_URL = "https://api.priorknowledge.com/"
 
+
 def connect(api_key=None, api_base_url=None, ssl_verify=True,
-        disable_gzip=False, debug=False):
+        enable_gzip=True, debug=False):
+    """Entry point to the Veritable API.
+
+    Returns a veritable.api.API instance.
+
+    Arguments:
+    api_key -- the API key to use for access. (default: None) If None, reads
+        the API key in from the VERITABLE_KEY environment variable.
+    api_base_url -- the base url of the API. (default: None) If None, reads
+        the url in from the VERITABLE_URL environment variable, and if
+        nothing is found, uses https://api.priorknowledge.com by default.
+    ssl_verify -- controls whether SSL keys are verified. (default: True)
+    enable_gzip -- controls whether requests to and from the API server are
+        gzipped. (default: True)
+    debug -- controls the production of debug messages. (default: False)
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
     if api_key is None:
         api_key = os.getenv("VERITABLE_KEY")
     if api_base_url is None:
         api_base_url = os.getenv("VERITABLE_URL") or BASE_URL
-    connection = Connection(api_key, api_base_url, ssl_verify,
-            disable_gzip, debug)
+    connection = Connection(api_key=api_key, api_base_url=api_base_url,
+            ssl_verify=ssl_verify, enable_gzip=enable_gzip, debug=debug)
     try:
         connection_test = connection.get("/")
-    except simplejson.JSONDecodeError:
-        raise(APIConnectionException(api_base_url))
-
-    if not connection_test['status'] == "SUCCESS" or not isinstance(connection_test['entropy'], float):
-        raise(APIConnectionException(api_base_url))
+    except Exception as e:
+        raise VeritableError("Error connecting to server: No Veritable " \
+        "server found at {0} using API key {1}".format(api_base_url,
+            api_key), internal=e, internal_traceback=sys.exc_info()[2])
+    try:
+        status = connection_test['status']
+        entropy = connection_test['entropy']
+    except:
+        raise VeritableError("Error connecting to server: No Veritable " \
+        "server found at {0} using API key {1}".format(api_base_url,
+            api_key))
+    if status != "SUCCESS" or not isinstance(entropy, float):
+        raise VeritableError("Error connecting to server: No Veritable " \
+        "server found at {0} using API key {1}".format(api_base_url,
+            api_key))
     return API(connection)
 
-def handle_api_error(err):
-    raise Exception(err)
 
 class API:
+
+    """Represents the resources available to a user of the Veritable API.
+
+    Methods:
+    table_exists -- checks whether a table with a given id is available.
+    get_tables -- gets the collection of available tables.
+    get_table -- gets a table with a given id.
+    create_table -- creates a new table.
+    delete_table -- deletes a table with a given id.
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
+
     def __init__(self, connection):
-        self.connection = connection
-        self.url = connection.api_base_url
+        """Initializes the Veritable API.
+
+        Users should not invoke directly -- use veritable.connect as the
+        entry point instead.
+
+        Arguments:
+        connection -- a veritable.connection.Connection object
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        self._conn = connection
+        self._url = connection.api_base_url
 
     def __str__(self):
-        return "Veritable API at " + self.url
+        return "<veritable.API url='" + self._url + "'>"
+
+    def __repr__(self):
+        return self.__str__()
+
+    def _link(self, name):
+        # Retrieves a subresource by name
+        if name not in self._doc['links']:
+            raise VeritableError("API instance is missing link "\
+            "to {0}".format(name))
+        return self._doc['links'][name]
+
+    def limits(self):
+        """Retrieves the current API limits as a dict.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        return self._conn.get(_format_url(["user", "limits"]))
 
     def table_exists(self, table_id):
+        """Checks if a table with the specified id is available to the user.
+
+        Returns True if the table is available, False otherwise.
+
+        Arguments:
+        table_id -- the string id of the table to check.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
         try:
             self.get_table(table_id)
         except:
@@ -43,134 +132,138 @@ class API:
             return True
 
     def get_tables(self):
-        """Return the Veritable tables available to the user."""
-        r = self.connection.get("tables")
-        return [Table(self.connection, t) for t in r["tables"]]
+        """Returns a list of the tables available to the user.
+
+        Returns a list of veritable.api.Table objects.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        r = self._conn.get("tables")
+        return [Table(self._conn, t) for t in r["tables"]]
 
     def get_table(self, table_id):
-        """Get a table from the collection by its id."""
-        r = self.connection.get(_format_url("tables", table_id))
-        return Table(self.connection, r)
-    
+        """Gets a table from the collection by its id.
+
+        Returns a veritable.api.Table instance.
+
+        Arguments:
+        table_id -- the string id of the table to get.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        r = self._conn.get(_format_url(["tables", table_id]))
+        return Table(self._conn, r)
+
     def create_table(self, table_id=None, description="", force=False):
-        """Create a table with the given id."""    
+        """Creates a new table.
+
+        Returns a veritable.api.Table instance.
+
+        Arguments:
+        table_id -- the string id of the table to create (default: None)
+            Must contain only alphanumerics, underscores, and hyphens.
+            If None, create_table will autogenerate a new id for the table.
+        description -- the string description of the table to create
+            (default: '')
+        force -- controls whether create_table will overwrite an existing
+            table with the same id (default: False)
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
         if table_id is None:
             autogen = True
             table_id = _make_table_id()
         else:
+            table_id = _handle_unicode_id(table_id)
+            _check_id(table_id)
             autogen = False
         if self.table_exists(table_id):
             if autogen:
                 return self.create_table(table_id=None,
                             description=description, force=False)
             if not force:
-                raise DuplicateTableException(table_id)
+                raise VeritableError("Can't create table with id {0}: " \
+                "table already exists. Set force=True to " \
+                "override.".format(table_id))
             else:
                 self.delete_table(table_id)
-        r = self.connection.post("tables",
-                data = {"_id": table_id, "description": description})
-        return Table(self.connection, r)
-    
+        r = self._conn.post("tables",
+                data={"_id": table_id, "description": description})
+        return Table(self._conn, r)
+
     def delete_table(self, table_id):
-        """Delete a table from the collection by its id."""
-        r = self.connection.get(_format_url("tables", table_id))
-        return Table(self.connection, r).delete()
+        """Deletes a table from the collection by its id.
+
+        Returns None on success. Silently succeeds on attempts to delete
+        nonexistent resources.
+
+        Arguments:
+        table_id -- the string id of the table to delete.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        self._conn.delete(_format_url(["tables", table_id]))
+
 
 class Table:
-    def __init__(self, connection, data):
-        self.connection = connection
-        self.has_been_deleted = False
-        self.id = data["_id"]
-        self.links = {"self": data["links"]["self"],
-                      "analyses": data["links"]["analyses"],
-                      "rows": data["links"]["rows"]}    
-                      
+
+    """Represents the resources associated with a single table.
+
+    Instance Attributes:
+    id -- the string id of the table
+
+    Methods:
+    delete -- deletes the table resource.
+    get_row -- gets a row from the table by its id
+    get_rows -- gets all the rows of the table
+    upload_row -- uploads a row to the table
+    batch_upload_rows -- uploads a list of rows to the table
+    delete_row -- deletes a row from the table
+    batch_delete_rows -- deletes a list of rows from the table
+    get_analyses -- gets all the analyses of the table
+    get_analysis -- gets an analysis from the table by its id
+    delete_analysis -- deletes an analysis of the table by its id
+    create_analysis -- creates a new analysis of the table
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
+
+    def __init__(self, connection, doc):
+        """Initializes a Veritable Table.
+
+        Users should not invoke directly -- use veritable.connect as the
+        entry point instead.
+
+        Arguments:
+        connection -- a veritable.connection.Connection object
+        doc - the Python object translation of the resource's JSON doc
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        self._conn = connection
+        self._doc = doc
+
     def __str__(self):
-        return "Veritable table at " + self.links["self"]
+        return "<veritable.Table id='" + self.id + "'>"
 
-    def _still_alive(self):
-        """Check to make sure the table still exists."""
-        if self.has_been_deleted:
-            raise DeletedTableException()
-            
-    def _get_state(self):
-        """Get the state of the table."""
-        self._still_alive()
-        return self.connection.get(self.links["self"])
-        
-    def delete(self):
-        """Delete the table."""
-        self._still_alive()
-        self.has_been_deleted = True
-        return self.connection.delete(self.links["self"])
-        
-    def upload_row(self, row):
-        """Add a row to the table."""
-        self._still_alive()
-        if "_id" not in row:
-            raise MissingRowIDException()
-        else:
-            row_id = row["_id"]
-            if not isinstance(row_id, basestring):
-                raise TypeError("Row id must be a string")
-        return self.connection.put(_format_url(self.links["rows"], row_id),
-                row)
-        
-    def batch_upload_rows(self, rows):
-        """Batch add rows to the table."""
-        self._still_alive()
-        for i in range(len(rows)):
-            if not "_id" in rows[i]:
-                raise MissingRowIDException()
-        data = {'action': 'put', 'rows': rows}
-        return self.connection.post(self.links["rows"], data)
+    def __repr__(self):
+        return self.__str__()
 
-    def get_row(self, row_id):
-        """Get a row from the table by its id."""
-        self._still_alive()
-        return self.connection.get(_format_url(self.links["rows"], row_id))
-
-    def get_rows(self):
-        """Get the rows of the table."""
-        self._still_alive()
-        return self.connection.get(self.links["rows"])["rows"]
-
-    def delete_row(self, row_id):
-        """Delete a row from the table by its id."""
-        self._still_alive()
-        return self.connection.delete(_format_url(self.links["rows"], row_id))
-
-    def delete_rows(self, rows):
-        """Batch delete rows from the table."""
-        self._still_alive()
-        for i in range(len(rows)):
-            if not "_id" in rows[i]:
-                raise MissingRowIDException()
-        data = {'action': 'delete', 'rows': rows}
-        return self.connection.post(self.links["rows"], data)
-
-    def get_analyses(self):
-        """Get the analyses corresponding to the table."""
-        self._still_alive()
-        r = self.connection.get(self.links["analyses"])
-        return [Analysis(self.connection, a) for a in r["data"]]
-
-    def get_analysis(self, analysis_id):
-        """Get an analysis corresponding to the table by its id."""
-        self._still_alive()
-        r = self.connection.get(_format_url(self.links["analyses"],
-                analysis_id))
-        return Analysis(self.connection, r)
-
-    def delete_analysis(self, analysis_id):
-        """Delete an analysis corresponding to the table by its id."""
-        self._still_alive()
-        r = self.connection.get(_format_url(self.links["analyses"],
-                analysis_id))
-        return Analysis(self.connection, r).delete()
+    def _link(self, name):
+        # Retrieves a subresource by name
+        if name not in self._doc['links']:
+            raise VeritableError("Table instance is missing link " \
+            "to {0}".format(name))
+        return self._doc['links'][name]
 
     def _analysis_exists(self, analysis_id):
-        """Test if an analysis with a given id already exists."""
+        # Checks if an analysis with a given id already exists.
         try:
             self.get_analysis(analysis_id)
         except:
@@ -178,16 +271,235 @@ class Table:
         else:
             return True
 
+    @property
+    def id(self):
+        """The string id of the table.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        return str(self._doc['_id'])
+
+    def delete(self):
+        """Deletes the table resource.
+
+        Returns None on success. Silently succeeds on attempts to delete
+        nonexistent resources.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        self._conn.delete(self._link("self"))
+
+    def get_row(self, row_id):
+        """Gets a row from the table by its id.
+
+        Returns a dict representing the values in the row.
+
+        Arguments:
+        row_id -- the string id of the row to fetch
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        return self._conn.get(_format_url([self._link("rows"), row_id],
+            noquote=[0]))
+
+    def get_rows(self, start=None, limit=None):
+        """Gets the rows of the table.
+
+        Returns an iterator over the rows of the table
+
+        Arguments:
+        start -- The row id from which to start (default: None) Rows whose id
+          fields are greater than or equal to start in lexicographic order
+          will be returned by the iterator. If None, all rows will be
+          returned.
+        limit -- If set to an integer value, will limit the number of rows
+          returned by the iterator. (default: None) If None, the number of
+          rows returned will not be limited.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        return Cursor(self._conn, self._link("rows"), start=start,
+            limit=limit)
+
+    def upload_row(self, row):
+        """Adds a row to the table or updates an existing row.
+
+        Returns None on success.
+
+        Arguments:
+        row -- a dict representing the row to upload. Must contain an '_id'
+            key whose value is a string containing only alphanumerics,
+            underscores, and hyphens, and is unique in the table.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        if not isinstance(row, dict):
+            raise VeritableError("Must provide a row dict to upload.")
+        if "_id" not in row:
+            raise VeritableError("Rows must contain row ids in the _id " \
+            "field.")
+        else:
+            row_id = _handle_unicode_id(row["_id"])
+            _check_id(row_id)
+        self._conn.put(_format_url([self._link("rows"), row_id], noquote=[0]),
+            row)
+
+    def batch_upload_rows(self, rows, per_page=1000):
+        """Batch adds rows to the table or updates existing rows.
+
+        By default, paginates requests in chunks of 1000 rows. This
+        parameter can be adjusted.
+
+        Returns None on success.
+
+        Arguments:
+        rows - a list of dicts representing the rows to upload. Each dict
+            must contain an '_id' key whose value is a string containing only
+            alphanumerics, underscores, and hyphens, and is unique in the
+            table.
+        per_page - the number of rows to upload per HTTP request (default: 1000)
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        self._batch_modify_rows('put', rows, per_page)
+
+    def _batch_modify_rows(self, action, rows, per_page):
+        rs = []
+        if not isinstance(per_page, int) or not per_page > 0:
+            raise VeritableError("Page size must be an int greater than 0")
+        for row in rows:
+            if not isinstance(row, dict):
+                raise VeritableError("Rows must be represented by row dicts.")
+            if not "_id" in row:
+                raise VeritableError("Rows must contain row ids in the _id "\
+                "field.")
+            row["_id"] = _handle_unicode_id(row["_id"])
+            _check_id(row["_id"])
+            rs.append(row)
+        batch = []
+        i = 0
+        for r in rs:
+            batch.append(r)
+            i = i+1
+            if i == per_page:
+                data = {'action': action, 'rows': batch}
+                self._conn.post(self._link('rows'), data)
+                i = 0
+                batch = []
+        if len(batch) > 0:
+            data = {'action': 'put', 'rows': batch}
+            self._conn.post(self._link('rows'), data)
+
+    def delete_row(self, row_id):
+        """Deletes a row from the table by its id.
+
+        Returns None on success. Silently succeeds on attempts to delete
+        nonexistent resources.
+
+        Arguments:
+        row_id -- the string id of the row to delete.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        self._conn.delete(_format_url([self._link("rows"), row_id],
+            noquote=[0]))
+
+    def batch_delete_rows(self, rows, per_page=1000):
+        """Batch deletes rows from the table.
+
+        Returns None on success. Silently succeeds on attempts to delete
+        nonexistent resources.
+
+        Arguments:
+        rows -- a list of dics representing the rows to delete. Each dict
+            must contain an '_id' key whose value is the string id of a row
+            to delete from the table, and need not contain any other keys.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        self._batch_modify_rows('delete', rows, per_page)
+
+    def get_analyses(self):
+        """Gets all the analyses of the table.
+
+        Returns a list of veritable.api.Analysis objects.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        r = self._conn.get(self._link("analyses"))
+        return [Analysis(self._conn, a) for a in r["analyses"]]
+
+    def get_analysis(self, analysis_id):
+        """Gets an analysis of the table by its id.
+
+        Returns a veritable.api.Analysis instance.
+
+        Arguments:
+        analysis_id -- the string id of the analysis to fetch.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        r = self._conn.get(_format_url([self._link("analyses"), analysis_id],
+            noquote=[0]))
+        return Analysis(self._conn, r)
+
+    def delete_analysis(self, analysis_id):
+        """Deletes an analysis of the table by its id.
+
+        Returns None on success. Silently succeeds on attempts to delete
+        nonexistent resources.
+
+        Arguments:
+        analysis_id -- the string id of the analysis to delete
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        self._conn.delete(_format_url([self._link("analyses"), analysis_id],
+            noquote=[0]))
+
     def create_analysis(self, schema, analysis_id=None, description="",
                         type="veritable", force=False):
-        """Create a new analysis for the table."""
-        self._still_alive()
+        """Creates a new analysis of the table.
+
+        Returns a veritable.api.Analysis instance.
+
+        Arguments:
+        analysis_id -- the string id of the analysis to create (default: None)
+            Must contain only alphanumerics, underscores, and hyphens.
+            If None, create_analysis will autogenerate a new id for the table.
+        schema -- the analysis schema to use (default: None) The schema must
+            be a Python dict of the form:
+                {'col_1': {type: 'datatype'}, 'col_2': {type: 'datatype'}, ...}
+            where the specified datatype for each column one of ['real',
+            'boolean', 'categorical', 'count'] and is valid for the column.
+        description -- the string description of the analysis to create
+            (default: '')
+        type -- type of analysis; must be "veritable" (default: 'veritable')
+        force -- controls whether create_analysis will overwrite an existing
+            analysis with the same id (default: False)
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
         if type != "veritable":
-            raise InvalidAnalysisTypeException()
+            raise VeritableError("Invalid analysis type.")
         if analysis_id is None:
             autogen = True
             analysis_id = _make_analysis_id()
         else:
+            analysis_id = _handle_unicode_id(analysis_id)
+            _check_id(analysis_id)
             autogen = False
         if self._analysis_exists(analysis_id):
             if autogen:
@@ -195,82 +507,248 @@ class Table:
                         description=description, analysis_id=None,
                         type=type, force=False)
             if not force:
-                raise DuplicateAnalysisException(analysis_id)
+                raise VeritableError("Can't create analysis with id {0}: " \
+                "analysis already exists. Set force=True to " \
+                "override.".format(analysis_id))
             else:
                 self.delete_analysis(analysis_id)
-        r = self.connection.post(self.links["analyses"],
-                data = {"_id": analysis_id, "description": description,
-                        "type": type, "schema": schema})
-        return Analysis(self.connection, r)
-                                        
+        r = self._conn.post(self._link("analyses"),
+                data={"_id": analysis_id, "description": description,
+                      "type": type, "schema": schema})
+        return Analysis(self._conn, r)
+
+
 class Analysis:
-    def __init__(self, connection, data):
-        self.connection = connection
-        self.has_been_deleted = False
-        self.type = data["type"]
-        self.id = data["_id"]
-        self.links = {}
-        for k in ["self", "schema", "run", "predict"]:
-            if k in data["links"]:
-                self.links[k] = data["links"][k]
-    
+
+    """Represents an analysis resource.
+
+    Instance Attributes:
+    id -- the string id of the table
+    state -- the state of the analysis
+    error -- the detailed error encountered in analysis, if any
+
+    Methods:
+    update -- refreshes the state of the analysis
+    delete -- deletes the analysis resource
+    get_schema -- gets the schema associated with the analysis
+    wait -- waits until the analysis completes
+    predict -- makes predictions from the analysis
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
+
+    def __init__(self, connection, doc):
+        self._conn = connection
+        self._doc = doc
+
     def __str__(self):
-        return "Veritable analysis at " + self.links["self"]
+        return "<veritable.Analysis id='" + self.id + "'>"
+
+    def __repr__(self):
+        return self.__str__()
+
+    def _link(self, name):
+        if name not in self._doc['links']:
+            raise VeritableError("Analysis instance is missing link " \
+            "to {0}".format(name))
+        return self._doc['links'][name]
+
+    @property
+    def id(self):
+        """The string id of the analysis.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        return str(self._doc['_id'])
+
+    @property
+    def finished_at(self):
+        """The time the analysis completed.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        return str(self._doc['finished_at'])
+
+    @property
+    def created_at(self):
+        """The time the analysis was created.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        return str(self._doc['created_at'])
+
+    @property
+    def state(self):
+        """The state of the analysis
+
+        A string, one of 'succeeded', 'failed', or 'running'. Run the
+        update method to refresh.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        return str(self._doc['state'])
 
     @property
     def error(self):
-        if self.state() != "failed":
+        """The error, if any, encountered by the analysis.
+
+        A Python object with details of the error, or None if the analysis
+        has not failed.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        if self.state != 'failed':
             return None
         else:
-            data = self._get_state()
-            return data["error"]
+            return self._doc['error']
 
-    def _still_alive(self):
-        """Check to make sure the analysis still exists."""
-        if self.has_been_deleted:
-            raise DeletedAnalysisException()
+    @property
+    def progress(self):
+        """An estimate of the time remaining for the analysis to complete.
 
-    def _get_state(self):
-        """Get the state of the analysis."""
-        self._still_alive()
-        return self.connection.get(self.links["self"])
-    
-    def _update(self):
-        data = self._get_state()
-        for k in ["self", "schema", "run", "predict"]:
-            if k in data["links"]:
-                self.links[k] = data["links"][k]
+        If the analysis is still running, returns a dict containing the fields:
+        percent -- an integer between 0 and 100 indicating how much of The
+          analysis is complete
+        finished_at_estimate -- a timestamp representing the estimated time
+          at which the analysis will complete
 
-    def _did_not_fail(self):
-        data = self._get_state()
-        if data["state"] == "failed":
-            handle_api_error(data["error"])
-    
-    def _ready_to_predict(self):
-        self._update()
-        if "predict" not in self.links:
-            raise AnalysisNotReadyException()
-    
-    def state(self):
-        data = self._get_state()
-        return data["state"]
-    
+        If the analysis has succeeded or failed, None.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        if self.state == 'succeeded':
+            return self._doc['progress']
+        else:
+            return None
+
+    def update(self):
+        """Refreshes the analysis state
+
+        Checks whether the analysis has succeeded or failed, updating the
+        state and error attributes appropriately.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        self._doc = self._conn.get(self._link('self'))
+
     def delete(self):
-        """"Delete the analysis."""
-        self._still_alive()
-        return self.connection.delete(self.links["self"])
+        """Deletes the analysis resource.
+
+        Returns None on success. Silently succeeds on attempts to delete
+        nonexistent resources.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        self._conn.delete(self._link('self'))
 
     def get_schema(self):
-        """Get the schema corresponding to the analysis."""
-        self._still_alive()
-        return self.connection.get(self.links["schema"])
+        """Gets the schema of the analysis.
 
-    def predict(self, row, count=10):
-        """Make predictions based on analysis results."""
-        self._still_alive()
-        self._did_not_fail()
-        self._ready_to_predict()
-        if not isinstance(row, dict):
-            raise InvalidPredictionRequest("Wrong number of rows to predict: " + len(row))
-        request = {'data': row, 'count': count}
-        return self.connection.post(self.links["predict"], data = request)
+        Returns the Python dict representing the analysis schema.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        return self._conn.get(self._link('schema'))
+
+    def wait(self, max_time=None, poll=2):
+        """Waits for the running analysis to succeed or fail.
+
+        Returns None when the analysis succeeds or fails, and blocks until
+        it does. If a timeout is specified, raises a VeritableError if the
+        timeout has elapsed without the analysis completing.
+
+        Arguments:
+        max_time -- the number of seconds after which to return or raise an
+          exception. If this is None, analysis.wait will block indefinitely.
+        poll -- the number of seconds to wait between updates (default: 2)
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        elapsed = 0
+        while self.state == 'running':
+            time.sleep(poll)
+            if max_time is not None:
+                elapsed += poll
+                if elapsed > max_time:
+                    raise VeritableError("Maximum time of {0} " \
+                    "exceeded".format(max_time))
+            self.update()
+
+    def predict(self, row, count=100):
+        """Makes predictions from the analysis.
+
+        Returns a veritable.api.Prediction instance.
+
+        Arguments:
+        row -- the row dict whose missing values are to be predicted. These
+            values should be None in the row argument.
+        count -- the number of samples from the joint predictive distribution
+            to return. the number of samples allowed by the API is limited on
+            a per-user basis.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        if self.state == 'running':
+            self.update()
+        if self.state == 'succeeded':
+            if not isinstance(row, dict):
+                raise VeritableError("Must provide a row dict to make "\
+                "predictions!")
+            res =  self._conn.post(self._link('predict'),
+            data={'data': row, 'count': count})
+            if not isinstance(res, list):
+                raise VeritableError("Error making predictions: " \
+                "{0}".format(res))
+            return Prediction(res)
+        elif self.state == 'running':
+            raise VeritableError("Analysis with id {0} is still running " \
+            "and not yet ready to predict".format(self.id))
+        elif self.state == 'failed':
+            raise VeritableError("Analysis with id {0} has failed and " \
+            "cannot predict: {1}".format(self.id, self.error))
+
+class Prediction(dict):
+    """Represents predictions responses.
+
+    A dictionary whose keys are the columns in the prediction request,
+    and whose values are point estimates for those columns. For fixed
+    columns, the value is the fixed value. For predicted values, the
+    point estimate varies by datatype:
+    
+    real -- mean
+    count -- mean rounded to the nearest integer
+    categorical -- mode
+    boolean -- mode
+
+    Instance attributes:
+    distribution -- the underlying predicted distribution as a list of
+      row dicts
+    uncertainty -- a dict whose keys are the columns in the prediction
+      request and whose values are uncertainty measures associated with
+      each point estimate. A higher value indicates greater uncertainty.
+      These measures vary by datatype:
+          real -- standard deviation
+          count -- standard deviation
+          categorical -- total probability of all non-modal values
+          boolean -- probability of the non-modal value
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
+    def __init__(self, distribution):
+        self.distribution = distribution
+        self.uncertainty = {}
+        for k in distribution[0].keys():
+            self[k], self.uncertainty[k] = summarize(distribution, k)

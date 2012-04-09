@@ -176,7 +176,7 @@ For convenience, if you just want to check the status of an analysis, use its `s
 
 
 ## Making predictions based on a completed analysis
-To make predictions once an analysis is complete, call the `predict` method of the analysis handle. This takes a row specification in the form of a dict, where the value of every **conditioning** column is specified and the value of every **predicted** column is `None`. By default, 10 predicted values will be returned, but you can change the `count` parameter to control the number of predicted values.
+To make predictions once an analysis is complete, call the `predict` method of the analysis handle. This takes a row specification in the form of a dict, where the value of every **conditioning** column is specified and the value of every **predicted** column is `None`. By default, 10 predicted values will be returned, but you can change the `count` parameter to control the number of predicted values. 
 
     prediction_spec = {'age': 30, 'weight': None}
     results = my_analysis_handle.predict(prediction_spec, count=2)

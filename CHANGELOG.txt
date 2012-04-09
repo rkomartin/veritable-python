@@ -1,0 +1,3 @@
+
+veritable-python 0.9.0 - April 4, 2012
+    * Initial release
