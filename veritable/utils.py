@@ -240,7 +240,7 @@ def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
 
     """
     table = []
-    with open(filename) as f:
+    with open(filename, "rU") as f:
         if dialect is None:
             dialect = csv.Sniffer().sniff(f.read(1024))
         f.seek(0)
