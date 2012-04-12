@@ -399,7 +399,8 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
     # field_fill keeps track of the density of all fields present
     field_fill = {}
     for c in schema.keys():
-        field_fill[c] = 0
+        if c != '_id':
+            field_fill[c] = 0
 
     # category_counts stores the number of categories in each categorical
     #   column
@@ -586,10 +587,9 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                     col=c)
     if not allow_empty_columns:
         for (c, fill) in field_fill.items():
-            if c != '_id'
-                if fill == 0:
-                    raise VeritableError("Column '{0}' does not have any " \
-                    "values".format(c), col=c)
+            if fill == 0:
+                raise VeritableError("Column '{0}' does not have any " \
+                "values".format(c), col=c)
 
 
 def summarize(predictions, col):
