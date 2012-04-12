@@ -155,7 +155,8 @@ def make_schema(schema_rule, headers=None, rows=None):
 
     Arguments:
     schema_rule -- a list of lists in the form:
-        [['a_regex_to_match', {'type': 'continuous'}], ['another_regex',
+        [['a_regex_to_match', {'type': 'continuous'}],
+         [lambda h, v: <some boolean return value>,
           {'type': 'count'}], ...]
         Earlier rules will match before later rules.
     headers -- a list of column names against which to match. (default: None)
@@ -176,12 +177,29 @@ def make_schema(schema_rule, headers=None, rows=None):
             headers = headers.union(r.keys())
     schema = {}
     for i in range(len(schema_rule)):
-        schema_rule[i][0] = re.compile(schema_rule[i][0])
+        try:
+            schema_rule[i][0] = re.compile(schema_rule[i][0])
+        except:
+            pass
     for c in headers:
         for (r, t) in schema_rule:
-            if r.match(c):
-                schema[c] = t
-                break
+            try:
+                if r.match(c):
+                    schema[c] = t
+                    break
+            except AttributeError:
+                if rows is None:
+                    if r(c):
+                        schema[c] = t
+                        break
+                else:
+                    v = []
+                    for row in rows:
+                        if c in row:
+                            v.append(row[c])
+                    if r(c, v):
+                        schema[c] = t
+                        break
     return schema
 
 
