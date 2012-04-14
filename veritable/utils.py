@@ -594,7 +594,7 @@ def point_estimate(predictions, column):
     col_type = predictions.schema[column]['type']
     if col_type == 'boolean' or col_type == 'categorical':
         # mode
-        counts = _counts(predictions.distribution, column)
+        counts = _counts(predictions, column)
         max_count = 0
         max_value = None
         for value in counts:
@@ -604,7 +604,7 @@ def point_estimate(predictions, column):
         return max_value
     elif col_type == 'count':
         # median
-        values = _sorted_values(predictions.distribution, column)
+        values = _sorted_values(predictions, column)
         N = len(values)
         if N % 2 == 0: # even
             a = N / 2 - 1
