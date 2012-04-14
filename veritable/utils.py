@@ -590,11 +590,11 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                 raise VeritableError("Column '{0}' does not have any " \
                 "values".format(c), col=c)
 
-def point_estimate(predictions, schema, column):
-    col_type = schema[column]['type']
+def point_estimate(predictions, column):
+    col_type = predictions.schema[column]['type']
     if col_type == 'boolean' or col_type == 'categorical':
         # mode
-        counts = _counts(predictions, column)
+        counts = _counts(predictions.distribution, column)
         max_count = 0
         max_value = None
         for value in counts:
@@ -604,7 +604,7 @@ def point_estimate(predictions, schema, column):
         return max_value
     elif col_type == 'count':
         # median
-        values = _sorted_values(predictions, column)
+        values = _sorted_values(predictions.distribution, column)
         N = len(values)
         if N % 2 == 0: # even
             a = N / 2 - 1
@@ -614,14 +614,15 @@ def point_estimate(predictions, schema, column):
             return values[a]
     elif col_type == 'real':
         # mean
-        values = [row[column] for row in predictions]
+        values = [row[column] for row in predictions.distribution]
         mean = sum(values) / len(values)
         return mean
     else:
         assert False, 'bad column type'
 
 
-def credible_values(predictions, schema, column, p=None):
+def credible_values(predictions, column, p=None):
+    schema = predictions.schema
     col_type = schema[column]['type']
     if col_type == 'boolean' or col_type == 'categorical':
         if p == None:
@@ -647,7 +648,7 @@ def credible_values(predictions, schema, column, p=None):
         assert False, 'bad column type'
 
 
-def prob_within(predictions, schema, column, set_spec):
+def prob_within(predictions, column, set_spec):
     col_type = schema[column]['type']
     if col_type == 'boolean' or col_type == 'categorical':
         count = 0
