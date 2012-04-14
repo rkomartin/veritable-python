@@ -760,3 +760,9 @@ class Prediction(dict):
             else:
                 self[k] = point_estimate(self, k)
                 self.uncertainty[k] = uncertainty(self, k)
+
+    def prob_within(self, column, set_spec):
+        return prob_within(self, column, set_spec)
+
+    def credible_values(self, column, p=None):
+        return prob_within(self, column, p)
