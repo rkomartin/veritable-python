@@ -765,4 +765,4 @@ class Prediction(dict):
         return prob_within(self, column, set_spec)
 
     def credible_values(self, column, p=None):
-        return prob_within(self, column, p)
+        return credible_values(self, column, p)
