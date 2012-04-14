@@ -602,21 +602,14 @@ def point_estimate(predictions, column):
                 max_count = counts[value]
                 max_value = value
         return max_value
-    elif col_type == 'count':
-        # median
-        values = _sorted_values(predictions, column)
-        N = len(values)
-        if N % 2 == 0: # even
-            a = N / 2 - 1
-            return values[a] + values[a + 1] / 2.
-        else: # odd
-            a = int((N - 1) / 2)
-            return values[a]
-    elif col_type == 'real':
+    elif col_type == 'real' or col_type == 'count':
         # mean
         values = [row[column] for row in predictions.distribution]
-        mean = sum(values) / len(values)
-        return mean
+        mean = sum(values) / float(len(values))
+        if col_type == 'real':
+            return mean
+        else:
+            return int(round(mean))
     else:
         assert False, 'bad column type'
 
