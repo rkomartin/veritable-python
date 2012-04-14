@@ -751,8 +751,8 @@ class Prediction(dict):
     def __init__(self, request, distribution, schema):
         self.distribution = distribution
         self.uncertainty = {}
-        self._schema = {k: schema[k] for k in self._request.keys()}
         self.request = request
+        self.schema = dict([(k, schema[k]) for k in self._request.keys()])
         for k in self._request.keys():
             if self.request[k] is not None:
                 self[k] = self.request[k]
