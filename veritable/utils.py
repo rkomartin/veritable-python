@@ -634,6 +634,7 @@ def uncertainty(predictions, column):
 
 def credible_values(predictions, column, p=None):
     schema = predictions.schema
+    print schema
     col_type = schema[column]['type']
     if col_type == 'boolean' or col_type == 'categorical':
         if p == None:
@@ -660,7 +661,7 @@ def credible_values(predictions, column, p=None):
 
 
 def prob_within(predictions, column, set_spec):
-    col_type = schema[column]['type']
+    col_type = predictions.schema[column]['type']
     if col_type == 'boolean' or col_type == 'categorical':
         count = 0
         for row in predictions:
