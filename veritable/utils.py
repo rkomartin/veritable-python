@@ -682,14 +682,14 @@ def prob_within(predictions, column, set_spec):
 
 
 def _sorted_values(predictions, column):
-    values = [row[column] for row in predictions]
+    values = [row[column] for row in predictions.distribution]
     values.sort()
     return values
 
 
 def _counts(predictions, column):
     counts = {}
-    for row in predictions:
+    for row in predictions.distribution:
         counts[row[column]] = counts.get(row[column], 0) + 1
     return counts
 
