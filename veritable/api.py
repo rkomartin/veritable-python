@@ -751,11 +751,11 @@ class Prediction(dict):
     def __init__(self, request, distribution, schema):
         self.distribution = distribution
         self.uncertainty = {}
-        self._request = request
         self._schema = {k: schema[k] for k in self._request.keys()}
+        self.request = request
         for k in self._request.keys():
-            if self._request[k] is not None:
-                self[k] = self._request[k]
+            if self.request[k] is not None:
+                self[k] = self.request[k]
                 self.uncertainty[k] = 0
             else:
                 self[k] = point_estimate(self, k)
