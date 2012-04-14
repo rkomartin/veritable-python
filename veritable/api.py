@@ -712,7 +712,7 @@ class Analysis:
             if not isinstance(res, list):
                 raise VeritableError("Error making predictions: " \
                 "{0}".format(res))
-            return Prediction(res)
+            return Prediction(row, res, self.get_schema())
         elif self.state == 'running':
             raise VeritableError("Analysis with id {0} is still running " \
             "and not yet ready to predict".format(self.id))
@@ -748,8 +748,15 @@ class Prediction(dict):
     See also: https://dev.priorknowledge.com/docs/client/python
 
     """
-    def __init__(self, distribution):
+    def __init__(self, request, distribution, schema):
         self.distribution = distribution
         self.uncertainty = {}
-        for k in distribution[0].keys():
-            self[k], self.uncertainty[k] = summarize(distribution, k)
+        self._request = request
+        self._schema = {k: schema[k] for k in self._request.keys()}
+        for k in self._request.keys():
+            if self._request[k] is not None:
+                self[k] = self._request[k]
+                self.uncertainty[k] = 0
+            else:
+                self[k] = point_estimate(self, k)
+                self.uncertainty[k] = uncertainty(self, k)
