@@ -668,33 +668,6 @@ def prob_within(predictions, schema, column, set_spec):
         assert False, 'bad column type'
 
 
-def binned_values(predictions, schema, column, num_bins=None):
-    col_type = schema[column]['type']
-    col_type = schema[column]['type']
-    if col_type == 'boolean' or col_type == 'categorical':
-        freqs = _freqs(_counts(predictions, column))
-        return freqs.items()
-    elif col_type == 'count' or col_type == 'real':
-        #FIXME count bins need to be integer-bounded
-        N = len(predictions)
-        if num_bins == None:
-            num_bins = int(ceil(log(N) * 2.))
-        sorted_values = _sorted_values(predictions, column)
-        mn = sorted_values[0]
-        mx = sorted_values[-1]
-        bw = float(mx - mn) / num_bins
-        bins = [(i * bw, (i + 1) * bw) for i in range(num_bins)]
-        bin_counts = [0] * num_bins
-        for row in predictions:
-            v = row[column]
-            bi = int(floor((v - mn) / bw))
-            bi = min(num_bins - 1, bi)
-            bin_counts[bi] += 1
-        return zip(bins, [float(c) / N for c in bin_counts])
-    else:
-        assert False, 'bad column type'
-
-
 def _sorted_values(predictions, column):
     values = [row[column] for row in predictions]
     values.sort()
