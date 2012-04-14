@@ -487,6 +487,13 @@ class TestTableOps:
         schema = ['categorical', 'real']
         assert_raises(VeritableError, self.t.create_analysis, schema)
 
+    @attr('sync')
+    def test_create_analysis_malformed_schema_6(self):
+        schema = {'zim': {'type': 'categorical'},
+                  'wos': {'type': 'real'},
+                  'krob': {'type': 'count'}}
+        assert_raises(VeritableError, self.t.create_analysis, schema)
+
     # Unpossible analysis types are identified synchronously
     @attr('sync')
     def test_create_analysis_faulty_type(self):
@@ -514,18 +521,6 @@ class TestTableOps:
         a = self.t.create_analysis(schema, analysis_id="zubble")
         a.wait()
         assert(a.error is not None)
-
-    # This test should not error synchronously -- it should fail only after
-    # scanning the data and finding no rows with column "krob"
-    @attr('async')
-    def test_create_analysis_malformed_schema_6(self):
-        schema = {'zim': {'type': 'categorical'},
-                  'wos': {'type': 'real'},
-                  'krob': {'type': 'count'}}
-        a = self.t.create_analysis(schema)
-        a.wait()
-        # TODO: uncomment this check once API is fixed
-        # assert a.state == "failed"
 
     @attr('sync')
     def test_create_analysis_with_all_datatypes(self):
