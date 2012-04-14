@@ -620,6 +620,17 @@ def point_estimate(predictions, column):
     else:
         assert False, 'bad column type'
 
+def uncertainty(predictions, column):
+    vals = [p[column] for p in predictions.distribution]
+    col_type = predictions.schema[column]['type']
+    N = len(vals)
+    if col_type == 'boolean' or col_type == 'categorical':
+        e = max(vals, key=vals.count)
+        c = 1 - (sum([1.0 for v in vals if v == e]) / float(N))
+        return c
+    elif col_type == 'count' or col_type == 'real':
+        r = predictions.credible_values(column, 0.67)
+        return r[1] - r[0]
 
 def credible_values(predictions, column, p=None):
     schema = predictions.schema
@@ -706,27 +717,4 @@ def summarize(predictions, col):
     See also: https://dev.priorknowledge.com/docs/client/python
 
     """
-    vals = [p[col] for p in predictions]
-    cnt = len(vals)
-    if isinstance(vals[0], (str, bool)): # don't change the order of the tests
-        e = max(vals, key=vals.count)
-        c = 1 - (sum([1.0 for v in vals if v == e]) / float(cnt))
-        return (e, c)
-    elif isinstance(vals[0], (int, float)):
-        e = sum(vals) / float(cnt)  # use the mean
-        if cnt == 1:
-            c = 0
-        else:
-            c = pow(sum([pow(v - e, 2) for v in vals]) / float(cnt - 1), 0.5)
-        if isinstance(vals[0], int):
-            return (int(round(e, 0)), c)
-        else:
-            return (e, c)
-    else:
-        try:
-            if isinstance(vals[0], basestring):
-                e = max(vals, key=vals.count)
-                c = 1 - (sum([1.0 for v in vals if v == e]) / float(cnt))
-                return (str(e), c)
-        except:
-            pass
+    return (point_estimate(predictions, col), uncertainty(predictions, col))
