@@ -11,7 +11,8 @@ from .cursor import Cursor
 from .connection import Connection
 from .exceptions import VeritableError
 from .utils import (_make_table_id, _make_analysis_id, _check_id,
-    _format_url, _handle_unicode_id, summarize)
+    _format_url, _handle_unicode_id, point_estimate, credible_values,
+    prob_within, uncertainty)
 
 BASE_URL = "https://api.priorknowledge.com/"
 
