@@ -622,7 +622,7 @@ def uncertainty(predictions, column):
         c = 1 - (sum([1.0 for v in vals if v == e]) / float(N))
         return c
     elif col_type == 'count' or col_type == 'real':
-        r = predictions.credible_values(column, 0.67)
+        r = predictions.credible_values(column)
         return r[1] - r[0]
 
 def credible_values(predictions, column, p=None):
