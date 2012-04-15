@@ -600,7 +600,7 @@ def point_estimate(predictions, column):
     returns the modal value.
 
     Arguments:
-    predictions -- predictions results as a list of row dicts
+    predictions -- a Prediction object
     column -- the column to summarize
 
     See also: https://dev.priorknowledge.com/docs/client/python
@@ -639,7 +639,7 @@ def uncertainty(predictions, column):
     probability of all values other than the mode.
 
     Arguments:
-    predictions -- predictions results as a list of row dicts
+    predictions -- a Prediction object
     column -- the column to summarize
 
     See also: https://dev.priorknowledge.com/docs/client/python
@@ -664,6 +664,7 @@ def credible_values(predictions, column, p=None):
     predicted value for the column lies with the given probability.
 
     Arguments:
+    predictions -- A Prediction object
     column -- The column for which to calculate the range
     p -- The desired degree of probability. (default: None) If None, will
       default to 0.5 for boolean and categorical columns, and to 0.90 for
@@ -706,6 +707,7 @@ def prob_within(predictions, column, set_spec):
     range.
 
     Arguments:
+    predictions -- A Prediction object
     column -- The column for which to calculate probabilities
     set_spec -- A representation of the range for which to calculate
       probabilities. For real and count columns, this is a tuple (start,
@@ -766,7 +768,7 @@ def summarize(predictions, col):
     values other than the mode.
 
     Arguments:
-    predictions -- predictions results as a list of row dicts
+    predictions -- a Prediction object
     col -- the column to summarize
 
     See also: https://dev.priorknowledge.com/docs/client/python
