@@ -627,10 +627,9 @@ def uncertainty(predictions, column):
 
 def credible_values(predictions, column, p=None):
     schema = predictions.schema
-    print schema
     col_type = schema[column]['type']
     if col_type == 'boolean' or col_type == 'categorical':
-        if p == None:
+        if p is None:
             p = .5
         freqs = _freqs(_counts(predictions, column))
         sorted_freqs = sorted(freqs.items(), key=lambda x: x[1], reverse=True)
@@ -640,7 +639,7 @@ def credible_values(predictions, column, p=None):
         # Note: this computes an interval that removes equal probability mass 
         # from each end; a possible alternative would be to return the shorted 
         # interval containing the given amount of mass
-        if p == None:
+        if p is None:
             p = .9
         N = len(predictions)
         a = int(round(N * (1. - p) / 2.))

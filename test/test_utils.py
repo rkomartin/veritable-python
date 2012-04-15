@@ -959,7 +959,7 @@ class TestSummarize:
             expected, uncertainty = summarize(tp, 'ColInt')
             assert isinstance(expected, int)
             assert expected == int(round((3 + 4 + 8 + 11) / 4.0))
-            assert abs(uncertainty - 4) < 0.001
+            assert abs(uncertainty - 8) < 0.001
 
     def test_summarize_real(self):
         for tp in [self.testpreds, self.testpreds2]:
