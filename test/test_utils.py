@@ -971,7 +971,12 @@ class TestSummarize:
     def test_summarize_cat(self):
         for tp in [self.testpreds, self.testpreds2]:
             expected, uncertainty = summarize(tp, 'ColCat')
-            assert isinstance(expected, str)
+            try:
+                isinstance(expected, basestring)
+            except:
+                assert isinstance(expected, str)
+            else:
+                assert isinstance(expected, basestring)
             assert expected == 'b'
             assert abs(uncertainty - 0.5) < 0.001
 
