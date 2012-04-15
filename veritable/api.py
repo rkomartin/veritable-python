@@ -740,10 +740,12 @@ class Prediction(dict):
       request and whose values are uncertainty measures associated with
       each point estimate. A higher value indicates greater uncertainty.
       These measures vary by datatype:
-          real -- standard deviation
-          count -- standard deviation
+          real -- length of 90% credible interval
+          count -- length of 90% credible interval
           categorical -- total probability of all non-modal values
           boolean -- probability of the non-modal value
+    request -- the original predictions request
+    schema -- the schema for the columns in the predictions request
 
     See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -762,7 +764,39 @@ class Prediction(dict):
                 self.uncertainty[k] = uncertainty(self, k)
 
     def prob_within(self, column, set_spec):
+        """
+        Calculates the probability a column's value lies within a range.
+
+        Based on the given prediction, calculates the marginal probability
+        that the predicted value for the given columns lies within the given
+        range.
+
+        Arguments:
+        column -- The column for which to calculate probabilities
+        set_spec -- A representation of the range for which to calculate
+          probabilities. For real and count columns, this is a tuple (start,
+          end) representing a closed interval. For boolean and categorical
+          columns, this is a list of discrete values.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+        
+        """
         return prob_within(self, column, set_spec)
 
     def credible_values(self, column, p=None):
+        """
+        Calculates a credible range for the value of a column.
+
+        Based on the given prediction, calculates a range within which the
+        predicted value for the column lies with the given probability.
+
+        Arguments:
+        column -- The column for which to calculate the range
+        p -- The desired degree of probability. (default: None) If None, will
+          default to 0.5 for boolean and categorical columns, and to 0.90 for
+          count and real columns.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
         return credible_values(self, column, p)

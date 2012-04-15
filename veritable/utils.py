@@ -591,6 +591,21 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                 "values".format(c), col=c)
 
 def point_estimate(predictions, column):
+    """Calculates point estimates for predictions results.
+
+    Calculates a point estimate for a single column from predictions results.
+
+    For real columns, returns the mean. For count columns, returns the mean
+    rounded to the nearest integer. For categorical and boolean columns,
+    returns the modal value.
+
+    Arguments:
+    predictions -- predictions results as a list of row dicts
+    column -- the column to summarize
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
     col_type = predictions.schema[column]['type']
     if col_type == 'boolean' or col_type == 'categorical':
         # mode
@@ -614,6 +629,22 @@ def point_estimate(predictions, column):
         assert False, 'bad column type'
 
 def uncertainty(predictions, column):
+    """Calculates the uncertainty of a prediction result.
+
+    Calculates an estimate of uncertainty for a single column from predictions
+    results.
+
+    For real and countcolumns, returns the length of the 90% credible
+    interval. For categorical and boolean columns, returns the total
+    probability of all values other than the mode.
+
+    Arguments:
+    predictions -- predictions results as a list of row dicts
+    column -- the column to summarize
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+
+    """
     vals = [p[column] for p in predictions.distribution]
     col_type = predictions.schema[column]['type']
     N = len(vals)
@@ -626,6 +657,20 @@ def uncertainty(predictions, column):
         return r[1] - r[0]
 
 def credible_values(predictions, column, p=None):
+    """
+    Calculates a credible range for the value of a column.
+
+    Based on the given prediction, calculates a range within which the
+    predicted value for the column lies with the given probability.
+
+    Arguments:
+    column -- The column for which to calculate the range
+    p -- The desired degree of probability. (default: None) If None, will
+      default to 0.5 for boolean and categorical columns, and to 0.90 for
+      count and real columns.
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+    """
     schema = predictions.schema
     col_type = schema[column]['type']
     if col_type == 'boolean' or col_type == 'categorical':
@@ -653,6 +698,22 @@ def credible_values(predictions, column, p=None):
 
 
 def prob_within(predictions, column, set_spec):
+    """
+    Calculates the probability a column's value lies within a range.
+
+    Based on the given prediction, calculates the marginal probability
+    that the predicted value for the given columns lies within the given
+    range.
+
+    Arguments:
+    column -- The column for which to calculate probabilities
+    set_spec -- A representation of the range for which to calculate
+      probabilities. For real and count columns, this is a tuple (start,
+      end) representing a closed interval. For boolean and categorical
+      columns, this is a list of discrete values.
+
+    See also: https://dev.priorknowledge.com/docs/client/python
+    """
     col_type = predictions.schema[column]['type']
     if col_type == 'boolean' or col_type == 'categorical':
         count = 0
@@ -698,10 +759,11 @@ def summarize(predictions, col):
     Calculates a point estimate and an associated estimate of uncertainty for
     a single column from predictions results.
 
-    For real columns, returns the mean and standard deviation. For count
-    columns, returns the mean rounded to the nearest integer and standard
-    deviation. For categorical and boolean columns, returns the modal value
-    and the total probability of all values other than the mode.
+    For real columns, returns the mean and length of the 90% credible
+    interval. For count columns, returns the mean rounded to the nearest
+    integer and length of the 90% credible interval. For categorical and
+    boolean columns, returns the modal value and the total probability of all
+    values other than the mode.
 
     Arguments:
     predictions -- predictions results as a list of row dicts
