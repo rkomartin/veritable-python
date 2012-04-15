@@ -634,7 +634,7 @@ def uncertainty(predictions, column):
     Calculates an estimate of uncertainty for a single column from predictions
     results.
 
-    For real and countcolumns, returns the length of the 90% credible
+    For real and count columns, returns the length of the 90% credible
     interval. For categorical and boolean columns, returns the total
     probability of all values other than the mode.
 
@@ -679,7 +679,7 @@ def credible_values(predictions, column, p=None):
             p = .5
         freqs = _freqs(_counts(predictions, column))
         sorted_freqs = sorted(freqs.items(), key=lambda x: x[1], reverse=True)
-        threshold_freqs = [(c, a) for c, a in sorted_freqs if a >= p]
+        threshold_freqs = dict([(c, a) for c, a in sorted_freqs if a >= p])
         return threshold_freqs
     elif col_type == 'count' or col_type == 'real':
         # Note: this computes an interval that removes equal probability mass 
