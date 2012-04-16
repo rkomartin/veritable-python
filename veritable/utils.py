@@ -256,7 +256,7 @@ def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
 
     """
     table = []
-    with open(filename) as f:
+    with open(filename, "rU") as f:
         if dialect is None:
             dialect = csv.Sniffer().sniff(f.read(1024))
         f.seek(0)
@@ -415,7 +415,8 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
     # field_fill keeps track of the density of all fields present
     field_fill = {}
     for c in schema.keys():
-        field_fill[c] = 0
+        if c != '_id':
+            field_fill[c] = 0
 
     # category_counts stores the number of categories in each categorical
     #   column
