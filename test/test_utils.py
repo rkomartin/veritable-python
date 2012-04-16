@@ -14,7 +14,8 @@ import os
 
 INVALID_IDS = ["\xc3\xa9l\xc3\xa9phant", "374.34", "ajfh/d/sfd@#$",
     "\xe3\x81\xb2\xe3\x81\x9f\xe3\x81\xa1\xe3\x81\xae", "", " foo",
-    "foo ", " foo ", "foo\n", "foo\nbar", 5, 374.34, False]
+    "foo ", " foo ", "foo\n", "foo\nbar", 5, 374.34, False,
+    "_underscores"]
 
 
 def test_format_url():
@@ -140,6 +141,9 @@ def test_bad_schema_type_fail():
 
 def test_unicode_schema_py2():
     _validate_schema(json.loads(json.dumps({'a': {'type': 'real'}})))
+
+def test_invalid_schema_underscore():
+    assert_raises(VeritableError, _validate_schema, {'_': {'type': 'count'}})
 
 vschema = {
     'ColInt': {'type': 'count'},

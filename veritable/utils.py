@@ -35,6 +35,11 @@ def _handle_unicode_id(id):
     return id
     
 def _check_id(id):
+    try:
+        if isinstance(id, basestring):
+            id = str(id)
+    except:
+        pass
     if not isinstance(id, str) or _alphanumeric.match(id) is None or id[-1] == "\n":
         try:
             str(id)
@@ -45,6 +50,8 @@ def _check_id(id):
             raise VeritableError("Specified id {0} is invalid: " \
             "alphanumeric, underscore, and hyphen " \
             "only!".format(str(id)))
+    if id[0] == '_':
+        raise VeritableError("Specified id is invalid: may not begin with an underscore!")
 
 
 def _make_table_id():
@@ -112,7 +119,16 @@ def _validate_schema(schema):
             try:
                 isinstance(k, basestring)
             except:
-                raise VeritableError("Invalid schema specification.")
+                try:
+                    str(k)
+                except:
+                    raise VeritableError("Invalid schema specification.")
+                else:
+                    raise VeritableError("Invalid schema specification: " \
+                    "{0} is not a valid column name.".format(str(id)))
+        if k[0] == "_":
+            raise VeritableError("Invalid schema specification: " \
+            "column name {0} begins with an underscore.".format(id))
         v = schema[k]
         if not ('type' in v.keys()):
             raise VeritableError("Invalid schema specification: " \
@@ -240,7 +256,7 @@ def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
 
     """
     table = []
-    with open(filename) as f:
+    with open(filename, "rU") as f:
         if dialect is None:
             dialect = csv.Sniffer().sniff(f.read(1024))
         f.seek(0)
@@ -399,7 +415,8 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
     # field_fill keeps track of the density of all fields present
     field_fill = {}
     for c in schema.keys():
-        field_fill[c] = 0
+        if c != '_id':
+            field_fill[c] = 0
 
     # category_counts stores the number of categories in each categorical
     #   column
