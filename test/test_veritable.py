@@ -23,7 +23,8 @@ if 'nossl' in OPTIONS:
 
 INVALID_IDS = ["éléphant", "374.34", "ajfh/d/sfd@#$",
     "\xe3\x81\xb2\xe3\x81\x9f\xe3\x81\xa1\xe3\x81\xae", "", " foo",
-    "foo ", " foo ", "foo\n", "foo\nbar", 3, 1.414, False, True]
+    "foo ", " foo ", "foo\n", "foo\nbar", 3, 1.414, False, True,
+    "_underscore"]
 
 
 class TestConnection:
