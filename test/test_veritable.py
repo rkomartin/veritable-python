@@ -11,6 +11,7 @@ import json
 from nose.plugins.attrib import attr
 from nose.tools import assert_raises
 from veritable.exceptions import VeritableError
+from veritable.api import Prediction
 
 TEST_API_KEY = os.getenv("VERITABLE_KEY")
 TEST_BASE_URL = os.getenv("VERITABLE_URL") or "https://api.priorknowledge.com"
@@ -756,6 +757,8 @@ class TestPredictions:
                     assert(isinstance(pr[k], type(o[k])))
             except:
                 assert(isinstance(pr[k], type(o[k])))
+            print k
+            print pr.uncertainty[k]
             assert(isinstance(pr.uncertainty[k], float))
             assert(pr[k] == o[k] or r[k] is None)
         assert(isinstance(pr.distribution, list))
@@ -815,3 +818,80 @@ class TestPredictions:
     #         {'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
     #     assert_raises(VeritableError, a3.predict, {'zim': None})
     #     assert_raises(VeritableError, a3.predict, {'wos': None})
+
+
+class TestPredictionUtils:
+    def setup(self):
+        request = {'ColInt': None, 'ColFloat': None,
+            'ColCat': None, 'ColBool': None}
+        schema = {'ColInt': {'type': 'count'}, 'ColFloat': {'type': 'real'},
+            'ColCat': {'type': 'categorical'}, 'ColBool': {'type': 'boolean'}}
+        distribution = [{'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':False},
+            {'ColInt':4, 'ColFloat':4.1, 'ColCat': 'b', 'ColBool':False},
+            {'ColInt':8, 'ColFloat':8.1, 'ColCat': 'b', 'ColBool':False},
+            {'ColInt':11, 'ColFloat':2.1, 'ColCat': 'c', 'ColBool':True}]
+        self.testpreds = Prediction(request, distribution, schema)
+        self.testpreds2 = Prediction(json.loads(json.dumps(request)),
+            json.loads(json.dumps(distribution)), json.loads(json.dumps(schema)))
+
+    def test_summarize_count(self):
+        for tp in [self.testpreds, self.testpreds2]:
+            expected = tp['ColInt']
+            uncertainty = tp.uncertainty['ColInt']
+            assert isinstance(expected, int)
+            assert expected == int(round((3 + 4 + 8 + 11) / 4.0))
+            assert abs(uncertainty - 8) < 0.001
+            p_within = tp.prob_within('ColInt',(5,9))
+            assert abs(p_within - 0.25) < 0.001
+            c_values = tp.credible_values('ColInt')
+            assert c_values == (3,11)
+            c_values = tp.credible_values('ColInt',p=0.60)
+            assert c_values == (4,8)
+
+    def test_summarize_real(self):
+        for tp in [self.testpreds, self.testpreds2]:
+            expected = tp['ColFloat']
+            uncertainty = tp.uncertainty['ColFloat']
+            assert isinstance(expected, float)
+            assert abs(expected - 4.35) < 0.001
+            assert abs(uncertainty - 6) < 0.001
+            p_within = tp.prob_within('ColFloat',(5,9))
+            assert abs(p_within - 0.25) < 0.001
+            c_values = tp.credible_values('ColFloat')
+            assert c_values == (2.1,8.1)
+            c_values = tp.credible_values('ColFloat',p=0.60)
+            assert c_values == (3.1,4.1)
+
+    def test_summarize_cat(self):
+        for tp in [self.testpreds, self.testpreds2]:
+            expected = tp['ColCat']
+            uncertainty = tp.uncertainty['ColCat']
+            try:
+                isinstance(expected, basestring)
+            except:
+                assert isinstance(expected, str)
+            else:
+                assert isinstance(expected, basestring)
+            assert expected == 'b'
+            assert abs(uncertainty - 0.5) < 0.001
+            p_within = tp.prob_within('ColCat',['b','c'])
+            assert abs(p_within - 0.75) < 0.001
+            c_values = tp.credible_values('ColCat')
+            assert c_values == {'b': 0.5}
+            c_values = tp.credible_values('ColCat',p=0.10)
+            assert c_values == {'a': 0.25, 'b': 0.5, 'c': 0.25}
+
+    def test_summarize_bool(self):
+        for tp in [self.testpreds, self.testpreds2]:
+            expected = tp['ColBool']
+            uncertainty = tp.uncertainty['ColBool']
+            assert isinstance(expected, bool)
+            assert expected == False
+            assert abs(uncertainty - 0.25) < 0.001
+            p_within = tp.prob_within('ColBool',[True])
+            assert abs(p_within - 0.25) < 0.001
+            c_values = tp.credible_values('ColBool')
+            assert c_values == {False: 0.75}
+            c_values = tp.credible_values('ColBool',p=0.10)
+            assert c_values == {True: 0.25, False: 0.75}
+

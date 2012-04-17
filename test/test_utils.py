@@ -1,8 +1,7 @@
 #! usr/bin/python
 # coding=utf-8
 
-from veritable.api import Prediction
-from veritable.utils import (write_csv, read_csv, make_schema, summarize,
+from veritable.utils import (write_csv, read_csv, make_schema,
     validate_data, validate_predictions, _format_url, clean_data,
     clean_predictions, _validate_schema)
 from veritable.exceptions import VeritableError
@@ -944,49 +943,3 @@ def test_data_empty_col_fail():
         assert e.col == 'ColCat'
 
 
-class TestSummarize:
-    def setup(self):
-        request = {'ColInt': None, 'ColFloat': None,
-            'ColCat': None, 'ColBool': None}
-        schema = {'ColInt': {'type': 'count'}, 'ColFloat': {'type': 'real'},
-            'ColCat': {'type': 'categorical'}, 'ColBool': {'type': 'boolean'}}
-        distribution = [{'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':False},
-            {'ColInt':4, 'ColFloat':4.1, 'ColCat': 'b', 'ColBool':False},
-            {'ColInt':8, 'ColFloat':8.1, 'ColCat': 'b', 'ColBool':False},
-            {'ColInt':11, 'ColFloat':2.1, 'ColCat': 'c', 'ColBool':True}]
-        self.testpreds = Prediction(request, distribution, schema)
-        self.testpreds2 = Prediction(json.loads(json.dumps(request)),
-            json.loads(json.dumps(distribution)), json.loads(json.dumps(schema)))
-
-    def test_summarize_count(self):
-        for tp in [self.testpreds, self.testpreds2]:
-            expected, uncertainty = summarize(tp, 'ColInt')
-            assert isinstance(expected, int)
-            assert expected == int(round((3 + 4 + 8 + 11) / 4.0))
-            assert abs(uncertainty - 8) < 0.001
-
-    def test_summarize_real(self):
-        for tp in [self.testpreds, self.testpreds2]:
-            expected, uncertainty = summarize(tp, 'ColFloat')
-            assert isinstance(expected, float)
-            assert abs(expected - 4.35) < 0.001
-            assert abs(uncertainty - 6) < 0.001
-
-    def test_summarize_cat(self):
-        for tp in [self.testpreds, self.testpreds2]:
-            expected, uncertainty = summarize(tp, 'ColCat')
-            try:
-                isinstance(expected, basestring)
-            except:
-                assert isinstance(expected, str)
-            else:
-                assert isinstance(expected, basestring)
-            assert expected == 'b'
-            assert abs(uncertainty - 0.5) < 0.001
-
-    def test_summarize_bool(self):
-        for tp in [self.testpreds, self.testpreds2]:
-            expected, uncertainty = summarize(tp, 'ColBool')
-            assert isinstance(expected, bool)
-            assert expected == False
-            assert abs(uncertainty - 0.25) < 0.001
