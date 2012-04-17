@@ -757,8 +757,6 @@ class TestPredictions:
                     assert(isinstance(pr[k], type(o[k])))
             except:
                 assert(isinstance(pr[k], type(o[k])))
-            print k
-            print pr.uncertainty[k]
             assert(isinstance(pr.uncertainty[k], float))
             assert(pr[k] == o[k] or r[k] is None)
         assert(isinstance(pr.distribution, list))
