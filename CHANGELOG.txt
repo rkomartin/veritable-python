@@ -1,5 +1,5 @@
 veritable-python 0.9.1 - April 17, 2012
-    * Introduced prob_within and credible_values to api.Predictions
+    * Introduced prob_within and credible_values to api.Prediction
     * Deprecated utils.summarize
     * Bugfixes to schema validation, CSV parsing
 
