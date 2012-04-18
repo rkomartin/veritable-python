@@ -14,16 +14,17 @@ class Cursor:
     See also: https://dev.priorknowledge.com/docs/client/python
 
     """
-    def __init__(self, connection, collection, start=None, per_page=1000,
+    def __init__(self, connection, collection, res, start=None, per_page=1000,
         limit=None):
-        self.__data = []
         self.__limit = limit
-        self.__next = None
-        self.__last = False
+        self.__next = res['links'].get('next')
+        self.__last = 'next' not in res['links']
         self.__start = start
         self.__per_page = per_page
         self.__connection = connection
         self.__collection = collection
+        self.__data = res.get(self.__collection.split("/")[-1]) or \
+                res.get('data')
 
     def __str__(self):
         return "<veritable.Cursor collection='{0}' start={1} " \
@@ -56,7 +57,7 @@ class Cursor:
             self.__last = True
         self.__data = res.get(self.__collection.split("/")[-1]) or \
                 res.get('data')
-        return len(self.__data)
+        return len(self.__data or [])
 
     def __iter__(self):
         return self
