@@ -719,6 +719,21 @@ class Analysis:
             raise VeritableError("Analysis with id {0} has failed and " \
             "cannot predict: {1}".format(self.id, self.error))
 
+    def get_related(self, column_id, start=None, limit=None):
+        if self.state == 'running':
+            self.update()
+        if self.state == 'succeeded':
+            res =  self._conn.get(self._link('related')+'/'+column_id)
+            return res
+        elif self.state == 'running':
+            raise VeritableError("Analysis with id {0} is still running " \
+            "and not yet ready to get relateds".format(self.id))
+        elif self.state == 'failed':
+            raise VeritableError("Analysis with id {0} has failed and " \
+            "cannot get relateds: {1}".format(self.id, self.error))
+
+
+
 class Prediction(dict):
     """Represents predictions responses.
 
@@ -752,3 +767,4 @@ class Prediction(dict):
         self.uncertainty = {}
         for k in distribution[0].keys():
             self[k], self.uncertainty[k] = summarize(distribution, k)
+
