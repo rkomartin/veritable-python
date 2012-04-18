@@ -723,8 +723,8 @@ class Analysis:
         if self.state == 'running':
             self.update()
         if self.state == 'succeeded':
-            res =  self._conn.get(self._link('related')+'/'+column_id)
-            return res
+            return Cursor(self._conn, self._link('related')+'/'+column_id, start=start,
+                limit=limit)
         elif self.state == 'running':
             raise VeritableError("Analysis with id {0} is still running " \
             "and not yet ready to get relateds".format(self.id))
