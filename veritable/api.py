@@ -719,7 +719,7 @@ class Analysis:
             raise VeritableError("Analysis with id {0} has failed and " \
             "cannot predict: {1}".format(self.id, self.error))
 
-    def get_related(self, column_id, start=None, limit=None):
+    def related_to(self, column_id, start=None, limit=None):
         if self.state == 'running':
             self.update()
         if self.state == 'succeeded':
