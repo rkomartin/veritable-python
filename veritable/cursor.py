@@ -39,7 +39,7 @@ class Cursor:
         return self.__collection
 
     def _refresh(self):
-        if len(self.__data):
+        if len(self.__data or []):
             return len(self.__data)
         if self.__next:
             res = self.__connection.get(self.__next)
@@ -66,7 +66,7 @@ class Cursor:
         return self.next()
 
     def next(self):
-        if len(self.__data) or self._refresh():
+        if len(self.__data or []) or self._refresh():
             if self.__limit is not None:
                 if self.__limit == 0:
                     raise StopIteration
