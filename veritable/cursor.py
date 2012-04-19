@@ -17,14 +17,19 @@ class Cursor:
     def __init__(self, connection, collection, res, start=None, per_page=1000,
         limit=None):
         self.__limit = limit
-        self.__next = res['links'].get('next')
-        self.__last = 'next' not in res['links']
         self.__start = start
         self.__per_page = per_page
         self.__connection = connection
         self.__collection = collection
-        self.__data = res.get(self.__collection.split("/")[-1]) or \
-                res.get('data')
+        collection_key = collection.split("/")[-1]
+        if collection_key in res:
+            self.__key = collection_key
+        else:
+            self.__key = 'data'
+
+        self.__next = res['links'].get('next')
+        self.__last = 'next' not in res['links']
+        self.__data = res.get(self.__key)
 
     def __str__(self):
         return "<veritable.Cursor collection='{0}' start={1} " \
@@ -39,7 +44,7 @@ class Cursor:
         return self.__collection
 
     def _refresh(self):
-        if len(self.__data or []):
+        if len(self.__data):
             return len(self.__data)
         if self.__next:
             res = self.__connection.get(self.__next)
@@ -57,7 +62,7 @@ class Cursor:
             self.__last = True
         self.__data = res.get(self.__collection.split("/")[-1]) or \
                 res.get('data')
-        return len(self.__data or [])
+        return len(self.__data)
 
     def __iter__(self):
         return self
@@ -66,7 +71,7 @@ class Cursor:
         return self.next()
 
     def next(self):
-        if len(self.__data or []) or self._refresh():
+        if len(self.__data) or self._refresh():
             if self.__limit is not None:
                 if self.__limit == 0:
                     raise StopIteration

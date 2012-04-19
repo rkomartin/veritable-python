@@ -732,7 +732,7 @@ class Analysis:
         Arguments:
         column_id -- the id of the column of interest.
         start -- The column id from which to start (default: None) Columns whose 
-           related scores are greater than or equal to start 
+           related scores are greater than or equal to the score of start 
           will be returned by the iterator. If None, all rows will be
           returned.
         limit -- If set to an integer value, will limit the number of columns
