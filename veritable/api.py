@@ -12,7 +12,16 @@ from .connection import Connection
 from .exceptions import VeritableError
 from .utils import (_make_table_id, _make_analysis_id, _check_id,
     _format_url, _handle_unicode_id)
-from future_builtins import map
+
+# ensure map returns an iterator (as in python 3) not a generator (as in 2)
+try:
+    from future_builtins import map
+except ImportError:
+    try:
+        from itertools import imap as map
+    except ImportError:
+        pass
+
 
 BASE_URL = "https://api.priorknowledge.com/"
 
