@@ -7,12 +7,12 @@ See also: https://dev.priorknowledge.com/docs/client/python
 import os
 import sys
 import time
-import itertools
 from .cursor import Cursor
 from .connection import Connection
 from .exceptions import VeritableError
 from .utils import (_make_table_id, _make_analysis_id, _check_id,
     _format_url, _handle_unicode_id)
+from future_builtins import map
 
 BASE_URL = "https://api.priorknowledge.com/"
 
@@ -155,7 +155,7 @@ class API:
                 start=start,
                 limit=limit)
 
-        return itertools.imap(lambda t: Table(self._conn, t), cursor)
+        return map(lambda t: Table(self._conn, t), cursor)
 
     def get_table(self, table_id):
         """Gets a table from the collection by its id.
@@ -465,7 +465,7 @@ class Table:
                 start=start,
                 limit=limit)
 
-        return itertools.imap(lambda a: Analysis(self._conn, a), cursor)
+        return map(lambda a: Analysis(self._conn, a), cursor)
 
     def get_analysis(self, analysis_id):
         """Gets an analysis of the table by its id.
