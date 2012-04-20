@@ -9,8 +9,7 @@ class Cursor:
     """Cursor for paginated resource collections in the Veritable API.
 
     Users should not initialize Cursor objects. Use these as you would
-    any iterator, and only as returned by the methods API.get_tables,
-    Table.get_rows, or Table.get_analyses.
+    any iterator, and only as returned by veritable methods.
 
     See also: https://dev.priorknowledge.com/docs/client/python
 

@@ -445,7 +445,7 @@ class Table:
     def get_analyses(self, start=None, limit=None):
         """Gets the analyses of the table.
 
-        Returns a generator over veritable.api.Analysis objects.
+        Returns an iterator over veritable.api.Analysis objects.
 
         Arguments:
         start -- The analysis id from which to start (default: None).
@@ -735,8 +735,8 @@ class Analysis:
             if not isinstance(row, dict):
                 raise VeritableError("Must provide a row dict to make "\
                 "predictions!")
-            res =  self._conn.post(self._link('predict'),
-            data={'data': row, 'count': count})
+            res = self._conn.post(self._link('predict'),
+                                  data={'data': row, 'count': count})
             if not isinstance(res, list):
                 raise VeritableError("Error making predictions: " \
                 "{0}".format(res))
