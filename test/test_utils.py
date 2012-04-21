@@ -211,6 +211,21 @@ def test_pred_valid_rows_fix():
     clean_predictions(testrows, vschema)
     assert testrows == refrows
 
+# Invalid column name
+@raises(VeritableError)
+def test_dot_in_column_name():
+    schema = {'.': {'type': 'bool'}}
+    testrows = [
+        {'_id': '1', '.': True}]
+    validate_data(testrows, schema)
+
+# Invalid column name
+@raises(VeritableError)
+def test_dollar_in_column_name():
+    schema = {'$': {'type': 'bool'}}
+    testrows = [
+        {'_id': '1', '$': True}]
+    validate_data(testrows, schema)
 
 # Missing ID
 def test_data_missing_id_fail():
