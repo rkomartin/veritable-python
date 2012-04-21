@@ -483,6 +483,10 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                 "included".format(str(i)), row=i, col='_id')
         for c in list(r.keys()):
             if c != '_id':
+                if '.' in c:
+                    raise VeritableError("Column_name %s contains invalid character: ." %c)
+                if '$' in c:
+                    raise VeritableError("Column_name %s contains invalid character: $" %c)
                 if not c in schema:  # keys missing from schema
                     if remove_extra_fields:  # remove it
                         r.pop(c)
