@@ -142,7 +142,14 @@ def test_unicode_schema_py2():
     _validate_schema(json.loads(json.dumps({'a': {'type': 'real'}})))
 
 def test_invalid_schema_underscore():
-    assert_raises(VeritableError, _validate_schema, {'_': {'type': 'count'}})
+    assert_raises(VeritableError, _validate_schema, {'_foo': {'type': 'count'}})
+
+def test_invalid_schema_dot():
+    assert_raises(VeritableError, _validate_schema, {'b.d': {'type': 'count'}})
+
+def test_invalid_schema_dollar():
+    assert_raises(VeritableError, _validate_schema, {'b$d': {'type': 'count'}})
+
 
 vschema = {
     'ColInt': {'type': 'count'},
@@ -211,21 +218,6 @@ def test_pred_valid_rows_fix():
     clean_predictions(testrows, vschema)
     assert testrows == refrows
 
-# Invalid column name
-@raises(VeritableError)
-def test_dot_in_column_name():
-    schema = {'.': {'type': 'bool'}}
-    testrows = [
-        {'_id': '1', '.': True}]
-    validate_data(testrows, schema)
-
-# Invalid column name
-@raises(VeritableError)
-def test_dollar_in_column_name():
-    schema = {'$': {'type': 'bool'}}
-    testrows = [
-        {'_id': '1', '$': True}]
-    validate_data(testrows, schema)
 
 # Missing ID
 def test_data_missing_id_fail():
