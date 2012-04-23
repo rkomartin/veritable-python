@@ -9,7 +9,7 @@ import random
 import os
 import json
 from nose.plugins.attrib import attr
-from nose.tools import assert_raises
+from nose.tools import assert_raises, assert_true, assert_equal
 from veritable.exceptions import VeritableError
 from veritable.api import Prediction
 
@@ -63,7 +63,10 @@ class TestAPI:
 
     @attr('sync')
     def test_get_tables(self):
-        self.API.get_tables()
+        tables = list(self.API.get_tables())
+        assert_true(len(tables) > 0)
+        for table in tables:
+            assert_true(isinstance(table, veritable.api.Table))
 
     @attr('sync')
     def test_create_table_autoid(self):
@@ -396,7 +399,13 @@ class TestTableOps:
 
     @attr('sync')
     def test_get_analyses(self):
-        self.t.get_analyses()
+        schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
+        self.t.create_analysis(schema, analysis_id="zubble_1", force=True)
+
+        analyses = list(self.t.get_analyses())
+        assert_equal(len(analyses), 1)
+        for a in analyses:
+            assert_true(isinstance(a, veritable.api.Analysis))
 
     @attr('sync')
     def test_create_analysis_1(self):

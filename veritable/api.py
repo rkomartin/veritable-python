@@ -13,6 +13,16 @@ from .exceptions import VeritableError
 from .utils import (_make_table_id, _make_analysis_id, _check_id,
     _format_url, _handle_unicode_id)
 
+# ensure map returns an iterator (as in python 3) not a generator (as in 2)
+try:
+    from future_builtins import map
+except ImportError:
+    try:
+        from itertools import imap as map
+    except ImportError:
+        pass
+
+
 BASE_URL = "https://api.priorknowledge.com/"
 
 
@@ -131,16 +141,30 @@ class API:
         else:
             return True
 
-    def get_tables(self):
-        """Returns a list of the tables available to the user.
+    def get_tables(self, start=None, limit=None):
+        """Gets the tables available to the user.
 
-        Returns a list of veritable.api.Table objects.
+        Returns an iterator over veritable.api.Table objects.
+
+        Arguments:
+        start -- The table id from which to start (default: None). Tables
+          whose id fields are greater than or equal to start in lexicographic
+          order will be returned by the iterator. If None, iteration will
+          start at the lexicographically first id.
+        limit -- If set to an integer value, will limit the number of tables
+          returned by the iterator (default: None). If None, the number of
+          tables returned will not be limited.
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        r = self._conn.get("tables")
-        return [Table(self._conn, t) for t in r["tables"]]
+        cursor = Cursor(
+                self._conn,
+                _format_url(["tables"]),
+                start=start,
+                limit=limit)
+
+        return map(lambda t: Table(self._conn, t), cursor)
 
     def get_table(self, table_id):
         """Gets a table from the collection by its id.
@@ -308,15 +332,15 @@ class Table:
     def get_rows(self, start=None, limit=None):
         """Gets the rows of the table.
 
-        Returns an iterator over the rows of the table
+        Returns an iterator over the rows of the table.
 
         Arguments:
-        start -- The row id from which to start (default: None) Rows whose id
+        start -- The row id from which to start (default: None). Rows whose id
           fields are greater than or equal to start in lexicographic order
-          will be returned by the iterator. If None, all rows will be
-          returned.
+          will be returned by the iterator. If None, iteration will start at
+          the lexicographically first id.
         limit -- If set to an integer value, will limit the number of rows
-          returned by the iterator. (default: None) If None, the number of
+          returned by the iterator (default: None). If None, the number of
           rows returned will not be limited.
 
         See also: https://dev.priorknowledge.com/docs/client/python
@@ -427,16 +451,30 @@ class Table:
         """
         self._batch_modify_rows('delete', rows, per_page)
 
-    def get_analyses(self):
-        """Gets all the analyses of the table.
+    def get_analyses(self, start=None, limit=None):
+        """Gets the analyses of the table.
 
-        Returns a list of veritable.api.Analysis objects.
+        Returns an iterator over veritable.api.Analysis objects.
+
+        Arguments:
+        start -- The analysis id from which to start (default: None).
+          Analyses whose id fields are greater than or equal to start in
+          lexicographic order will be returned by the iterator. If None,
+          iteration will start at the lexicographically first id.
+        limit -- If set to an integer value, will limit the number of
+          analyses returned by the iterator (default: None). If None, the
+          number of analyses returned will not be limited.
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        r = self._conn.get(self._link("analyses"))
-        return [Analysis(self._conn, a) for a in r["analyses"]]
+        cursor = Cursor(
+                self._conn,
+                self._link("analyses"),
+                start=start,
+                limit=limit)
+
+        return map(lambda a: Analysis(self._conn, a), cursor)
 
     def get_analysis(self, analysis_id):
         """Gets an analysis of the table by its id.
@@ -706,8 +744,8 @@ class Analysis:
             if not isinstance(row, dict):
                 raise VeritableError("Must provide a row dict to make "\
                 "predictions!")
-            res =  self._conn.post(self._link('predict'),
-            data={'data': row, 'count': count})
+            res = self._conn.post(self._link('predict'),
+                                  data={'data': row, 'count': count})
             if not isinstance(res, list):
                 raise VeritableError("Error making predictions: " \
                 "{0}".format(res))
