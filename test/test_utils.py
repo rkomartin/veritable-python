@@ -142,7 +142,14 @@ def test_unicode_schema_py2():
     _validate_schema(json.loads(json.dumps({'a': {'type': 'real'}})))
 
 def test_invalid_schema_underscore():
-    assert_raises(VeritableError, _validate_schema, {'_': {'type': 'count'}})
+    assert_raises(VeritableError, _validate_schema, {'_foo': {'type': 'count'}})
+
+def test_invalid_schema_dot():
+    assert_raises(VeritableError, _validate_schema, {'b.d': {'type': 'count'}})
+
+def test_invalid_schema_dollar():
+    assert_raises(VeritableError, _validate_schema, {'b$d': {'type': 'count'}})
+
 
 vschema = {
     'ColInt': {'type': 'count'},

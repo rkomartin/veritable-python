@@ -125,10 +125,16 @@ def _validate_schema(schema):
                     raise VeritableError("Invalid schema specification.")
                 else:
                     raise VeritableError("Invalid schema specification: " \
-                    "{0} is not a valid column name.".format(str(id)))
+                    "{0} is not a valid string column name.".format(str(k)))
         if k[0] == "_":
             raise VeritableError("Invalid schema specification: " \
-            "column name {0} begins with an underscore.".format(id))
+                "Column name {0} begins with an underscore.".format(k))
+        if '.' in k:
+            raise VeritableError("Invalid schema specification: " \
+                "Column name {0} contains invalid character: .".format(k))
+        if '$' in k:
+            raise VeritableError("Invalid schema specification: " \
+                "Column name {0} contains invalid character: $".format(k))
         v = schema[k]
         if not ('type' in v.keys()):
             raise VeritableError("Invalid schema specification: " \
