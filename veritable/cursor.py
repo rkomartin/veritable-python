@@ -60,8 +60,7 @@ class Cursor:
         else:
             self.__next = None
             self.__last = True
-        self.__data = res.get(self.__collection.split("/")[-1]) or \
-                res.get('data')
+        self.__data = res.get(self.__key)
         return len(self.__data)
 
     def __iter__(self):
