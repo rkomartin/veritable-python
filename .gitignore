@@ -9,3 +9,4 @@ build/
 share/
 man/
 test/test_results
+*.egg*

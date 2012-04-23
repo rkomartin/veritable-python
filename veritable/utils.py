@@ -5,7 +5,7 @@ See also: https://dev.priorknowledge.com/docs/client/python
 """
 
 import uuid
-from math import floor
+from math import floor, ceil, log
 from random import shuffle
 try:
     from urlparse import urlparse
@@ -608,45 +608,7 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                 "values".format(c), col=c)
 
 
-def summarize(predictions, col):
-    """Basic summary for predictions results.
 
-    Calculates a point estimate and an associated estimate of uncertainty for
-    a single column from predictions results.
 
-    For real columns, returns the mean and standard deviation. For count
-    columns, returns the mean rounded to the nearest integer and standard
-    deviation. For categorical and boolean columns, returns the modal value
-    and the total probability of all values other than the mode.
 
-    Arguments:
-    predictions -- predictions results as a list of row dicts
-    col -- the column to summarize
 
-    See also: https://dev.priorknowledge.com/docs/client/python
-
-    """
-    vals = [p[col] for p in predictions]
-    cnt = len(vals)
-    if isinstance(vals[0], (str, bool)): # don't change the order of the tests
-        e = max(vals, key=vals.count)
-        c = 1 - (sum([1.0 for v in vals if v == e]) / float(cnt))
-        return (e, c)
-    elif isinstance(vals[0], (int, float)):
-        e = sum(vals) / float(cnt)  # use the mean
-        if cnt == 1:
-            c = 0
-        else:
-            c = pow(sum([pow(v - e, 2) for v in vals]) / float(cnt - 1), 0.5)
-        if isinstance(vals[0], int):
-            return (int(round(e, 0)), c)
-        else:
-            return (e, c)
-    else:
-        try:
-            if isinstance(vals[0], basestring):
-                e = max(vals, key=vals.count)
-                c = 1 - (sum([1.0 for v in vals if v == e]) / float(cnt))
-                return (str(e), c)
-        except:
-            pass
