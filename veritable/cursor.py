@@ -14,19 +14,21 @@ class Cursor:
     See also: https://dev.priorknowledge.com/docs/client/python
 
     """
-    def __init__(self, connection, collection, res, start=None, per_page=1000,
-        limit=None):
+    def __init__(self, connection, collection, start=None,
+                 per_page=1000, limit=None):        
         self.__limit = limit
         self.__start = start
         self.__per_page = per_page
         self.__connection = connection
         self.__collection = collection
         collection_key = collection.split("/")[-1]
+        params = {'per_page': self.__per_page,
+                  'start': self.__start}
+        res = self.__connection.get(self.__collection, params=params)
         if collection_key in res:
             self.__key = collection_key
         else:
             self.__key = 'data'
-
         self.__next = res['links'].get('next')
         self.__last = 'next' not in res['links']
         self.__data = res.get(self.__key)

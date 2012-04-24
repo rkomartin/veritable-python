@@ -346,11 +346,8 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        params = {'per_page': 1000,
-                  'start': start}
         collection = self._link("rows")
-        res = self._conn.get(collection, params=params)
-        return Cursor(self._conn, collection, res, start=start,
+        return Cursor(self._conn, collection, start=start,
             limit=limit)
 
     def upload_row(self, row):
@@ -783,11 +780,8 @@ class Analysis:
         if self.state == 'running':
             self.update()
         if self.state == 'succeeded':
-            params = {'per_page': 1000,
-                      'start': start}
             collection = self._link('related')+'/'+column_id
-            res = self._conn.get(collection, params=params)
-            return Cursor(self._conn, collection, res, start=start, limit=limit)
+            return Cursor(self._conn, collection, start=start, limit=limit)
         elif self.state == 'running':
             raise VeritableError("Analysis with id {0} is still running " \
             "and not yet ready to get relateds".format(self.id))
