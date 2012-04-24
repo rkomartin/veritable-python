@@ -1,1 +1,1 @@
-__version__ = '0.9.1preBUILD_NUMBER'
+__version__ = '0.9.2preBUILD_NUMBER'

@@ -346,7 +346,8 @@ class Table:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return Cursor(self._conn, self._link("rows"), start=start,
+        collection = self._link("rows")
+        return Cursor(self._conn, collection, start=start,
             limit=limit)
 
     def upload_row(self, row):
@@ -571,6 +572,7 @@ class Analysis:
     get_schema -- gets the schema associated with the analysis
     wait -- waits until the analysis completes
     predict -- makes predictions from the analysis
+    related_to -- scores how related other columns are to column of interest
 
     See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -756,6 +758,38 @@ class Analysis:
         elif self.state == 'failed':
             raise VeritableError("Analysis with id {0} has failed and " \
             "cannot predict: {1}".format(self.id, self.error))
+
+    def related_to(self, column_id, start=None, limit=None):
+        """Scores how related columns are to column of interest 
+
+        Returns an iterator over the columns in the table.
+
+        Arguments:
+        column_id -- the id of the column of interest.
+        start -- The column id from which to start (default: None) Columns whose 
+           related scores are greater than or equal to the score of start 
+          will be returned by the iterator. If None, all rows will be
+          returned.
+        limit -- If set to an integer value, will limit the number of columns
+          returned by the iterator. (default: None) If None, the number of
+          columns returned will not be limited.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        if self.state == 'running':
+            self.update()
+        if self.state == 'succeeded':
+            collection = self._link('related')+'/'+column_id
+            return Cursor(self._conn, collection, start=start, limit=limit)
+        elif self.state == 'running':
+            raise VeritableError("Analysis with id {0} is still running " \
+            "and not yet ready to get relateds".format(self.id))
+        elif self.state == 'failed':
+            raise VeritableError("Analysis with id {0} has failed and " \
+            "cannot get relateds: {1}".format(self.id, self.error))
+
+
 
 class Prediction(dict):
     """Represents predictions responses.
