@@ -15,7 +15,7 @@ class Cursor:
 
     """
     def __init__(self, connection, collection, start=None,
-                 per_page=1000, limit=None):        
+                 per_page=100, limit=None):        
         self.__limit = limit
         self.__start = start
         self.__per_page = per_page

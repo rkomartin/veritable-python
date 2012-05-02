@@ -374,10 +374,10 @@ class Table:
         self._conn.put(_format_url([self._link("rows"), row_id], noquote=[0]),
             row)
 
-    def batch_upload_rows(self, rows, per_page=1000):
+    def batch_upload_rows(self, rows, per_page=100):
         """Batch adds rows to the table or updates existing rows.
 
-        By default, paginates requests in chunks of 1000 rows. This
+        By default, paginates requests in chunks of 100 rows. This
         parameter can be adjusted.
 
         Returns None on success.
@@ -387,7 +387,7 @@ class Table:
             must contain an '_id' key whose value is a string containing only
             alphanumerics, underscores, and hyphens, and is unique in the
             table.
-        per_page - the number of rows to upload per HTTP request (default: 1000)
+        per_page - the number of rows to upload per HTTP request (default: 100)
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -436,7 +436,7 @@ class Table:
         self._conn.delete(_format_url([self._link("rows"), row_id],
             noquote=[0]))
 
-    def batch_delete_rows(self, rows, per_page=1000):
+    def batch_delete_rows(self, rows, per_page=100):
         """Batch deletes rows from the table.
 
         Returns None on success. Silently succeeds on attempts to delete
