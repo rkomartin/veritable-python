@@ -663,7 +663,10 @@ class Analysis:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return self._doc['progress']
+        if self.state == 'running':
+            return self._doc['progress']
+        else:
+            return None
 
     def update(self):
         """Refreshes the analysis state
