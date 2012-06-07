@@ -21,6 +21,8 @@ if __name__ == '__main__':
       url='http://www.priorknowledge.com/',
       install_requires=['requests'],
       packages=['veritable'],
+      platforms=['any'],
+      license='MIT',
       classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
