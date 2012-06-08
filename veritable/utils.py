@@ -5,7 +5,7 @@ See also: https://dev.priorknowledge.com/docs/client/python
 """
 
 import uuid
-from math import floor
+from math import floor, ceil, log
 from random import shuffle
 try:
     from urlparse import urlparse
@@ -35,6 +35,11 @@ def _handle_unicode_id(id):
     return id
     
 def _check_id(id):
+    try:
+        if isinstance(id, basestring):
+            id = str(id)
+    except:
+        pass
     if not isinstance(id, str) or _alphanumeric.match(id) is None or id[-1] == "\n":
         try:
             str(id)
@@ -45,6 +50,8 @@ def _check_id(id):
             raise VeritableError("Specified id {0} is invalid: " \
             "alphanumeric, underscore, and hyphen " \
             "only!".format(str(id)))
+    if id[0] == '_':
+        raise VeritableError("Specified id is invalid: may not begin with an underscore!")
 
 
 def _make_table_id():
@@ -112,7 +119,22 @@ def _validate_schema(schema):
             try:
                 isinstance(k, basestring)
             except:
-                raise VeritableError("Invalid schema specification.")
+                try:
+                    str(k)
+                except:
+                    raise VeritableError("Invalid schema specification.")
+                else:
+                    raise VeritableError("Invalid schema specification: " \
+                    "{0} is not a valid string column name.".format(str(k)))
+        if k[0] == "_":
+            raise VeritableError("Invalid schema specification: " \
+                "Column name {0} begins with an underscore.".format(k))
+        if '.' in k:
+            raise VeritableError("Invalid schema specification: " \
+                "Column name {0} contains invalid character: .".format(k))
+        if '$' in k:
+            raise VeritableError("Invalid schema specification: " \
+                "Column name {0} contains invalid character: $".format(k))
         v = schema[k]
         if not ('type' in v.keys()):
             raise VeritableError("Invalid schema specification: " \
@@ -258,7 +280,7 @@ def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
 
     """
     table = []
-    with open(filename) as f:
+    with open(filename, "rU") as f:
         if dialect is None:
             dialect = csv.Sniffer().sniff(f.read(1024))
         f.seek(0)
@@ -417,7 +439,8 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
     # field_fill keeps track of the density of all fields present
     field_fill = {}
     for c in schema.keys():
-        field_fill[c] = 0
+        if c != '_id':
+            field_fill[c] = 0
 
     # category_counts stores the number of categories in each categorical
     #   column
@@ -609,45 +632,7 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                 "values".format(c), col=c)
 
 
-def summarize(predictions, col):
-    """Basic summary for predictions results.
 
-    Calculates a point estimate and an associated estimate of uncertainty for
-    a single column from predictions results.
 
-    For real columns, returns the mean and standard deviation. For count
-    columns, returns the mean rounded to the nearest integer and standard
-    deviation. For categorical and boolean columns, returns the modal value
-    and the total probability of all values other than the mode.
 
-    Arguments:
-    predictions -- predictions results as a list of row dicts
-    col -- the column to summarize
 
-    See also: https://dev.priorknowledge.com/docs/client/python
-
-    """
-    vals = [p[col] for p in predictions]
-    cnt = len(vals)
-    if isinstance(vals[0], (str, bool)): # don't change the order of the tests
-        e = max(vals, key=vals.count)
-        c = 1 - (sum([1.0 for v in vals if v == e]) / float(cnt))
-        return (e, c)
-    elif isinstance(vals[0], (int, float)):
-        e = sum(vals) / float(cnt)  # use the mean
-        if cnt == 1:
-            c = 0
-        else:
-            c = pow(sum([pow(v - e, 2) for v in vals]) / float(cnt - 1), 0.5)
-        if isinstance(vals[0], int):
-            return (int(round(e, 0)), c)
-        else:
-            return (e, c)
-    else:
-        try:
-            if isinstance(vals[0], basestring):
-                e = max(vals, key=vals.count)
-                c = 1 - (sum([1.0 for v in vals if v == e]) / float(cnt))
-                return (str(e), c)
-        except:
-            pass

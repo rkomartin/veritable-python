@@ -11,7 +11,17 @@ from .cursor import Cursor
 from .connection import Connection
 from .exceptions import VeritableError
 from .utils import (_make_table_id, _make_analysis_id, _check_id,
-    _format_url, _handle_unicode_id, summarize)
+    _format_url, _handle_unicode_id)
+
+# ensure map returns an iterator (as in python 3) not a generator (as in 2)
+try:
+    from future_builtins import map
+except ImportError:
+    try:
+        from itertools import imap as map
+    except ImportError:
+        pass
+
 
 BASE_URL = "https://api.priorknowledge.com/"
 
@@ -131,16 +141,30 @@ class API:
         else:
             return True
 
-    def get_tables(self):
-        """Returns a list of the tables available to the user.
+    def get_tables(self, start=None, limit=None):
+        """Gets the tables available to the user.
 
-        Returns a list of veritable.api.Table objects.
+        Returns an iterator over veritable.api.Table objects.
+
+        Arguments:
+        start -- The table id from which to start (default: None). Tables
+          whose id fields are greater than or equal to start in lexicographic
+          order will be returned by the iterator. If None, iteration will
+          start at the lexicographically first id.
+        limit -- If set to an integer value, will limit the number of tables
+          returned by the iterator (default: None). If None, the number of
+          tables returned will not be limited.
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        r = self._conn.get("tables")
-        return [Table(self._conn, t) for t in r["tables"]]
+        cursor = Cursor(
+                self._conn,
+                _format_url(["tables"]),
+                start=start,
+                limit=limit)
+
+        return map(lambda t: Table(self._conn, t), cursor)
 
     def get_table(self, table_id):
         """Gets a table from the collection by its id.
@@ -308,21 +332,22 @@ class Table:
     def get_rows(self, start=None, limit=None):
         """Gets the rows of the table.
 
-        Returns an iterator over the rows of the table
+        Returns an iterator over the rows of the table.
 
         Arguments:
-        start -- The row id from which to start (default: None) Rows whose id
+        start -- The row id from which to start (default: None). Rows whose id
           fields are greater than or equal to start in lexicographic order
-          will be returned by the iterator. If None, all rows will be
-          returned.
+          will be returned by the iterator. If None, iteration will start at
+          the lexicographically first id.
         limit -- If set to an integer value, will limit the number of rows
-          returned by the iterator. (default: None) If None, the number of
+          returned by the iterator (default: None). If None, the number of
           rows returned will not be limited.
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return Cursor(self._conn, self._link("rows"), start=start,
+        collection = self._link("rows")
+        return Cursor(self._conn, collection, start=start,
             limit=limit)
 
     def upload_row(self, row):
@@ -349,10 +374,10 @@ class Table:
         self._conn.put(_format_url([self._link("rows"), row_id], noquote=[0]),
             row)
 
-    def batch_upload_rows(self, rows, per_page=1000):
+    def batch_upload_rows(self, rows, per_page=100):
         """Batch adds rows to the table or updates existing rows.
 
-        By default, paginates requests in chunks of 1000 rows. This
+        By default, paginates requests in chunks of 100 rows. This
         parameter can be adjusted.
 
         Returns None on success.
@@ -362,7 +387,7 @@ class Table:
             must contain an '_id' key whose value is a string containing only
             alphanumerics, underscores, and hyphens, and is unique in the
             table.
-        per_page - the number of rows to upload per HTTP request (default: 1000)
+        per_page - the number of rows to upload per HTTP request (default: 100)
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -411,7 +436,7 @@ class Table:
         self._conn.delete(_format_url([self._link("rows"), row_id],
             noquote=[0]))
 
-    def batch_delete_rows(self, rows, per_page=1000):
+    def batch_delete_rows(self, rows, per_page=100):
         """Batch deletes rows from the table.
 
         Returns None on success. Silently succeeds on attempts to delete
@@ -427,16 +452,30 @@ class Table:
         """
         self._batch_modify_rows('delete', rows, per_page)
 
-    def get_analyses(self):
-        """Gets all the analyses of the table.
+    def get_analyses(self, start=None, limit=None):
+        """Gets the analyses of the table.
 
-        Returns a list of veritable.api.Analysis objects.
+        Returns an iterator over veritable.api.Analysis objects.
+
+        Arguments:
+        start -- The analysis id from which to start (default: None).
+          Analyses whose id fields are greater than or equal to start in
+          lexicographic order will be returned by the iterator. If None,
+          iteration will start at the lexicographically first id.
+        limit -- If set to an integer value, will limit the number of
+          analyses returned by the iterator (default: None). If None, the
+          number of analyses returned will not be limited.
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        r = self._conn.get(self._link("analyses"))
-        return [Analysis(self._conn, a) for a in r["analyses"]]
+        cursor = Cursor(
+                self._conn,
+                self._link("analyses"),
+                start=start,
+                limit=limit)
+
+        return map(lambda a: Analysis(self._conn, a), cursor)
 
     def get_analysis(self, analysis_id):
         """Gets an analysis of the table by its id.
@@ -533,6 +572,7 @@ class Analysis:
     get_schema -- gets the schema associated with the analysis
     wait -- waits until the analysis completes
     predict -- makes predictions from the analysis
+    related_to -- scores how related other columns are to column of interest
 
     See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -623,7 +663,7 @@ class Analysis:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        if self.state == 'succeeded':
+        if self.state == 'running':
             return self._doc['progress']
         else:
             return None
@@ -706,18 +746,50 @@ class Analysis:
             if not isinstance(row, dict):
                 raise VeritableError("Must provide a row dict to make "\
                 "predictions!")
-            res =  self._conn.post(self._link('predict'),
-            data={'data': row, 'count': count})
+            res = self._conn.post(self._link('predict'),
+                                  data={'data': row, 'count': count})
             if not isinstance(res, list):
                 raise VeritableError("Error making predictions: " \
                 "{0}".format(res))
-            return Prediction(res)
+            return Prediction(row, res, self.get_schema())
         elif self.state == 'running':
             raise VeritableError("Analysis with id {0} is still running " \
             "and not yet ready to predict".format(self.id))
         elif self.state == 'failed':
             raise VeritableError("Analysis with id {0} has failed and " \
             "cannot predict: {1}".format(self.id, self.error))
+
+    def related_to(self, column_id, start=None, limit=None):
+        """Scores how related columns are to column of interest 
+
+        Returns an iterator over the columns in the table.
+
+        Arguments:
+        column_id -- the id of the column of interest.
+        start -- The column id from which to start (default: None) Columns whose 
+           related scores are greater than or equal to the score of start 
+          will be returned by the iterator. If None, all rows will be
+          returned.
+        limit -- If set to an integer value, will limit the number of columns
+          returned by the iterator. (default: None) If None, the number of
+          columns returned will not be limited.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        if self.state == 'running':
+            self.update()
+        if self.state == 'succeeded':
+            collection = self._link('related')+'/'+column_id
+            return Cursor(self._conn, collection, start=start, limit=limit)
+        elif self.state == 'running':
+            raise VeritableError("Analysis with id {0} is still running " \
+            "and not yet ready to get relateds".format(self.id))
+        elif self.state == 'failed':
+            raise VeritableError("Analysis with id {0} has failed and " \
+            "cannot get relateds: {1}".format(self.id, self.error))
+
+
 
 class Prediction(dict):
     """Represents predictions responses.
@@ -739,16 +811,154 @@ class Prediction(dict):
       request and whose values are uncertainty measures associated with
       each point estimate. A higher value indicates greater uncertainty.
       These measures vary by datatype:
-          real -- standard deviation
-          count -- standard deviation
+          real -- length of 90% credible interval
+          count -- length of 90% credible interval
           categorical -- total probability of all non-modal values
           boolean -- probability of the non-modal value
+    request -- the original predictions request
+    schema -- the schema for the columns in the predictions request
 
     See also: https://dev.priorknowledge.com/docs/client/python
 
     """
-    def __init__(self, distribution):
+    def __init__(self, request, distribution, schema):
         self.distribution = distribution
         self.uncertainty = {}
-        for k in distribution[0].keys():
-            self[k], self.uncertainty[k] = summarize(distribution, k)
+        self.request = request
+        self.schema = dict([(k, schema[k]) for k in self.request.keys()])
+        for k in self.request.keys():
+            if self.request[k] is not None:
+                self[k] = self.request[k]
+                self.uncertainty[k] = 0.0
+            else:
+                self[k] = self._point_estimate(k)
+                self.uncertainty[k] = self._uncertainty(k)
+
+    def _sorted_values(self, column):
+        values = [row[column] for row in self.distribution]
+        values.sort()
+        return values
+
+    def _counts(self, column):
+        counts = {}
+        for row in self.distribution:
+            counts[row[column]] = counts.get(row[column], 0) + 1
+        return counts
+
+    def _freqs(self, counts):
+        total = sum(counts.values())
+        freqs = dict([(k, float(counts[k]) / total) for k in counts])
+        return freqs
+
+    def _point_estimate(self, column):
+        col_type = self.schema[column]['type']
+        if col_type == 'boolean' or col_type == 'categorical':
+            # mode
+            counts = self._counts(column)
+            max_count = 0
+            max_value = None
+            for value in counts:
+                if counts[value] > max_count:
+                    max_count = counts[value]
+                    max_value = value
+            return max_value
+        elif col_type == 'real' or col_type == 'count':
+            # mean
+            values = [row[column] for row in self.distribution]
+            mean = sum(values) / float(len(values))
+            if col_type == 'real':
+                return mean
+            else:
+                return int(round(mean))
+        else:
+            assert False, 'bad column type'
+
+    def _uncertainty(self, column):
+        vals = [p[column] for p in self.distribution]
+        col_type = self.schema[column]['type']
+        N = len(vals)
+        if col_type == 'boolean' or col_type == 'categorical':
+            e = max(vals, key=vals.count)
+            c = 1.0 - (sum([1.0 for v in vals if v == e]) / float(N))
+            return float(c)
+        elif col_type == 'count' or col_type == 'real':
+            r = self.credible_values(column)
+            return float(r[1] - r[0])
+
+    def prob_within(self, column, set_spec):
+        """
+        Calculates the probability a column's value lies within a range.
+
+        Based on the given prediction, calculates the marginal probability
+        that the predicted value for the given columns lies within the given
+        range.
+
+        Arguments:
+        column -- The column for which to calculate probabilities
+        set_spec -- A representation of the range for which to calculate
+          probabilities. For real and count columns, this is a tuple (start,
+          end) representing a closed interval. For boolean and categorical
+          columns, this is a list of discrete values.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+        
+        """
+        col_type = self.schema[column]['type']
+        if col_type == 'boolean' or col_type == 'categorical':
+            count = 0
+            for row in self.distribution:
+                if row[column] in set_spec:
+                    count += 1
+            return float(count) / len(self.distribution)
+        elif col_type == 'count' or col_type == 'real':
+            count = 0
+            mn = set_spec[0]
+            mx = set_spec[1]
+            for row in self.distribution:
+                v = row[column]
+                if (mn == None or v >= mn) and (mx == None or v <= mx):
+                    count += 1
+            return float(count) / len(self.distribution)                
+        else:
+            assert False, 'bad column type'
+
+    def credible_values(self, column, p=None):
+        """
+        Calculates a credible range for the value of a column.
+
+        Based on the given prediction, calculates a range within which the
+        predicted value for the column lies with the given probability.
+
+        Arguments:
+        column -- The column for which to calculate the range
+        p -- The desired degree of probability. (default: None) If None, will
+          default to 0.5 for boolean and categorical columns, and to 0.90 for
+          count and real columns.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        schema = self.schema
+        col_type = schema[column]['type']
+        if col_type == 'boolean' or col_type == 'categorical':
+            if p is None:
+                p = .5
+            freqs = self._freqs(self._counts(column))
+            sorted_freqs = sorted(freqs.items(), key=lambda x: x[1], reverse=True)
+            threshold_freqs = dict([(c, a) for c, a in sorted_freqs if a >= p])
+            return threshold_freqs
+        elif col_type == 'count' or col_type == 'real':
+            # Note: this computes an interval that removes equal probability mass 
+            # from each end; a possible alternative would be to return the shorted 
+            # interval containing the given amount of mass
+            if p is None:
+                p = .9
+            N = len(self.distribution)
+            a = int(round(N * (1. - p) / 2.))
+            sorted_values = self._sorted_values(column)
+            N = len(sorted_values)
+            lo = sorted_values[a]
+            hi = sorted_values[N - 1 - a]
+            return (lo, hi)
+        else:
+            assert False, 'bad column type'

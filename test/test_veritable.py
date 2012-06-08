@@ -9,8 +9,9 @@ import random
 import os
 import json
 from nose.plugins.attrib import attr
-from nose.tools import assert_raises
+from nose.tools import assert_raises, assert_true, assert_equal
 from veritable.exceptions import VeritableError
+from veritable.api import Prediction
 
 TEST_API_KEY = os.getenv("VERITABLE_KEY")
 TEST_BASE_URL = os.getenv("VERITABLE_URL") or "https://api.priorknowledge.com"
@@ -23,7 +24,8 @@ if 'nossl' in OPTIONS:
 
 INVALID_IDS = ["éléphant", "374.34", "ajfh/d/sfd@#$",
     "\xe3\x81\xb2\xe3\x81\x9f\xe3\x81\xa1\xe3\x81\xae", "", " foo",
-    "foo ", " foo ", "foo\n", "foo\nbar", 3, 1.414, False, True]
+    "foo ", " foo ", "foo\n", "foo\nbar", 3, 1.414, False, True,
+    "_underscore"]
 
 
 class TestConnection:
@@ -61,7 +63,10 @@ class TestAPI:
 
     @attr('sync')
     def test_get_tables(self):
-        self.API.get_tables()
+        tables = list(self.API.get_tables())
+        assert_true(len(tables) > 0)
+        for table in tables:
+            assert_true(isinstance(table, veritable.api.Table))
 
     @attr('sync')
     def test_create_table_autoid(self):
@@ -394,7 +399,13 @@ class TestTableOps:
 
     @attr('sync')
     def test_get_analyses(self):
-        self.t.get_analyses()
+        schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
+        self.t.create_analysis(schema, analysis_id="zubble_1", force=True)
+
+        analyses = list(self.t.get_analyses())
+        assert_equal(len(analyses), 1)
+        for a in analyses:
+            assert_true(isinstance(a, veritable.api.Analysis))
 
     @attr('sync')
     def test_create_analysis_1(self):
@@ -814,3 +825,152 @@ class TestPredictions:
     #         {'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
     #     assert_raises(VeritableError, a3.predict, {'zim': None})
     #     assert_raises(VeritableError, a3.predict, {'wos': None})
+
+
+class TestPredictionUtils:
+    def setup(self):
+        request = {'ColInt': None, 'ColFloat': None,
+            'ColCat': None, 'ColBool': None}
+        schema = {'ColInt': {'type': 'count'}, 'ColFloat': {'type': 'real'},
+            'ColCat': {'type': 'categorical'}, 'ColBool': {'type': 'boolean'}}
+        distribution = [{'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':False},
+            {'ColInt':4, 'ColFloat':4.1, 'ColCat': 'b', 'ColBool':False},
+            {'ColInt':8, 'ColFloat':8.1, 'ColCat': 'b', 'ColBool':False},
+            {'ColInt':11, 'ColFloat':2.1, 'ColCat': 'c', 'ColBool':True}]
+        self.testpreds = Prediction(request, distribution, schema)
+        self.testpreds2 = Prediction(json.loads(json.dumps(request)),
+            json.loads(json.dumps(distribution)), json.loads(json.dumps(schema)))
+
+    def test_summarize_count(self):
+        for tp in [self.testpreds, self.testpreds2]:
+            expected = tp['ColInt']
+            uncertainty = tp.uncertainty['ColInt']
+            assert isinstance(expected, int)
+            assert expected == int(round((3 + 4 + 8 + 11) / 4.0))
+            assert abs(uncertainty - 8) < 0.001
+            p_within = tp.prob_within('ColInt',(5,9))
+            assert abs(p_within - 0.25) < 0.001
+            c_values = tp.credible_values('ColInt')
+            assert c_values == (3,11)
+            c_values = tp.credible_values('ColInt',p=0.60)
+            assert c_values == (4,8)
+
+    def test_summarize_real(self):
+        for tp in [self.testpreds, self.testpreds2]:
+            expected = tp['ColFloat']
+            uncertainty = tp.uncertainty['ColFloat']
+            assert isinstance(expected, float)
+            assert abs(expected - 4.35) < 0.001
+            assert abs(uncertainty - 6) < 0.001
+            p_within = tp.prob_within('ColFloat',(5,9))
+            assert abs(p_within - 0.25) < 0.001
+            c_values = tp.credible_values('ColFloat')
+            assert c_values == (2.1,8.1)
+            c_values = tp.credible_values('ColFloat',p=0.60)
+            assert c_values == (3.1,4.1)
+
+    def test_summarize_cat(self):
+        for tp in [self.testpreds, self.testpreds2]:
+            expected = tp['ColCat']
+            uncertainty = tp.uncertainty['ColCat']
+            try:
+                isinstance(expected, basestring)
+            except:
+                assert isinstance(expected, str)
+            else:
+                assert isinstance(expected, basestring)
+            assert expected == 'b'
+            assert abs(uncertainty - 0.5) < 0.001
+            p_within = tp.prob_within('ColCat',['b','c'])
+            assert abs(p_within - 0.75) < 0.001
+            c_values = tp.credible_values('ColCat')
+            assert c_values == {'b': 0.5}
+            c_values = tp.credible_values('ColCat',p=0.10)
+            assert c_values == {'a': 0.25, 'b': 0.5, 'c': 0.25}
+
+    def test_summarize_bool(self):
+        for tp in [self.testpreds, self.testpreds2]:
+            expected = tp['ColBool']
+            uncertainty = tp.uncertainty['ColBool']
+            assert isinstance(expected, bool)
+            assert expected == False
+            assert abs(uncertainty - 0.25) < 0.001
+            p_within = tp.prob_within('ColBool',[True])
+            assert abs(p_within - 0.25) < 0.001
+            c_values = tp.credible_values('ColBool')
+            assert c_values == {False: 0.75}
+            c_values = tp.credible_values('ColBool',p=0.10)
+            assert c_values == {True: 0.25, False: 0.75}
+
+class TestRelated:
+    @classmethod
+    def setup_class(self):
+        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL,
+            **connect_kwargs)
+
+    def setup(self):
+        self.t = self.API.create_table()
+        self.t.batch_upload_rows(
+        [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
+         {'_id': 'row2', 'cat': 'b', 'ct': 0, 'real': 0.92131, 'bool': False},
+         {'_id': 'row3', 'cat': 'c', 'ct': 1, 'real': 1.82812, 'bool': True},
+         {'_id': 'row4', 'cat': 'c', 'ct': 1, 'real': 0.81271, 'bool': True},
+         {'_id': 'row5', 'cat': 'd', 'ct': 2, 'real': 1.14561, 'bool': False},
+         {'_id': 'row6', 'cat': 'a', 'ct': 5, 'real': 1.03412, 'bool': False}
+        ])
+        self.schema = {'cat': {'type': 'categorical'},
+                  'ct': {'type': 'count'},
+                  'real': {'type': 'real'},
+                  'bool': {'type': 'boolean'}
+                  }
+        self.a = self.t.create_analysis(self.schema, analysis_id="a1",
+            force=True)
+
+    def teardown(self):
+        self.t.delete()
+
+    @attr('async')
+    def test_related_to(self):
+        self.a.wait()
+        for col in self.schema.keys():
+            self.a.related_to(col)
+
+    @attr('async')
+    def test_related_to_with_invalid_column_fails(self):
+        self.a.wait()
+        assert_raises(VeritableError, self.a.related_to,
+            'missing-col')
+
+    @attr('async')
+    def test_rlated_to_link_is_present(self):
+        self.a.wait()
+        self.a._link('predict')
+
+    @attr('async')
+    def test_related_to_result(self):
+        self.a.wait()
+        assert(len([r for r in self.a.related_to('cat')]) <= 5)
+
+    @attr('async')
+    def test_related_to_result_start(self):
+        self.a.wait()
+        assert(len([r for r in self.a.related_to('cat', start='real')]) <= 5)
+
+    @attr('async')
+    def test_related_to_result_limit_0(self):
+        self.a.wait()
+        assert(len([r for r in self.a.related_to('cat',
+            limit=0)]) == 0)
+
+    @attr('async')
+    def test_related_to_limit_3(self):
+        self.a.wait()
+        assert(len([r for r in self.a.related_to('cat',
+            limit=3)]) <= 3)
+
+    @attr('async')
+    def test_related_to_limit_higher_than_numrows(self):
+        self.a.wait()
+        assert(len([r for r in self.a.related_to('cat',
+            limit=100)]) <= 5)
+
