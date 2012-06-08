@@ -574,6 +574,7 @@ class Analysis:
     get_schema -- gets the schema associated with the analysis
     wait -- waits until the analysis completes
     predict -- makes predictions from the analysis
+    batch_predict -- makes predictions for multiple rows at a time
     related_to -- scores how related other columns are to column of interest
 
     See also: https://dev.priorknowledge.com/docs/client/python
@@ -736,30 +737,76 @@ class Analysis:
         row -- the row dict whose missing values are to be predicted. These
             values should be None in the row argument.
         count -- the number of samples from the joint predictive distribution
-            to return. the number of samples allowed by the API is limited on
+            to return. The number of samples allowed by the API is limited on
             a per-user basis.
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
+        if not isinstance(row, dict):
+            raise VeritableError("Must provide a row dict to make "\
+                "predictions!")
+        return _predict(self, row, count=count)
+
+    def batch_predict(self, rows, count=100):
+        """Makes predictions from the analysis for multiple rows at a time.
+
+        Returns a list of veritable.api.Prediction instances.
+
+        Arguments:
+        rows -- the list of row dicts whose missing values are to be
+            predicted. These values should be None in each individual dict.
+        count -- the number of samples from the joint predictive distribution
+            to return. The number of samples allowed by the API is limited on
+            a per-user basis.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        if not isinstance(rows, list):
+            raise VeritableError("Must provide a list of row dicts to make "\
+                "predictions!")
+        for row in rows:
+            if not isinstance(row, dict):
+                raise VeritableError("Invalid row for predictions: "\
+                    "{0}".format(row))
+            if not '_id' in row:
+                raise VeritableError("Rows for batch predictions must "\
+                    "contain an '_id' field: {0}".format(row))
+            _check_id(row['_id'])
+        return _predict(self, rows, count=count)
+
+    def _predict(self, rows, count=100):
+        """ Encapsulate prediction logic for single and multi-row predictions.
+
+        Users should not call directly. Use Analysis.predict and
+        Analysis.batch_predict.
+
+        """
         if self.state == 'running':
             self.update()
-        if self.state == 'succeeded':
-            if not isinstance(row, dict):
-                raise VeritableError("Must provide a row dict to make "\
-                "predictions!")
-            res = self._conn.post(self._link('predict'),
-                                  data={'data': row, 'count': count})
-            if not isinstance(res, list):
-                raise VeritableError("Error making predictions: " \
-                "{0}".format(res))
-            return Prediction(row, res, self.get_schema())
-        elif self.state == 'running':
+        if self.state == 'running':
             raise VeritableError("Analysis with id {0} is still running " \
             "and not yet ready to predict".format(self.id))
         elif self.state == 'failed':
             raise VeritableError("Analysis with id {0} has failed and " \
             "cannot predict: {1}".format(self.id, self.error))
+        elif self.state == 'succeeded':
+            res = self._conn.post(self._link('predict'),
+                                  data={'data': row, 'count': count})
+            if not isinstance(res, list):
+                raise VeritableError("Error making predictions: " \
+                "{0}".format(res))
+            if isinstance(rows, list):
+                n = len(list)
+                preds = list()
+                for i in range(n):
+                    preds.append(Prediction(rows[i],
+                        res[(i * count):((i + 1) * count)],
+                        self.get_schema()))
+                return preds
+            else:
+                return Prediction(rows, res, self.get_schema())
 
     def related_to(self, column_id, start=None, limit=None):
         """Scores how related columns are to column of interest 
