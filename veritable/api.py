@@ -770,10 +770,10 @@ class Analysis:
             if not isinstance(row, dict):
                 raise VeritableError("Invalid row for predictions: "\
                     "{0}".format(row))
-            if not '_id' in row:
+            if not '_request_id' in row:
                 raise VeritableError("Rows for batch predictions must "\
                     "contain an '_id' field: {0}".format(row))
-            _check_id(row['_id'])
+            _check_id(row['_request_id'])
         return _predict(self, rows, count=count)
 
     def _predict(self, rows, count=100):
