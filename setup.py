@@ -18,7 +18,7 @@ if __name__ == '__main__':
       author_email='developers@priorknowledge.com',
       maintainer='Max Gasner',
       maintainer_email='max@priorknowledge.com',
-      url='http://www.priorknowledge.com/',
+      url='http://dev.priorknowledge.com/',
       install_requires=['requests'],
       packages=['veritable'],
       platforms=['any'],
