@@ -387,7 +387,8 @@ class Table:
             must contain an '_id' key whose value is a string containing only
             alphanumerics, underscores, and hyphens, and is unique in the
             table.
-        per_page - the number of rows to upload per HTTP request (default: 100)
+        per_page - the number of rows to upload per HTTP request
+            (default: 100)
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -519,7 +520,8 @@ class Table:
             If None, create_analysis will autogenerate a new id for the table.
         schema -- the analysis schema to use (default: None) The schema must
             be a Python dict of the form:
-                {'col_1': {type: 'datatype'}, 'col_2': {type: 'datatype'}, ...}
+                {'col_1': {type: 'datatype'}, 'col_2': {type: 'datatype'},
+                 ...}
             where the specified datatype for each column one of ['real',
             'boolean', 'categorical', 'count'] and is valid for the column.
         description -- the string description of the analysis to create
@@ -652,7 +654,7 @@ class Analysis:
     def progress(self):
         """An estimate of the time remaining for the analysis to complete.
 
-        If the analysis is still running, returns a dict containing the fields:
+        If the analysis is still running, returns a dict containing fields:
         percent -- an integer between 0 and 100 indicating how much of The
           analysis is complete
         finished_at_estimate -- a timestamp representing the estimated time
@@ -766,8 +768,8 @@ class Analysis:
 
         Arguments:
         column_id -- the id of the column of interest.
-        start -- The column id from which to start (default: None) Columns whose 
-           related scores are greater than or equal to the score of start 
+        start -- The column id from which to start (default: None) Columns
+          whose related scores are greater than or equal to the score of start 
           will be returned by the iterator. If None, all rows will be
           returned.
         limit -- If set to an integer value, will limit the number of columns
@@ -944,13 +946,15 @@ class Prediction(dict):
             if p is None:
                 p = .5
             freqs = self._freqs(self._counts(column))
-            sorted_freqs = sorted(freqs.items(), key=lambda x: x[1], reverse=True)
-            threshold_freqs = dict([(c, a) for c, a in sorted_freqs if a >= p])
+            sorted_freqs = sorted(freqs.items(), key=lambda x: x[1],
+                reverse=True)
+            threshold_freqs = dict(
+                [(c, a) for c, a in sorted_freqs if a >= p])
             return threshold_freqs
         elif col_type == 'count' or col_type == 'real':
-            # Note: this computes an interval that removes equal probability mass 
-            # from each end; a possible alternative would be to return the shorted 
-            # interval containing the given amount of mass
+            # Note: this computes an interval that removes equal probability
+            # mass from each end; a possible alternative would be to return
+            # the shortest interval containing the given amount of mass
             if p is None:
                 p = .9
             N = len(self.distribution)
