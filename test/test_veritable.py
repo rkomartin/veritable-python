@@ -823,7 +823,7 @@ class TestPredictions:
         self.a2.wait()
         assert_raises(VeritableError, self.a2.predict,
             {'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
-            count=10000)
+            count=100001)
 
     @attr('async')
     def test_make_prediction_with_invalid_column_fails(self):
