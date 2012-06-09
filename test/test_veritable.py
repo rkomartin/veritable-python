@@ -779,7 +779,7 @@ class TestPredictions:
         rr = [json.loads(json.dumps(
             {'_id': str(i), 'cat': 'b', 'ct': 2, 'real': None,
             'bool': False})) for i in range(10)]
-        prs = self.a2.predict(rr)
+        prs = self.a2.batch_predict(rr)
         assert(isinstance(prs, list))
         for pr in prs:
             assert(isinstance(pr, dict))
