@@ -176,7 +176,9 @@ def test_data_valid_rows():
     clean_data(testrows, vschema)
     assert testrows == refrows
 
-def test_pred_valid_rows():
+
+
+def test_pred_valid_rows_no_id():
     refrows = [
         {'ColInt':None, 'ColFloat':None, 'ColCat': 'a', 'ColBool':True},
         {'ColInt':None, 'ColFloat':4.1, 'ColCat':None, 'ColBool':False},
@@ -185,6 +187,25 @@ def test_pred_valid_rows():
         {'ColInt':None, 'ColFloat':None, 'ColCat': 'a', 'ColBool':True},
         {'ColInt':None, 'ColFloat':4.1, 'ColCat':None, 'ColBool':False},
         {'ColInt':None, 'ColFloat':None}]
+    assert_raises(VeritableError, validate_predictions, testrows, vschema)
+    assert testrows == refrows
+    clean_predictions(testrows, vschema)
+    assert testrows != refrows
+
+
+def test_pred_valid_rows_id():
+    refrows = [
+        {'_request_id': '0', 'ColInt':None, 'ColFloat':None,
+         'ColCat': 'a', 'ColBool':True},
+        {'_request_id': '1', 'ColInt':None, 'ColFloat':4.1,
+         'ColCat':None, 'ColBool':False},
+        {'_request_id': '2', 'ColInt':None, 'ColFloat':None}]
+    testrows = [
+        {'_request_id': '0', 'ColInt':None, 'ColFloat':None,
+         'ColCat': 'a', 'ColBool':True},
+        {'_request_id': '1', 'ColInt':None, 'ColFloat':4.1,
+         'ColCat':None, 'ColBool':False},
+        {'_request_id': '2', 'ColInt':None, 'ColFloat':None}]
     validate_predictions(testrows, vschema)
     assert testrows == refrows
     clean_predictions(testrows, vschema)
@@ -208,9 +229,11 @@ def test_data_valid_rows_fix():
 
 def test_pred_valid_rows_fix():
     refrows = [
-        {'ColInt':None, 'ColFloat':None, 'ColCat': 'a', 'ColBool':True},
-        {'ColInt':None, 'ColFloat':4.1, 'ColCat':None, 'ColBool':False},
-        {'ColInt':None, 'ColFloat':None}]
+        {'_request_id': '0', 'ColInt':None, 'ColFloat':None,
+         'ColCat': 'a', 'ColBool':True},
+        {'_request_id': '1', 'ColInt':None, 'ColFloat':4.1, 'ColCat':None,
+         'ColBool':False},
+        {'_request_id': '2', 'ColInt':None, 'ColFloat':None}]
     testrows = [
         {'ColInt':None, 'ColFloat':None, 'ColCat': 'a', 'ColBool':True},
         {'ColInt':None, 'ColFloat':4.1, 'ColCat':None, 'ColBool':False},
@@ -300,9 +323,10 @@ def test_data_extrafield_pass():
 
 def test_pred_extrafield_fail():
     testrows = [
-        {'ColInt':3, 'ColFloat':None, 'ColCat': 'a', 'ColBool':True},
-        {'ColEx':None, 'ColInt':4, 'ColFloat':None, 'ColCat': 'b',
-         'ColBool':False}]
+        {'_request_id': '0', 'ColInt':3, 'ColFloat':None, 'ColCat': 'a',
+         'ColBool':True},
+        {'_request_id': '1', 'ColEx':None, 'ColInt':4, 'ColFloat':None,
+         'ColCat': 'b', 'ColBool':False}]
     assert_raises(VeritableError, validate_predictions, testrows, vschema)
     try:
         validate_predictions(testrows, vschema)
@@ -313,7 +337,8 @@ def test_pred_extrafield_fail():
 
 def test_pred_idfield_fail():
     testrows = [
-        {'ColInt':3, 'ColFloat':None, 'ColCat': 'a', 'ColBool':True},
+        {'_request_id': '0', 'ColInt':3, 'ColFloat':None, 'ColCat': 'a',
+         'ColBool':True},
         {'_id': '2', 'ColInt':4, 'ColFloat':None, 'ColCat': 'b',
          'ColBool':False}]
     assert_raises(VeritableError, validate_predictions, testrows, vschema)
@@ -321,7 +346,7 @@ def test_pred_idfield_fail():
         validate_predictions(testrows, vschema)
     except VeritableError as e:
         assert e.row == 1
-        assert e.col == '_id'
+        assert e.col == '_request_id'
 
 
 def test_data_extrafield_fix():
@@ -386,8 +411,10 @@ def test_data_non_int_count_fail():
 
 def test_pred_non_int_count_fail():
     testrows = [
-        {'ColInt':3, 'ColFloat':None, 'ColCat': 'a', 'ColBool':True},
-        {'ColInt': '4', 'ColFloat':None, 'ColCat': 'b', 'ColBool':False}]
+        {'_request_id': '0', 'ColInt':3, 'ColFloat':None, 'ColCat': 'a',
+         'ColBool':True},
+        {'_request_id': '1', 'ColInt': '4', 'ColFloat':None, 'ColCat': 'b',
+         'ColBool':False}]
     assert_raises(VeritableError, validate_predictions, testrows,
         vschema)
     try:
@@ -432,8 +459,10 @@ def test_data_nonvalid_int_count_fail():
 
 def test_pred_nonvalid_int_count_fail():
     testrows = [
-        {'ColInt':3, 'ColFloat':None, 'ColCat': 'a', 'ColBool':True},
-        {'ColInt': 'jello', 'ColFloat':None, 'ColCat': 'b', 'ColBool':False}]
+        {'_request_id': '0', 'ColInt':3, 'ColFloat':None, 'ColCat': 'a',
+         'ColBool':True},
+        {'_request_id': '1', 'ColInt': 'jello', 'ColFloat':None, 'ColCat': 'b',
+         'ColBool':False}]
     assert_raises(VeritableError, validate_predictions, testrows, vschema)
     try:
         validate_predictions(testrows, vschema)
@@ -503,8 +532,10 @@ def test_data_negative_int_count_fail():
 
 def test_pred_negative_int_count_fail():
     testrows = [
-        {'ColInt':3, 'ColFloat':None, 'ColCat': 'a', 'ColBool':True},
-        {'ColInt': -4, 'ColFloat':None, 'ColCat': 'b', 'ColBool':False}]
+        {'_request_id': '0', 'ColInt':3, 'ColFloat':None, 'ColCat': 'a',
+         'ColBool':True},
+        {'_request_id': '1', 'ColInt': -4, 'ColFloat':None, 'ColCat': 'b',
+         'ColBool':False}]
     assert_raises(VeritableError, validate_predictions, testrows,
         vschema)
     try:
@@ -576,8 +607,10 @@ def test_data_non_float_real_fail():
 
 def test_pred_non_float_real_fail():
     testrows = [
-        {'ColInt':None, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
-        {'ColInt':None, 'ColFloat': '4.1', 'ColCat': 'b', 'ColBool':False}]
+        {'_request_id': '0', 'ColInt':None, 'ColFloat':3.1, 'ColCat': 'a',
+         'ColBool':True},
+        {'_request_id': '1', 'ColInt':None, 'ColFloat': '4.1', 'ColCat': 'b',
+         'ColBool':False}]
     assert_raises(VeritableError, validate_predictions, testrows, vschema)
     try:
         validate_predictions(testrows, vschema)
@@ -621,8 +654,10 @@ def test_data_nonvalid_float_real_fail():
 
 def test_pred_nonvalid_float_real_fail():
     testrows = [
-        {'ColInt':None, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
-        {'ColInt':None, 'ColFloat': 'jello', 'ColCat': 'b', 'ColBool':False}]
+        {'_request_id': '0', 'ColInt':None, 'ColFloat':3.1, 'ColCat': 'a',
+         'ColBool':True},
+        {'_request_id': '1', 'ColInt':None, 'ColFloat': 'jello', 'ColCat': 'b',
+         'ColBool':False}]
     assert_raises(VeritableError, validate_predictions, testrows,
         vschema)
     try:
@@ -692,8 +727,10 @@ def test_data_non_str_cat_fail():
 
 
 def test_pred_non_str_cat_fail():
-    testrows = [{'ColInt':None, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
-                {'ColInt':None, 'ColFloat':4.1, 'ColCat':3, 'ColBool':False}]
+    testrows = [{'_request_id': '0', 'ColInt':None, 'ColFloat':3.1, 'ColCat': 'a',
+                 'ColBool':True},
+                {'_request_id': '1', 'ColInt':None, 'ColFloat':4.1, 'ColCat':3,
+                 'ColBool':False}]
     assert_raises(VeritableError, validate_predictions, testrows, vschema)
     try:
         validate_predictions(testrows, vschema)
@@ -733,8 +770,10 @@ def test_data_non_bool_boolean_fail():
 
 
 def test_pred_non_bool_boolean_fail():
-    testrows = [{'ColInt':None, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
-                {'ColInt':None, 'ColFloat':4.1, 'ColCat': 'b', 'ColBool': '0'}]
+    testrows = [{'_request_id': '0', 'ColInt':None, 'ColFloat':3.1, 'ColCat': 'a',
+                 'ColBool':True},
+                {'_request_id': '1', 'ColInt':None, 'ColFloat':4.1, 'ColCat': 'b',
+                 'ColBool': '0'}]
     assert_raises(VeritableError, validate_predictions, testrows,
         vschema)
     try:
@@ -825,8 +864,10 @@ def test_data_nonvalid_bool_boolean_fail():
 
 
 def test_pred_nonvalid_bool_boolean_fail():
-    testrows = [{'ColInt':None, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
-        {'ColInt':None, 'ColFloat':4.1, 'ColCat': 'b', 'ColBool': 'jello'}]
+    testrows = [{'_request_id': '0', 'ColInt':None, 'ColFloat':3.1,
+                 'ColCat': 'a', 'ColBool':True},
+                {'_request_id': '1', 'ColInt':None, 'ColFloat':4.1,
+                 'ColCat': 'b', 'ColBool': 'jello'}]
     assert_raises(VeritableError, validate_predictions, testrows,
         vschema)
     try:
@@ -907,11 +948,12 @@ def test_pred_too_many_cats_fail():
     rid = 0
     maxCols = 256
     for i in range(maxCols - 1):
-        testrows.append({'ColCat':str(i)})
-        testrows.append({'ColCat':str(i)})
-        rid = rid + 2
-    testrows.append({'ColCat':str(maxCols - 1)})
-    testrows.append({'ColCat':str(maxCols)})
+        testrows.append({'_request_id': str(rid), 'ColCat':str(i)})
+        rid += 1
+        testrows.append({'_request_id': str(rid), 'ColCat':str(i)})
+        rid += 1
+    testrows.append({'_request_id': str(rid),'ColCat':str(maxCols - 1)})
+    testrows.append({'_request_id': str(rid+1),'ColCat':str(maxCols)})
     assert_raises(VeritableError,
         validate_predictions, testrows, eschema)
     try:

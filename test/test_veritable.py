@@ -771,13 +771,32 @@ class TestPredictions:
         assert(isinstance(pr.distribution, list))
         for d in pr.distribution:
             assert(isinstance(d, dict))
+        r = json.loads(json.dumps({'_request_id': 'foo', 'cat': 'b', 'ct': 2,
+            'real': None, 'bool': False}))
+        pr = self.a2.predict(r)
+        assert(isinstance(pr, dict))
+        assert(isinstance(pr, veritable.api.Prediction))
+        assert(isinstance(pr.uncertainty, dict))
+        for k in pr.keys():
+            try:
+                if isinstance(o[k], basestring):
+                    assert(isinstance(pr[k], basestring))
+                else:
+                    assert(isinstance(pr[k], type(o[k])))
+            except:
+                assert(isinstance(pr[k], type(o[k])))
+            assert(isinstance(pr.uncertainty[k], float))
+            assert(pr[k] == o[k] or r[k] is None)
+        assert(isinstance(pr.distribution, list))
+        for d in pr.distribution:
+            assert(isinstance(d, dict))
 
     @attr('async')
     def test_make_batch_prediction(self):
         self.a2.wait()
         o = json.loads(json.dumps({'cat': 'b', 'ct': 2, 'real': 3.1, 'bool': False}))
         rr = [json.loads(json.dumps(
-            {'_id': str(i), 'cat': 'b', 'ct': 2, 'real': None,
+            {'_request_id': str(i), 'cat': 'b', 'ct': 2, 'real': None,
             'bool': False})) for i in range(10)]
         prs = self.a2.batch_predict(rr)
         assert(isinstance(prs, list))
