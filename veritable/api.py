@@ -790,8 +790,13 @@ class Analysis:
                 raise VeritableError("Error making "\
                     "predictions: {0}".format(res))
             for i in range(len(batch)):
-                preds.append(Prediction(batch[i],
-                    res[(i * count):((i + 1) * count)], self.get_schema()))
+                request = batch[i]
+                del request['_request_id']
+                distribution = res[(i * count):((i + 1) * count)]
+                for d in distribution:
+                    del d['_request_id']
+                preds.append(Prediction(request, distribution,
+                    self.get_schema()))
 
         if self.state == 'running':
             self.update()
@@ -808,6 +813,10 @@ class Analysis:
                 if not isinstance(res, list):
                     raise VeritableError("Error making predictions: " \
                     "{0}".format(res))
+                if '_request_id' in rows:
+                    del rows['_request_id']
+                for r in res:
+                    del r['_request_id']
                 return Prediction(rows, res, self.get_schema())
             elif isinstance(rows, list):
                 preds = list()
