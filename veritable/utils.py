@@ -292,7 +292,7 @@ def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
 
 def clean_data(rows, schema, convert_types=True, remove_nones=True,
     remove_invalids=True, reduce_categories=True, assign_ids=False,
-    remove_extra_fields=False):
+    remove_extra_fields=False, rename_columns=False):
     """Cleans up a list of row dicts in accordance with an analysis schema.
 
     Raises a VeritableError containing further details if the data
@@ -319,12 +319,18 @@ def clean_data(rows, schema, convert_types=True, remove_nones=True,
         categories will be binned as "Other".
     assign_ids -- controls whether clean_data will automatically assign new
         ids to the rows (default: False) If True, rows will be numbered
-        sequentially. If the rows have an existing '_id' column,
-        remove_extra_fields must also be set to True to avoid raising a
-        VeritableError.
+        sequentially in the column '_id'. If a string, sequential ids will be
+        put into column assign_ids rather than '_id'. If the rows have an
+        existing column of the same name, remove_extra_fields must also be set
+        to True to avoid raising a VeritableError.
     remove_extra_fields -- controls whether clean_data will automatically
         remove columns that are not contained in the schema (default: False)
-        If assign_ids is True (default), will also remove the '_id' column.
+        If assign_ids is True (default), will also remove the id column ('_id'
+        or as specified by assign_ids).
+    rename_columns -- a list of two-valued lists containing ['col_to_rename',
+        'new_name'], or False (default), in which case column names will not
+        be changed. Will silently succeed if asked to rename columns not
+        present in the dataset.
 
     See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -333,7 +339,8 @@ def clean_data(rows, schema, convert_types=True, remove_nones=True,
         allow_nones=False, remove_nones=remove_nones,
         remove_invalids=remove_invalids, reduce_categories=reduce_categories,
         has_ids=True, assign_ids=assign_ids, allow_extra_fields=True,
-        remove_extra_fields=remove_extra_fields, allow_empty_columns=False)
+        remove_extra_fields=remove_extra_fields, allow_empty_columns=False,
+        rename_columns=False)
 
 def validate_data(rows, schema):
     """Validates a list of row dicts against an analysis schema.
@@ -353,14 +360,18 @@ def validate_data(rows, schema):
         allow_nones=False, remove_nones=False,
         remove_invalids=False, reduce_categories=False,
         has_ids=True, assign_ids=False, allow_extra_fields=True,
-        remove_extra_fields=False, allow_empty_columns=False)
+        remove_extra_fields=False, allow_empty_columns=False,
+        rename_columns=False)
 
 def clean_predictions(predictions, schema, convert_types=True,
     remove_invalids=True, remove_extra_fields=True):
     """Cleans up a predictions request in accordance with an analysis schema.
 
-    Raises a DataValidationException containing further details if the predictions
-    request does not validate against the schema.
+    Raises a DataValidationException containing further details if the
+    predictions request does not validate against the schema.
+
+    Automatically converts an '_id' column, if present, to '_request_id',
+    otherwise assigns new a unique '_request_id' to each row.
 
     Note: This function mutates its predictions argument. If clean_predictions
     raises an exception, values in some columns may be converted while others
@@ -382,9 +393,9 @@ def clean_predictions(predictions, schema, convert_types=True,
     """
     return _validate(predictions, schema, convert_types=convert_types,
         allow_nones=True, remove_nones=False, remove_invalids=remove_invalids,
-        reduce_categories=False, has_ids=False, assign_ids=False,
+        reduce_categories=False, has_ids='_request_id', assign_ids=True,
         allow_extra_fields=False, remove_extra_fields=remove_extra_fields,
-        allow_empty_columns=True)
+        allow_empty_columns=True, rename_columns=[['_id', '_request_id']])
 
 def validate_predictions(predictions, schema):
     """Validates a predictions request against an analysis schema.
@@ -403,16 +414,31 @@ def validate_predictions(predictions, schema):
     """
     return _validate(predictions, schema, convert_types=False,
         allow_nones=True, remove_nones=False, remove_invalids=False,
-        reduce_categories=False, has_ids=False, assign_ids=False,
+        reduce_categories=False, has_ids='_request_id', assign_ids=False,
         allow_extra_fields=False, remove_extra_fields=False,
-        allow_empty_columns=True)
+        allow_empty_columns=True, rename_columns=False)
 
 
 def _validate(rows, schema, convert_types, allow_nones, remove_nones,
     remove_invalids, reduce_categories, has_ids, assign_ids,
-    allow_extra_fields, remove_extra_fields, allow_empty_columns):
+    allow_extra_fields, remove_extra_fields, allow_empty_columns,
+    rename_columns):
     # First check that the schema is well formed
     _validate_schema(schema)
+
+    # figure out which column holds the unique id
+    if has_ids or assign_ids:
+        if isinstance(has_ids, str) and isinstance(assign_ids, str):
+            if not has_ids == assign_ids:
+                raise VeritableError("Can't assign new row ids to column " \
+                    "'{0}' when ids are expected in column " \
+                    "'{1}'.".format(assign_ids, has_ids))
+        if isinstance(assign_ids, str):
+            id_col = assign_ids
+        elif isinstance(has_ids, str):
+            id_col = has_ids
+        else:
+            id_col = '_id'
 
     # unique_ids stores the row numbers of each unique id so that if an id is
     #   repeated we can alert the user appropriately
@@ -421,7 +447,7 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
     # field_fill keeps track of the density of all fields present
     field_fill = {}
     for c in schema.keys():
-        if c != '_id':
+        if c != id_col:
             field_fill[c] = 0
 
     # category_counts stores the number of categories in each categorical
@@ -432,63 +458,79 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
     #   if convert_types
     TRUE_STRINGS = ['true', 't', 'yes', 'y']
     FALSE_STRINGS = ['false', 'f', 'no', 'n']
+
     # be careful before changing the order of any of this logic - the point is
     #   to map through the rows only once
     for i in range(len(rows)):
         r = rows[i]
+        if rename_columns: # first apply the column renaming rules, if any
+            if not isinstance(rename_columns, list):
+                raise VeritableError("Must supply column renaming rules as " \
+                    "a list of lists.")
+            for rule in rename_columns:
+                if not isinstance(rule, list):
+                    raise VeritableError("Must supply column renaming rules "\
+                        "as a list of lists.")
+                try:
+                    r[rule[1]] = r[rule[0]]
+                    del r[rule[0]]
+                except KeyError:
+                    pass
         if assign_ids:  # number the rows sequentially
-            r['_id'] = str(i)
-        elif has_ids:   # we expect an _id column
-            if not '_id' in r:
-                raise VeritableError("Row: {0}  is missing " \
-                "Key:'_id'".format(str(i)), row=i, col='_id')
-            if convert_types:   # attempt to convert _id to string
+            r[id_col] = str(i)
+        elif has_ids:   # we expect an id_col column
+            if not id_col in r:
+                raise VeritableError("Row: {0} is missing " \
+                "Key:'{1}'".format(str(i), id_col), row=i, col=id_col)
+            if convert_types:   # attempt to convert id_col to string
                 try:
-                    r['_id'] = str(r['_id'])
+                    r[id_col] = str(r[id_col])
                 except UnicodeDecodeError:  # catch and use str.encode
-                    raise VeritableError("Row:'{0}' Key:'_id' Value:'{1}' " \
-                    "is {2}, not a str".format(str(i),
-                        r['_id'].encode('utf-8'), str(type(r['_id']))), row=i,
-                        col='_id')
-            if not isinstance(r['_id'], str):  # invalid type for _id
+                    raise VeritableError("Row:'{0}' Key:'{1}' Value:'{2}' " \
+                    "is {3}, not a str".format(str(i), id_col,
+                        r[id_col].encode('utf-8'), str(type(r[id_col]))),
+                        row=i, col=id_col)
+            if not isinstance(r[id_col], str):  # invalid type for id_col
                     try:
-                        str(r['_id'])
+                        str(r[id_col])
                     except UnicodeEncodeError:  # ensure we work in 2.7 and 3
-                        raise VeritableError("Row:'{0}' Key:'_id' is {1}, " \
-                        "not an ascii str.".format(str(i),
-                            str(type(r['_id']))), row=i, col='_id')
+                        raise VeritableError("Row:'{0}' Key:'{1}' is {2}, " \
+                        "not an ascii str.".format(str(i), id_col, 
+                            str(type(r[id_col]))), row=i, col=id_col)
                     else:
-                        raise VeritableError("Row:'{0}' Key:'_id' " \
+                        raise VeritableError("Row:'{0}' Key:'{1}' " \
                         "Value:'{1}' is {2}, not an ascii " \
-                        "str.".format(str(i), r['_id'], str(type(r['_id']))),
-                            row=i, col='_id')
+                        "str.".format(str(i), id_col, r[id_col],
+                            str(type(r[id_col]))), row=i, col=id_col)
             else:
                 try:
-                    r['_id'].encode('utf-8').decode('ascii')
+                    r[id_col].encode('utf-8').decode('ascii')
                 except UnicodeDecodeError:
-                    raise VeritableError("Row:'{0}' Key:'_id' Value:'{1}' " \
-                    "is {2}, not an ascii str.".format(str(i), str(r['_id']),
-                        str(type(r['_id']))), row=i, col='_id')
-            try:  # make sure _id is alphanumeric
-                _check_id(r['_id'])
+                    raise VeritableError("Row:'{0}' Key:'{1}' Value:'{2}' " \
+                    "is {3}, not an ascii str.".format(str(i), id_col,
+                        str(r[id_col]), str(type(r[id_col]))), row=i,
+                        col=id_col)
+            try:  # make sure id_col is alphanumeric
+                _check_id(r[id_col])
             except VeritableError:
-                raise VeritableError("Row:'{0}' Key:'_id' Value:'{1}' must " \
+                raise VeritableError("Row:'{0}' Key:'{1}' Value:'{2}' must " \
                 "contain only alphanumerics, underscores, and " \
-                "hyphens".format(str(i), str(r['_id'])), row=i, col='_id')
-            if r['_id'] in unique_ids:
-                raise VeritableError("Row:'{0}' Key:'_id' Value:'{1}' is " \
-                "not unique, conflicts with Row:'{2}'".format(str(i),
-                    str(r['_id']), str(unique_ids[r['_id']])), row=i,
-                    col='_id')
-            unique_ids[r['_id']] = i
-        elif '_id' in r:  # no ids, no autoid, but _id column
+                "hyphens".format(str(i), id_col, str(r[id_col])), row=i,
+                col=id_col)
+            if r[id_col] in unique_ids:
+                raise VeritableError("Row:'{0}' Key:'{1}' Value:'{2}' is " \
+                "not unique, conflicts with Row:'{3}'".format(str(i), id_col,
+                    str(r[id_col]), str(unique_ids[r[id_col]])), row=i,
+                    col=id_col)
+            unique_ids[r[id_col]] = i
+        elif id_col in r:  # no ids, no autoid, but id_col column
             if remove_extra_fields:  # just remove it
-                r.pop('_id')
+                r.pop(id_col)
             else:
-                raise VeritableError("Row:'{0}' Key:'_id' should not be " \
-                "included".format(str(i)), row=i, col='_id')
+                raise VeritableError("Row:'{0}' Key:{1} should not be " \
+                "included".format(str(i), id_col), row=i, col=id_col)
         for c in list(r.keys()):
-            if c != '_id':
+            if c != id_col:
                 if not c in schema:  # keys missing from schema
                     if remove_extra_fields:  # remove it
                         r.pop(c)
