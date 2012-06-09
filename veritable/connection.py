@@ -131,6 +131,7 @@ class Connection:
             ch.setLevel(logging.DEBUG)
             self.logger.addHandler(ch)
             self.logger.setLevel(logging.DEBUG)
+        self._set_limits()
 
     def __str__(self):
         return "<veritable.Connection url='" + self.api_base_url + "'>"
@@ -147,6 +148,9 @@ class Connection:
         """Debug logging."""
         if self.debug:
             self.logger.debug(x)
+
+    def _set_limits(self):
+        self.limits = self.get(_format_url(["user", "limits"]))
 
     @_fully_qualify_url
     def get(self, url, **kwargs):
