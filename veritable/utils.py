@@ -381,12 +381,14 @@ def clean_predictions(predictions, schema, convert_types=True,
     predictions -- the predictions request to clean up
     schema -- an analysis schema specifying the types of the columns appearing
         in the dataset
-    convert_types -- controls whether clean_predictions will attempt to convert
-        fixed cells in a column to be of the correct type (default: True)
+    convert_types -- controls whether clean_predictions will attempt to
+        convert fixed cells in a column to be of the correct type
+        (default: True)
     remove_invalids -- controls whether clean_predictions will automatically
         remove fixed cells that are invalid for a given column (default: True)
-    remove_extra_fields -- controls whether clean_predictions will automatically
-        remove columns that are not contained in the schema (default: True)
+    remove_extra_fields -- controls whether clean_predictions will
+        automatically remove columns that are not contained in the schema
+        (default: True)
 
     See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -402,7 +404,6 @@ def validate_predictions(predictions, schema):
 
     Raises a VeritableError containing further details if the request
     does not validate against the schema.
-
 
     Arguments:
     predictions -- the predictions request to validate
