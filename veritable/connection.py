@@ -12,7 +12,7 @@ from gzip import GzipFile
 from io import BytesIO
 from requests.auth import HTTPBasicAuth
 from .exceptions import VeritableError
-from .utils import _url_has_scheme
+from .utils import _url_has_scheme, _format_url
 from .version import __version__
 
 USER_AGENT = "veritable-python " + __version__
@@ -131,7 +131,6 @@ class Connection:
             ch.setLevel(logging.DEBUG)
             self.logger.addHandler(ch)
             self.logger.setLevel(logging.DEBUG)
-        self._set_limits()
 
     def __str__(self):
         return "<veritable.Connection url='" + self.api_base_url + "'>"
@@ -149,8 +148,13 @@ class Connection:
         if self.debug:
             self.logger.debug(x)
 
-    def _set_limits(self):
-        self.limits = self.get(_format_url(["user", "limits"]))
+    @property
+    def limits(self):
+        try:
+            return self._limits
+        except AttributeError:
+            self._limits = self.get(_format_url(["user", "limits"]))
+            return self._limits
 
     @_fully_qualify_url
     def get(self, url, **kwargs):
