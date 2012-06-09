@@ -912,7 +912,7 @@ class Prediction(dict):
 
     """
     def __init__(self, request, distribution, schema):
-        self.distribution = distribution
+        self._distribution = distribution
         self.uncertainty = {}
         self.request = request
         self.schema = dict([(k, schema[k]) for k in self.request.keys()])
@@ -923,6 +923,11 @@ class Prediction(dict):
             else:
                 self[k] = self._point_estimate(k)
                 self.uncertainty[k] = self._uncertainty(k)
+
+    @property
+    def distribution(self):
+        fixed = self.request.items()
+        return [dict(fixed + d.items()) for d in self._distribution]
 
     def _sorted_values(self, column):
         values = [row[column] for row in self.distribution]
