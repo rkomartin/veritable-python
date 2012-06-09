@@ -783,6 +783,16 @@ class Analysis:
         Analysis.batch_predict.
 
         """
+        def _execute_batch(batch, count, preds):
+            res = self._conn.post(self._link('predict'),
+                data={'data': batch, 'count': count, 'return_fixed': False})
+            if not isinstance(res, list):
+                raise VeritableError("Error making "\
+                    "predictions: {0}".format(res))
+            for i in range(len(batch)):
+                preds.append(Prediction(batch[i],
+                    res[(i * count):((i + 1) * count)], self.get_schema()))
+
         if self.state == 'running':
             self.update()
         if self.state == 'running':
@@ -792,21 +802,43 @@ class Analysis:
             raise VeritableError("Analysis with id {0} has failed and " \
             "cannot predict: {1}".format(self.id, self.error))
         elif self.state == 'succeeded':
-            res = self._conn.post(self._link('predict'),
-                                  data={'data': row, 'count': count})
-            if not isinstance(res, list):
-                raise VeritableError("Error making predictions: " \
-                "{0}".format(res))
-            if isinstance(rows, list):
-                n = len(list)
+            if isinstance(rows, dict):
+                res = self._conn.post(self._link('predict'),
+                    data={'data': row, 'count': count, 'return_fixed': False})
+                if not isinstance(res, list):
+                    raise VeritableError("Error making predictions: " \
+                    "{0}".format(res))
+                return Prediction(rows, res, self.get_schema())
+            elif isinstance(rows, list):
                 preds = list()
-                for i in range(n):
-                    preds.append(Prediction(rows[i],
-                        res[(i * count):((i + 1) * count)],
-                        self.get_schema()))
+                maxcells = self._conn.limits['predictions_max_response_cells']
+                maxcols = self._conn.limits['predictions_max_cols']
+                ncells = 0
+                batch = list()
+                for row in rows:
+                    ncols = sum([v is None for v in row.values()])
+                    if ncols > maxcols:
+                        raise VeritableError("Cannot predict for row {0} "\
+                            "with more than {1} missing values".format(
+                                row['_request_id'], maxcols))
+                    n = ncols * count
+                    if n > maxcells:
+                        raise VeritableError("Cannot predict for row {0} "\
+                            "with {1} missing values and count {2}: "\
+                            "exceeds predicted cell limit of {3}".format(
+                                row['_request_id'], ncols, count, maxcells))
+                    if ncells + n > maxcells:
+                        _execute_batch(batch, count, preds)
+                        ncells = n
+                        batch = [row]
+                    else:
+                        batch.append(row)
+                        ncells = ncells + n
+                _execute_batch(batch, count, preds)
                 return preds
             else:
-                return Prediction(rows, res, self.get_schema())
+                raise VeritableError("_predict called with rows argument "\
+                    "of type {0}".format(str(type(rows))))
 
     def related_to(self, column_id, start=None, limit=None):
         """Scores how related columns are to column of interest 
