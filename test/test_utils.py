@@ -101,9 +101,9 @@ def test_make_schema_headers():
     headers = ['IntA', 'IntB', 'CatA', 'CatB', 'Foo']
     schemaRule1 = [['Int.*', {'type': 'count'}],
                   ['Cat.*', {'type': 'categorical'}]]
-    schemaRule2 = [[lambda x: x[0:4] == 'Cat',
+    schemaRule2 = [[lambda h, v: h[0:3] == 'Cat',
                     {'type': 'categorical'}],
-                   [lambda x: x[0:4] == 'Int',
+                   [lambda h, v: h[0:3] == 'Int',
                     {'type': 'count'}]]
     schema = make_schema(schemaRule1, headers=headers)
     assert schema == refSchema
@@ -119,9 +119,9 @@ def test_make_schema_rows():
     rows = [{'CatA':None, 'CatB':None, 'IntA':None, 'IntB':None, 'Foo':None}]
     schemaRule = [['Int.*', {'type': 'count'}],
                   ['Cat.*', {'type': 'categorical'}]]
-    schemaRule2 = [[lambda x: x[0:4] == 'Cat',
+    schemaRule2 = [[lambda h, v: h[0:3] == 'Cat',
                     {'type': 'categorical'}],
-                   [lambda x: x[0:4] == 'Int',
+                   [lambda h, v: h[0:3] == 'Int',
                     {'type': 'count'}]]
     schema = make_schema(schemaRule, rows=rows)
     assert schema == refSchema

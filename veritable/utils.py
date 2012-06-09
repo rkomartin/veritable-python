@@ -211,7 +211,7 @@ def make_schema(schema_rule, headers=None, rows=None):
                     break
             except AttributeError:
                 if rows is None:
-                    if r(c):
+                    if r(c, None):
                         schema[c] = t
                         break
                 else:
