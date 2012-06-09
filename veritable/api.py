@@ -746,7 +746,7 @@ class Analysis:
         if not isinstance(row, dict):
             raise VeritableError("Must provide a row dict to make "\
                 "predictions!")
-        return _predict(self, row, count=count)
+        return self._predict(row, count=count)
 
     def batch_predict(self, rows, count=100):
         """Makes predictions from the analysis for multiple rows at a time.
@@ -772,9 +772,9 @@ class Analysis:
                     "{0}".format(row))
             if not '_request_id' in row:
                 raise VeritableError("Rows for batch predictions must "\
-                    "contain an '_id' field: {0}".format(row))
+                    "contain a '_request_id' field: {0}".format(row))
             _check_id(row['_request_id'])
-        return _predict(self, rows, count=count)
+        return self._predict(rows, count=count)
 
     def _predict(self, rows, count=100):
         """ Encapsulate prediction logic for single and multi-row predictions.
@@ -809,14 +809,15 @@ class Analysis:
         elif self.state == 'succeeded':
             if isinstance(rows, dict):
                 res = self._conn.post(self._link('predict'),
-                    data={'data': row, 'count': count, 'return_fixed': False})
+                    data={'data': rows, 'count': count, 'return_fixed': False})
                 if not isinstance(res, list):
                     raise VeritableError("Error making predictions: " \
                     "{0}".format(res))
                 if '_request_id' in rows:
                     del rows['_request_id']
                 for r in res:
-                    del r['_request_id']
+                    if '_request_id' in rows: # corner case, don't remove!
+                        del r['_request_id']
                 return Prediction(rows, res, self.get_schema())
             elif isinstance(rows, list):
                 preds = list()
