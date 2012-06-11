@@ -838,13 +838,6 @@ class TestPredictions:
              {'cat': 'b', 'ct': 2, 'real': None, 'bool': None}])
 
     @attr('async')
-    def test_make_prediction_with_count_too_high_fails(self):
-        self.a2.wait()
-        assert_raises(VeritableError, self.a2.predict,
-            {'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
-            count=100001)
-
-    @attr('async')
     def test_make_prediction_with_invalid_column_fails(self):
         self.a1.wait()
         assert_raises(VeritableError, self.a1.predict,
