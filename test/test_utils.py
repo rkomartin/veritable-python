@@ -99,9 +99,15 @@ def test_make_schema_headers():
                  'IntA': {'type': 'count'},
                  'IntB': {'type': 'count'}}
     headers = ['IntA', 'IntB', 'CatA', 'CatB', 'Foo']
-    schemaRule = [['Int.*', {'type': 'count'}],
+    schemaRule1 = [['Int.*', {'type': 'count'}],
                   ['Cat.*', {'type': 'categorical'}]]
-    schema = make_schema(schemaRule, headers=headers)
+    schemaRule2 = [[lambda h, v: h[0:3] == 'Cat',
+                    {'type': 'categorical'}],
+                   [lambda h, v: h[0:3] == 'Int',
+                    {'type': 'count'}]]
+    schema = make_schema(schemaRule1, headers=headers)
+    assert schema == refSchema
+    schema = make_schema(schemaRule2, headers=headers)
     assert schema == refSchema
 
 
@@ -113,16 +119,30 @@ def test_make_schema_rows():
     rows = [{'CatA':None, 'CatB':None, 'IntA':None, 'IntB':None, 'Foo':None}]
     schemaRule = [['Int.*', {'type': 'count'}],
                   ['Cat.*', {'type': 'categorical'}]]
+    schemaRule2 = [[lambda h, v: h[0:3] == 'Cat',
+                    {'type': 'categorical'}],
+                   [lambda h, v: h[0:3] == 'Int',
+                    {'type': 'count'}]]
     schema = make_schema(schemaRule, rows=rows)
+    assert schema == refSchema
+    schema = make_schema(schemaRule2, rows=rows)
     assert schema == refSchema
 
 
 @raises(Exception)
-def test_make_schema_noarg_fail():
+def test_make_schema_noarg1_fail():
     schemaRule = [['Int.*', {'type': 'count'}],
                   ['Cat.*', {'type': 'categorical'}]]
     make_schema(schemaRule)
 
+
+@raises(Exception)
+def test_make_schema_noarg2_fail():
+    schemaRule = [[lambda x: x[0:4] == 'Cat',
+                    {'type': 'categorical'}],
+                   [lambda x: x[0:4] == 'Int',
+                    {'type': 'count'}]]
+    make_schema(schemaRule)
 
 # Invalid Schema
 def test_missing_schema_type_fail():
