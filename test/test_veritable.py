@@ -715,18 +715,6 @@ class TestPredictions:
     def setupClass(self):
         self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL,
             **connect_kwargs)
-        self.t = self.API.create_table()
-        self.t.batch_upload_rows([{'_id': 'onebug', 'zim': 'zam', 'wos': 19.2},
-                         {'_id': 'twobug', 'zim': 'vim', 'wos': 11.3},
-                         {'_id': 'threebug', 'zim': 'fop', 'wos': 17.5},
-                         {'_id': 'fourbug', 'zim': 'zop', 'wos': 10.3},
-                         {'_id': 'fivebug', 'zim': 'zam', 'wos': 9.3},
-                         {'_id': 'sixbug', 'zim': 'zop', 'wos': 18.9}])
-        self.schema1 = {'zim': {'type': 'categorical'},
-            'wos': {'type': 'real'}}
-        self.a1 = self.t.create_analysis(self.schema1, analysis_id="a1",
-            force=True)
-        self.a1.wait()
         self.t2 = self.API.create_table()
         self.t2.batch_upload_rows(
         [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
@@ -749,7 +737,6 @@ class TestPredictions:
 
     @classmethod
     def teardownClass(self):
-        self.t.delete()
         self.t2.delete()
 
     def test_make_prediction(self):
@@ -831,8 +818,8 @@ class TestPredictions:
              {'cat': 'b', 'ct': 2, 'real': None, 'bool': None}])
 
     def test_make_prediction_with_invalid_column_fails(self):
-        assert_raises(VeritableError, self.a1.predict,
-            {'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
+        assert_raises(VeritableError, self.a2.predict,
+            {'cat': 'b', 'ct': 2, 'real': None, 'jello': False})
 
     def test_make_predictions_with_fixed_int_val_for_float_col(self):
         self.a2.predict({'cat': None, 'ct': None, 'real': 1, 'bool': None})
@@ -841,7 +828,7 @@ class TestPredictions:
         self.a3.delete()
 
     def test_predict_link_is_present(self):
-        self.a1._link('predict')
+        self.a2._link('predict')
 
     # def test_predict_from_failed_analysis(self):
     #     a3 = self.t2.create_analysis(self.schema1, analysis_id="a3",
