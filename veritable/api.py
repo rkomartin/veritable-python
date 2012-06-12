@@ -746,7 +746,7 @@ class Analysis:
         if not isinstance(row, dict):
             raise VeritableError("Must provide a row dict to make "\
                 "predictions!")
-        return self._predict(row, count=count)
+        return self._predict([row], count)[0]
 
     def batch_predict(self, rows, count=100):
         """Makes predictions from the analysis for multiple rows at a time.
@@ -774,9 +774,9 @@ class Analysis:
                 raise VeritableError("Rows for batch predictions must "\
                     "contain a '_request_id' field: {0}".format(row))
             _check_id(row['_request_id'])
-        return self._predict(rows, count=count)
+        return self._predict(rows, count)
 
-    def _predict(self, rows, count=100, maxcells=None, maxcols=None):
+    def _predict(self, rows, count, maxcells=None, maxcols=None):
         """ Encapsulate prediction logic for single and multi-row predictions.
 
         Users should not call directly. Use Analysis.predict and
@@ -787,19 +787,23 @@ class Analysis:
         maxcols = self._conn.limits['predictions_max_cols'] if maxcols is None else maxcols
 
         def _execute_batch(batch, count, preds):
+            data = batch if len(batch) != 1 else batch[0] 
             res = self._conn.post(self._link('predict'),
-                data={'data': batch, 'count': count, 'return_fixed': False})
+                data={'data': data, 'count': count, 'return_fixed': False})
             if not isinstance(res, list):
                 raise VeritableError("Error making "\
                     "predictions: {0}".format(res))
             for i in range(len(batch)):
-                request = batch[i]
-                del request['_request_id']
+                request = batch[i].copy()
+                request_id = request.get('_request_id')
+                if request.has_key('_request_id'):
+                    del request['_request_id']
                 distribution = res[(i * count):((i + 1) * count)]
                 for d in distribution:
-                    del d['_request_id']
+                    if d.has_key('_request_id'):
+                        del d['_request_id']
                 preds.append(Prediction(request, distribution,
-                    self.get_schema()))
+                    self.get_schema(), request_id=request_id))
 
         if self.state == 'running':
             self.update()
@@ -810,19 +814,7 @@ class Analysis:
             raise VeritableError("Analysis with id {0} has failed and " \
             "cannot predict: {1}".format(self.id, self.error))
         elif self.state == 'succeeded':
-            if isinstance(rows, dict):
-                res = self._conn.post(self._link('predict'),
-                    data={'data': rows, 'count': count, 'return_fixed': False})
-                if not isinstance(res, list):
-                    raise VeritableError("Error making predictions: " \
-                    "{0}".format(res))
-                if '_request_id' in rows:
-                    del rows['_request_id']
-                for r in res:
-                    if '_request_id' in rows: # corner case, don't remove!
-                        del r['_request_id']
-                return Prediction(rows, res, self.get_schema())
-            elif isinstance(rows, list):
+            if isinstance(rows, list):
                 preds = list()
                 ncells = 0
                 batch = list()
@@ -913,12 +905,13 @@ class Prediction(dict):
     See also: https://dev.priorknowledge.com/docs/client/python
 
     """
-    def __init__(self, request, distribution, schema):
+    def __init__(self, request, distribution, schema, request_id=None):
         self._distribution = distribution
         fixed = [r for r in request.items() if r[1] is not None]
         [d.update(fixed) for d in self._distribution]
         self.uncertainty = {}
         self.request = request
+        self.request_id = request_id
         self.schema = dict([(k, schema[k]) for k in self.request.keys()])
         for k in self.request.keys():
             if self.request[k] is not None:
