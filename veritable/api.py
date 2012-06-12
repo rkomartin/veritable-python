@@ -814,34 +814,30 @@ class Analysis:
             raise VeritableError("Analysis with id {0} has failed and " \
             "cannot predict: {1}".format(self.id, self.error))
         elif self.state == 'succeeded':
-            if isinstance(rows, list):
-                preds = list()
-                ncells = 0
-                batch = list()
-                for row in rows:
-                    ncols = sum([v is None for v in row.values()])
-                    if ncols > maxcols:
-                        raise VeritableError("Cannot predict for row {0} "\
-                            "with more than {1} missing values".format(
-                                row['_request_id'], maxcols))
-                    n = ncols * count
-                    if n > maxcells:
-                        raise VeritableError("Cannot predict for row {0} "\
-                            "with {1} missing values and count {2}: "\
-                            "exceeds predicted cell limit of {3}".format(
-                                row['_request_id'], ncols, count, maxcells))
-                    if ncells + n > maxcells:
-                        _execute_batch(batch, count, preds)
-                        ncells = n
-                        batch = [row]
-                    else:
-                        batch.append(row)
-                        ncells = ncells + n
-                _execute_batch(batch, count, preds)
-                return preds
-            else:
-                raise VeritableError("_predict called with rows argument "\
-                    "of type {0}".format(str(type(rows))))
+            preds = list()
+            ncells = 0
+            batch = list()
+            for row in rows:
+                ncols = sum([v is None for v in row.values()])
+                if ncols > maxcols:
+                    raise VeritableError("Cannot predict for row {0} "\
+                        "with more than {1} missing values".format(
+                            row['_request_id'], maxcols))
+                n = ncols * count
+                if n > maxcells:
+                    raise VeritableError("Cannot predict for row {0} "\
+                        "with {1} missing values and count {2}: "\
+                        "exceeds predicted cell limit of {3}".format(
+                            row['_request_id'], ncols, count, maxcells))
+                if ncells + n > maxcells:
+                    _execute_batch(batch, count, preds)
+                    ncells = n
+                    batch = [row]
+                else:
+                    batch.append(row)
+                    ncells = ncells + n
+            _execute_batch(batch, count, preds)
+            return preds
 
     def related_to(self, column_id, start=None, limit=None):
         """Scores how related columns are to column of interest 

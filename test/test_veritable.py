@@ -793,6 +793,11 @@ class TestPredictions:
         schema_ref = json.loads(json.dumps({'cat': 'b', 'ct': 2, 'real': 3.1, 'bool': False}))
         rr = [json.loads(json.dumps(
             {'_request_id': str(i), 'cat': 'b', 'ct': 2, 'real': None,
+            'bool': False})) for i in range(1)]
+        prs = self.a2.batch_predict(rr)
+        self._check_preds(schema_ref,rr,prs)
+        rr = [json.loads(json.dumps(
+            {'_request_id': str(i), 'cat': 'b', 'ct': 2, 'real': None,
             'bool': False})) for i in range(10)]
         prs = self.a2.batch_predict(rr)
         self._check_preds(schema_ref,rr,prs)
