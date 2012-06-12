@@ -830,15 +830,6 @@ class TestPredictions:
     def test_predict_link_is_present(self):
         self.a2._link('predict')
 
-    # def test_predict_from_failed_analysis(self):
-    #     a3 = self.t2.create_analysis(self.schema1, analysis_id="a3",
-    #         force=True)
-    #     wait_for_analysis(a3)
-    #     assert_raises(VeritableError, a3.predict,
-    #         {'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
-    #     assert_raises(VeritableError, a3.predict, {'zim': None})
-    #     assert_raises(VeritableError, a3.predict, {'wos': None})
-
 
 class TestPredictionUtils:
     def setup(self):
