@@ -121,7 +121,7 @@ class API:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return self._conn.get(_format_url(["user", "limits"]))
+        return self._conn._limits
 
     def table_exists(self, table_id):
         """Checks if a table with the specified id is available to the user.
@@ -776,13 +776,16 @@ class Analysis:
             _check_id(row['_request_id'])
         return self._predict(rows, count=count)
 
-    def _predict(self, rows, count=100):
+    def _predict(self, rows, count=100, maxcells=None, maxcols=None):
         """ Encapsulate prediction logic for single and multi-row predictions.
 
         Users should not call directly. Use Analysis.predict and
         Analysis.batch_predict.
 
         """
+        maxcells = self._conn.limits['predictions_max_response_cells'] if maxcells is None else maxcells
+        maxcols = self._conn.limits['predictions_max_cols'] if maxcols is None else maxcols
+
         def _execute_batch(batch, count, preds):
             res = self._conn.post(self._link('predict'),
                 data={'data': batch, 'count': count, 'return_fixed': False})
@@ -821,8 +824,6 @@ class Analysis:
                 return Prediction(rows, res, self.get_schema())
             elif isinstance(rows, list):
                 preds = list()
-                maxcells = self._conn.limits['predictions_max_response_cells']
-                maxcols = self._conn.limits['predictions_max_cols']
                 ncells = 0
                 batch = list()
                 for row in rows:

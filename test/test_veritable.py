@@ -712,11 +712,9 @@ class TestTableOps:
 
 class TestPredictions:
     @classmethod
-    def setup_class(self):
+    def setupClass(self):
         self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL,
             **connect_kwargs)
-
-    def setup(self):
         self.t = self.API.create_table()
         self.t.batch_upload_rows([{'_id': 'onebug', 'zim': 'zam', 'wos': 19.2},
                          {'_id': 'twobug', 'zim': 'vim', 'wos': 11.3},
@@ -744,14 +742,15 @@ class TestPredictions:
                   }
         self.a2 = self.t2.create_analysis(self.schema2, analysis_id="a2",
             force=True)
+        self.a2.wait()
 
-    def teardown(self):
+    @classmethod
+    def teardownClass(self):
         self.t.delete()
         self.t2.delete()
 
-    @attr('async')
+    @attr('sync')
     def test_make_prediction(self):
-        self.a2.wait()
         o = json.loads(json.dumps({'cat': 'b', 'ct': 2, 'real': 3.1, 'bool': False}))
         r = json.loads(json.dumps({'cat': 'b', 'ct': 2, 'real': None, 'bool': False}))
         pr = self.a2.predict(r)
@@ -791,7 +790,7 @@ class TestPredictions:
         for d in pr.distribution:
             assert(isinstance(d, dict))
 
-    @attr('async')
+    @attr('sync')
     def test_make_batch_prediction(self):
         self.a2.wait()
         o = json.loads(json.dumps({'cat': 'b', 'ct': 2, 'real': 3.1, 'bool': False}))
@@ -818,26 +817,26 @@ class TestPredictions:
             for d in pr.distribution:
                 assert(isinstance(d, dict))
 
-    @attr('async')
+    @attr('sync')
     def test_make_prediction_with_empty_row(self):
         self.a2.wait()
         self.a2.predict({})
 
-    @attr('async')
+    @attr('sync')
     def test_make_prediction_with_multiple_rows(self):
         self.a2.wait()
         assert_raises(VeritableError, self.a2.predict, [
             {'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
             {'cat': 'b', 'ct': 2, 'real': None, 'bool': False}])
 
-    @attr('async')
+    @attr('sync')
     def test_make_prediction_with_list_of_rows_fails(self):
         self.a2.wait()
         assert_raises(VeritableError, self.a2.predict,
             [{'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
              {'cat': 'b', 'ct': 2, 'real': None, 'bool': None}])
 
-    @attr('async')
+    @attr('sync')
     def test_make_prediction_with_invalid_column_fails(self):
         self.a1.wait()
         assert_raises(VeritableError, self.a1.predict,
