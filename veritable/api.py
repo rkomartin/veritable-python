@@ -914,6 +914,8 @@ class Prediction(dict):
     """
     def __init__(self, request, distribution, schema):
         self._distribution = distribution
+        fixed = [r for r in request.items() if r[1] is not None]
+        [d.update(fixed) for d in self._distribution]
         self.uncertainty = {}
         self.request = request
         self.schema = dict([(k, schema[k]) for k in self.request.keys()])
@@ -927,9 +929,8 @@ class Prediction(dict):
 
     @property
     def distribution(self):
-        fixed = self.request.items()
-        return [dict(fixed + d.items()) for d in self._distribution]
-
+        return self._distribution
+        
     def _sorted_values(self, column):
         values = [row[column] for row in self.distribution]
         values.sort()
