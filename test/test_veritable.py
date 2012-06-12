@@ -726,6 +726,7 @@ class TestPredictions:
             'wos': {'type': 'real'}}
         self.a1 = self.t.create_analysis(self.schema1, analysis_id="a1",
             force=True)
+        self.a1.wait()
         self.t2 = self.API.create_table()
         self.t2.batch_upload_rows(
         [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
@@ -743,13 +744,14 @@ class TestPredictions:
         self.a2 = self.t2.create_analysis(self.schema2, analysis_id="a2",
             force=True)
         self.a2.wait()
+        self.a3 = self.t2.create_analysis(self.schema2, analysis_id="a3",
+            force=True)
 
     @classmethod
     def teardownClass(self):
         self.t.delete()
         self.t2.delete()
 
-    @attr('sync')
     def test_make_prediction(self):
         o = json.loads(json.dumps({'cat': 'b', 'ct': 2, 'real': 3.1, 'bool': False}))
         r = json.loads(json.dumps({'cat': 'b', 'ct': 2, 'real': None, 'bool': False}))
@@ -790,9 +792,7 @@ class TestPredictions:
         for d in pr.distribution:
             assert(isinstance(d, dict))
 
-    @attr('sync')
     def test_make_batch_prediction(self):
-        self.a2.wait()
         o = json.loads(json.dumps({'cat': 'b', 'ct': 2, 'real': 3.1, 'bool': False}))
         rr = [json.loads(json.dumps(
             {'_request_id': str(i), 'cat': 'b', 'ct': 2, 'real': None,
@@ -817,42 +817,30 @@ class TestPredictions:
             for d in pr.distribution:
                 assert(isinstance(d, dict))
 
-    @attr('sync')
     def test_make_prediction_with_empty_row(self):
-        self.a2.wait()
         self.a2.predict({})
 
-    @attr('sync')
     def test_make_prediction_with_multiple_rows(self):
-        self.a2.wait()
         assert_raises(VeritableError, self.a2.predict, [
             {'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
             {'cat': 'b', 'ct': 2, 'real': None, 'bool': False}])
 
-    @attr('sync')
     def test_make_prediction_with_list_of_rows_fails(self):
-        self.a2.wait()
         assert_raises(VeritableError, self.a2.predict,
             [{'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
              {'cat': 'b', 'ct': 2, 'real': None, 'bool': None}])
 
-    @attr('sync')
     def test_make_prediction_with_invalid_column_fails(self):
-        self.a1.wait()
         assert_raises(VeritableError, self.a1.predict,
             {'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
 
-    @attr('sync')
     def test_make_predictions_with_fixed_int_val_for_float_col(self):
-        self.a2.wait()
         self.a2.predict({'cat': None, 'ct': None, 'real': 1, 'bool': None})
 
-    @attr('sync')
     def test_delete_analysis_with_instance_method(self):
-        self.a2.delete()
+        self.a3.delete()
 
     def test_predict_link_is_present(self):
-        self.a1.wait()
         self.a1._link('predict')
 
     # def test_predict_from_failed_analysis(self):
