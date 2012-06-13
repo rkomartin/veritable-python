@@ -804,7 +804,6 @@ class Analysis:
                         del d['_request_id']
                 preds.append(Prediction(request, distribution,
                     self.get_schema(), request_id=request_id))
-
         if self.state == 'running':
             self.update()
         if self.state == 'running':
@@ -819,16 +818,20 @@ class Analysis:
             batch = list()
             for row in rows:
                 ncols = sum([v is None for v in row.values()])
-                if ncols > maxcols:
+                tcols = sum([k != '_request_id' for k in row])
+                if tcols > maxcols:
                     raise VeritableError("Cannot predict for row {0} "\
-                        "with more than {1} missing values".format(
-                            row['_request_id'], maxcols))
+                        "with more than {1} combined fixed and predicted values".format(
+                            row.get('_request_id'), maxcols))
                 n = ncols * count
                 if n > maxcells:
                     raise VeritableError("Cannot predict for row {0} "\
                         "with {1} missing values and count {2}: "\
                         "exceeds predicted cell limit of {3}".format(
-                            row['_request_id'], ncols, count, maxcells))
+                            row.get('_request_id'), ncols, count, maxcells))
+            for row in rows:
+                ncols = sum([v is None for v in row.values()])
+                n = ncols * count
                 if ncells + n > maxcells:
                     _execute_batch(batch, count, preds)
                     ncells = n

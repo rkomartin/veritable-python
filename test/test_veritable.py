@@ -819,17 +819,30 @@ class TestPredictions:
 
     @attr('async')
     def test_batch_prediction_batching(self):
-        rows = [ {'_request_id':'a', 'cat': None, 'ct': 2,
+        schema_ref = {'cat': 'b', 'ct': 2, 'real': 3.1, 'bool': False}
+        rr = [ {'_request_id':'a', 'cat': None, 'ct': 2,
                   'real': 4.0, 'bool': False},
                  {'_request_id':'b','cat': 'b', 'ct': 2,
                   'real': None, 'bool': True},
                  {'_request_id':'c','cat': 'b', 'ct': None,
                   'real': 3.8, 'bool': True} ]
-        count = 10
-        maxcols = 5
-        self.a2._predict(rows, count, maxcells=30, maxcols=maxcols)
-        self.a2._predict(rows, count, maxcells=20, maxcols=maxcols)
-        self.a2._predict(rows, count, maxcells=10, maxcols=maxcols)
+        prs = self.a2._predict(rr, count=10, maxcells=30, maxcols=4)
+        self._check_preds(schema_ref,rr,prs)
+        prs = self.a2._predict(rr, count=10, maxcells=20, maxcols=4)
+        self._check_preds(schema_ref,rr,prs)
+        prs = self.a2._predict(rr, count=10, maxcells=10, maxcols=4)
+        self._check_preds(schema_ref,rr,prs)
+
+    @attr('async')
+    def test_batch_prediction_too_many_cells(self):
+        schema_ref = {'cat': 'b', 'ct': 2, 'real': 3.1, 'bool': False}
+        rr = [ {'_request_id':'a', 'cat': None, 'ct': None,
+                  'real': 4.0, 'bool': False} ]
+        prs = self.a2._predict(rr, count=10, maxcells=20, maxcols=4)
+        self._check_preds(schema_ref,rr,prs)
+        assert_raises(VeritableError, self.a2._predict, rr, count=10, maxcells=20, maxcols=3)
+        assert_raises(VeritableError, self.a2._predict, rr, count=10, maxcells=19, maxcols=4)
+
 
 
     @attr('async')
