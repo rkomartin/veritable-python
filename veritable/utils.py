@@ -1,4 +1,4 @@
-u"""Utility functions for working with veritable-python.
+"""Utility functions for working with veritable-python.
 
 See also: https://dev.priorknowledge.com/docs/client/python
 
