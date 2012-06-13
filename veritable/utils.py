@@ -1,4 +1,4 @@
-"""Utility functions for working with veritable-python.
+u"""Utility functions for working with veritable-python.
 
 See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -356,7 +356,7 @@ def clean_data(rows, schema, convert_types=True, remove_nones=True,
     return _validate(rows, schema, convert_types=convert_types,
         allow_nones=False, remove_nones=remove_nones,
         remove_invalids=remove_invalids, reduce_categories=reduce_categories,
-        has_ids=True, assign_ids=assign_ids, allow_extra_fields=True,
+        has_ids='_id', assign_ids=assign_ids, allow_extra_fields=True,
         remove_extra_fields=remove_extra_fields, allow_empty_columns=False,
         rename_columns=False)
 
@@ -377,7 +377,7 @@ def validate_data(rows, schema):
     return _validate(rows, schema, convert_types=False,
         allow_nones=False, remove_nones=False,
         remove_invalids=False, reduce_categories=False,
-        has_ids=True, assign_ids=False, allow_extra_fields=True,
+        has_ids='_id', assign_ids=False, allow_extra_fields=True,
         remove_extra_fields=False, allow_empty_columns=False,
         rename_columns=False)
 
