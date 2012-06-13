@@ -747,7 +747,7 @@ class TestPredictions:
             assert(isinstance(pr, dict))
             assert(isinstance(pr, veritable.api.Prediction))
             assert(isinstance(pr.uncertainty, dict))
-            if req.has_key('_request_id'):
+            if '_request_id' in req:
                 assert req['_request_id'] == pr.request_id
                 assert len(req) == (len(pr)+1)
             else:

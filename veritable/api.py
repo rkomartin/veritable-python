@@ -796,11 +796,11 @@ class Analysis:
             for i in range(len(batch)):
                 request = batch[i].copy()
                 request_id = request.get('_request_id')
-                if request.has_key('_request_id'):
+                if '_request_id' in request:
                     del request['_request_id']
                 distribution = res[(i * count):((i + 1) * count)]
                 for d in distribution:
-                    if d.has_key('_request_id'):
+                    if '_request_id' in d:
                         del d['_request_id']
                 preds.append(Prediction(request, distribution,
                     self.get_schema(), request_id=request_id))
