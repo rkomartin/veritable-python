@@ -712,22 +712,9 @@ class TestTableOps:
 
 class TestPredictions:
     @classmethod
-    def setup_class(self):
+    def setupClass(self):
         self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL,
             **connect_kwargs)
-
-    def setup(self):
-        self.t = self.API.create_table()
-        self.t.batch_upload_rows([{'_id': 'onebug', 'zim': 'zam', 'wos': 19.2},
-                         {'_id': 'twobug', 'zim': 'vim', 'wos': 11.3},
-                         {'_id': 'threebug', 'zim': 'fop', 'wos': 17.5},
-                         {'_id': 'fourbug', 'zim': 'zop', 'wos': 10.3},
-                         {'_id': 'fivebug', 'zim': 'zam', 'wos': 9.3},
-                         {'_id': 'sixbug', 'zim': 'zop', 'wos': 18.9}])
-        self.schema1 = {'zim': {'type': 'categorical'},
-            'wos': {'type': 'real'}}
-        self.a1 = self.t.create_analysis(self.schema1, analysis_id="a1",
-            force=True)
         self.t2 = self.API.create_table()
         self.t2.batch_upload_rows(
         [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
@@ -744,80 +731,131 @@ class TestPredictions:
                   }
         self.a2 = self.t2.create_analysis(self.schema2, analysis_id="a2",
             force=True)
+        self.a2.wait()
+        self.a3 = self.t2.create_analysis(self.schema2, analysis_id="a3",
+            force=True)
 
-    def teardown(self):
-        self.t.delete()
+    @classmethod
+    def teardownClass(self):
         self.t2.delete()
 
-    @attr('async')
-    def test_make_prediction(self):
-        self.a2.wait()
-        o = json.loads(json.dumps({'cat': 'b', 'ct': 2, 'real': 3.1, 'bool': False}))
-        r = json.loads(json.dumps({'cat': 'b', 'ct': 2, 'real': None, 'bool': False}))
-        pr = self.a2.predict(r)
-        assert(isinstance(pr, dict))
-        assert(isinstance(pr, veritable.api.Prediction))
-        assert(isinstance(pr.uncertainty, dict))
-        for k in pr.keys():
-            try:
-                if isinstance(o[k], basestring):
-                    assert(isinstance(pr[k], basestring))
-                else:
-                    assert(isinstance(pr[k], type(o[k])))
-            except:
-                assert(isinstance(pr[k], type(o[k])))
-            assert(isinstance(pr.uncertainty[k], float))
-            assert(pr[k] == o[k] or r[k] is None)
+    def _check_preds(self, schema_ref, reqs, preds):
+        assert len(reqs)==len(preds)
+        for i in range(len(reqs)):
+            req = reqs[i]
+            pr = preds[i]
+            assert(isinstance(pr, dict))
+            assert(isinstance(pr, veritable.api.Prediction))
+            assert(isinstance(pr.uncertainty, dict))
+            if '_request_id' in req:
+                assert req['_request_id'] == pr.request_id
+                assert len(req) == (len(pr)+1)
+            else:
+                assert len(req) == len(pr)
+                assert pr.request_id is None                
+            for k in pr:
+                try:
+                    if isinstance(schema_ref[k], basestring):
+                        assert(isinstance(pr[k], basestring))
+                    else:
+                        assert(isinstance(pr[k], type(schema_ref[k])))
+                except:
+                    assert(isinstance(pr[k], type(schema_ref[k])))
+                assert (pr[k] == req[k] or req[k] is None)
+                assert(isinstance(pr.uncertainty[k], float))
         assert(isinstance(pr.distribution, list))
         for d in pr.distribution:
             assert(isinstance(d, dict))
+            for k in d:
+                try:
+                    if isinstance(schema_ref[k], basestring):
+                        assert(isinstance(d[k], basestring))
+                    else:
+                        assert(isinstance(d[k], type(schema_ref[k])))
+                except:
+                    assert(isinstance(d[k], type(schema_ref[k])))
+                assert (d[k] == req[k] or req[k] is None)
+            
+      
+    @attr('async')
+    def test_make_prediction(self):
+        schema_ref = json.loads(json.dumps({'cat': 'b', 'ct': 2, 'real': 3.1, 'bool': False}))
+        r = json.loads(json.dumps({'cat': 'b', 'ct': 2, 'real': None, 'bool': False}))
+        pr = self.a2.predict(r)
+        self._check_preds(schema_ref,[r],[pr])
+        r = json.loads(json.dumps({'_request_id': 'foo', 'cat': 'b', 'ct': 2,
+            'real': None, 'bool': False}))
+        pr = self.a2.predict(r)
+        self._check_preds(schema_ref,[r],[pr])
 
     @attr('async')
+    def test_make_batch_prediction(self):
+        schema_ref = json.loads(json.dumps({'cat': 'b', 'ct': 2, 'real': 3.1, 'bool': False}))
+        rr = [json.loads(json.dumps(
+            {'_request_id': str(i), 'cat': 'b', 'ct': 2, 'real': None,
+            'bool': False})) for i in range(1)]
+        prs = self.a2.batch_predict(rr)
+        self._check_preds(schema_ref,rr,prs)
+        rr = [json.loads(json.dumps(
+            {'_request_id': str(i), 'cat': 'b', 'ct': 2, 'real': None,
+            'bool': False})) for i in range(10)]
+        prs = self.a2.batch_predict(rr)
+        self._check_preds(schema_ref,rr,prs)
+                
+    @attr('async')
     def test_make_prediction_with_empty_row(self):
-        self.a2.wait()
         self.a2.predict({})
 
     @attr('async')
-    def test_make_prediction_with_multiple_rows(self):
-        self.a2.wait()
-        assert_raises(VeritableError, self.a2.predict, [
-            {'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
-            {'cat': 'b', 'ct': 2, 'real': None, 'bool': False}])
+    def test_make_prediction_with_invalid_column_fails(self):
+        assert_raises(VeritableError, self.a2.predict,
+            {'cat': 'b', 'ct': 2, 'real': None, 'jello': False})
 
     @attr('async')
-    def test_make_prediction_with_list_of_rows_fails(self):
-        self.a2.wait()
-        assert_raises(VeritableError, self.a2.predict,
+    def test_make_batch_prediction_missing_request_id_fails(self):
+        assert_raises(VeritableError, self.a2.batch_predict,
             [{'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
              {'cat': 'b', 'ct': 2, 'real': None, 'bool': None}])
 
     @attr('async')
-    def test_make_prediction_with_invalid_column_fails(self):
-        self.a1.wait()
-        assert_raises(VeritableError, self.a1.predict,
-            {'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
+    def test_batch_prediction_batching(self):
+        schema_ref = {'cat': 'b', 'ct': 2, 'real': 3.1, 'bool': False}
+        rr = [ {'_request_id':'a', 'cat': None, 'ct': 2,
+                  'real': 4.0, 'bool': False},
+                 {'_request_id':'b','cat': 'b', 'ct': 2,
+                  'real': None, 'bool': True},
+                 {'_request_id':'c','cat': 'b', 'ct': None,
+                  'real': 3.8, 'bool': True} ]
+        prs = self.a2._predict(rr, count=10, maxcells=30, maxcols=4)
+        self._check_preds(schema_ref,rr,prs)
+        prs = self.a2._predict(rr, count=10, maxcells=20, maxcols=4)
+        self._check_preds(schema_ref,rr,prs)
+        prs = self.a2._predict(rr, count=10, maxcells=17, maxcols=4)
+        self._check_preds(schema_ref,rr,prs)
+        prs = self.a2._predict(rr, count=10, maxcells=10, maxcols=4)
+        self._check_preds(schema_ref,rr,prs)
 
-    @attr('sync')
+    @attr('async')
+    def test_batch_prediction_too_many_cells(self):
+        schema_ref = {'cat': 'b', 'ct': 2, 'real': 3.1, 'bool': False}
+        rr = [ {'_request_id':'a', 'cat': None, 'ct': None,
+                  'real': 4.0, 'bool': False} ]
+        prs = self.a2._predict(rr, count=10, maxcells=20, maxcols=4)
+        self._check_preds(schema_ref,rr,prs)
+        assert_raises(VeritableError, self.a2._predict, rr, count=10, maxcells=20, maxcols=3)
+        assert_raises(VeritableError, self.a2._predict, rr, count=10, maxcells=19, maxcols=4)
+
+    @attr('async')
     def test_make_predictions_with_fixed_int_val_for_float_col(self):
-        self.a2.wait()
         self.a2.predict({'cat': None, 'ct': None, 'real': 1, 'bool': None})
 
-    @attr('sync')
+    @attr('async')
     def test_delete_analysis_with_instance_method(self):
-        self.a2.delete()
+        self.a3.delete()
 
+    @attr('async')
     def test_predict_link_is_present(self):
-        self.a1.wait()
-        self.a1._link('predict')
-
-    # def test_predict_from_failed_analysis(self):
-    #     a3 = self.t2.create_analysis(self.schema1, analysis_id="a3",
-    #         force=True)
-    #     wait_for_analysis(a3)
-    #     assert_raises(VeritableError, a3.predict,
-    #         {'cat': 'b', 'ct': 2, 'real': None, 'bool': False})
-    #     assert_raises(VeritableError, a3.predict, {'zim': None})
-    #     assert_raises(VeritableError, a3.predict, {'wos': None})
+        self.a2._link('predict')
 
 
 class TestPredictionUtils:

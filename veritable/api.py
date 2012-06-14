@@ -7,6 +7,7 @@ See also: https://dev.priorknowledge.com/docs/client/python
 import os
 import sys
 import time
+import copy
 from .cursor import Cursor
 from .connection import Connection
 from .exceptions import VeritableError
@@ -121,7 +122,7 @@ class API:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return self._conn.get(_format_url(["user", "limits"]))
+        return self._conn._limits
 
     def table_exists(self, table_id):
         """Checks if a table with the specified id is available to the user.
@@ -387,7 +388,8 @@ class Table:
             must contain an '_id' key whose value is a string containing only
             alphanumerics, underscores, and hyphens, and is unique in the
             table.
-        per_page - the number of rows to upload per HTTP request (default: 100)
+        per_page - the number of rows to upload per HTTP request
+            (default: 100)
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -519,7 +521,8 @@ class Table:
             If None, create_analysis will autogenerate a new id for the table.
         schema -- the analysis schema to use (default: None) The schema must
             be a Python dict of the form:
-                {'col_1': {type: 'datatype'}, 'col_2': {type: 'datatype'}, ...}
+                {'col_1': {type: 'datatype'}, 'col_2': {type: 'datatype'},
+                 ...}
             where the specified datatype for each column one of ['real',
             'boolean', 'categorical', 'count'] and is valid for the column.
         description -- the string description of the analysis to create
@@ -572,6 +575,7 @@ class Analysis:
     get_schema -- gets the schema associated with the analysis
     wait -- waits until the analysis completes
     predict -- makes predictions from the analysis
+    batch_predict -- makes predictions for multiple rows at a time
     related_to -- scores how related other columns are to column of interest
 
     See also: https://dev.priorknowledge.com/docs/client/python
@@ -652,7 +656,7 @@ class Analysis:
     def progress(self):
         """An estimate of the time remaining for the analysis to complete.
 
-        If the analysis is still running, returns a dict containing the fields:
+        If the analysis is still running, returns a dict containing fields:
         percent -- an integer between 0 and 100 indicating how much of The
           analysis is complete
         finished_at_estimate -- a timestamp representing the estimated time
@@ -734,30 +738,112 @@ class Analysis:
         row -- the row dict whose missing values are to be predicted. These
             values should be None in the row argument.
         count -- the number of samples from the joint predictive distribution
-            to return. the number of samples allowed by the API is limited on
+            to return. The number of samples allowed by the API is limited on
             a per-user basis.
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
+        if not isinstance(row, dict):
+            raise VeritableError("Must provide a row dict to make "\
+                "predictions!")
+        return self._predict([row], count)[0]
+
+    def batch_predict(self, rows, count=100):
+        """Makes predictions from the analysis for multiple rows at a time.
+
+        Returns a list of veritable.api.Prediction instances.
+
+        Arguments:
+        rows -- the list of row dicts whose missing values are to be
+            predicted. These values should be None in each individual dict.
+        count -- the number of samples from the joint predictive distribution
+            to return. The number of samples allowed by the API is limited on
+            a per-user basis.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        if not isinstance(rows, list):
+            raise VeritableError("Must provide a list of row dicts to make "\
+                "predictions!")
+        for row in rows:
+            if not isinstance(row, dict):
+                raise VeritableError("Invalid row for predictions: "\
+                    "{0}".format(row))
+            if not '_request_id' in row:
+                raise VeritableError("Rows for batch predictions must "\
+                    "contain a '_request_id' field: {0}".format(row))
+            _check_id(row['_request_id'])
+        return self._predict(rows, count)
+
+    def _predict(self, rows, count, maxcells=None, maxcols=None):
+        """ Encapsulate prediction logic for single and multi-row predictions.
+
+        Users should not call directly. Use Analysis.predict and
+        Analysis.batch_predict.
+
+        """
+        maxcells = self._conn.limits['predictions_max_response_cells'] if maxcells is None else maxcells
+        maxcols = self._conn.limits['predictions_max_cols'] if maxcols is None else maxcols
+
+        def _execute_batch(batch, count, preds):
+            if len(batch) == 0:
+                return
+            data = batch if len(batch) != 1 else batch[0] 
+            res = self._conn.post(self._link('predict'),
+                data={'data': data, 'count': count, 'return_fixed': False})
+            if not isinstance(res, list):
+                raise VeritableError("Error making "\
+                    "predictions: {0}".format(res))
+            for i in range(len(batch)):
+                request = batch[i].copy()
+                request_id = request.get('_request_id')
+                if '_request_id' in request:
+                    del request['_request_id']
+                distribution = res[(i * count):((i + 1) * count)]
+                for d in distribution:
+                    if '_request_id' in d:
+                        del d['_request_id']
+                preds.append(Prediction(request, distribution,
+                    self.get_schema(), request_id=request_id))
         if self.state == 'running':
             self.update()
-        if self.state == 'succeeded':
-            if not isinstance(row, dict):
-                raise VeritableError("Must provide a row dict to make "\
-                "predictions!")
-            res = self._conn.post(self._link('predict'),
-                                  data={'data': row, 'count': count})
-            if not isinstance(res, list):
-                raise VeritableError("Error making predictions: " \
-                "{0}".format(res))
-            return Prediction(row, res, self.get_schema())
-        elif self.state == 'running':
+        if self.state == 'running':
             raise VeritableError("Analysis with id {0} is still running " \
             "and not yet ready to predict".format(self.id))
         elif self.state == 'failed':
             raise VeritableError("Analysis with id {0} has failed and " \
             "cannot predict: {1}".format(self.id, self.error))
+        elif self.state == 'succeeded':
+            preds = list()
+            ncells = 0
+            batch = list()            
+            for row in rows:
+                ncols = sum([v is None for v in row.values()])
+                tcols = sum([k != '_request_id' for k in row])
+                if tcols > maxcols:
+                    raise VeritableError("Cannot predict for row {0} "\
+                        "with more than {1} combined fixed and predicted values".format(
+                            row.get('_request_id'), maxcols))
+                n = ncols * count
+                if n > maxcells:
+                    raise VeritableError("Cannot predict for row {0} "\
+                        "with {1} missing values and count {2}: "\
+                        "exceeds predicted cell limit of {3}".format(
+                            row.get('_request_id'), ncols, count, maxcells))
+            for row in rows:
+                ncols = sum([v is None for v in row.values()])
+                n = ncols * count
+                if ncells + n > maxcells:
+                    _execute_batch(batch, count, preds)
+                    ncells = n
+                    batch = [row]
+                else:
+                    batch.append(row)
+                    ncells = ncells + n
+            _execute_batch(batch, count, preds)
+            return preds
 
     def related_to(self, column_id, start=None, limit=None):
         """Scores how related columns are to column of interest 
@@ -766,8 +852,8 @@ class Analysis:
 
         Arguments:
         column_id -- the id of the column of interest.
-        start -- The column id from which to start (default: None) Columns whose 
-           related scores are greater than or equal to the score of start 
+        start -- The column id from which to start (default: None) Columns
+          whose related scores are greater than or equal to the score of start 
           will be returned by the iterator. If None, all rows will be
           returned.
         limit -- If set to an integer value, will limit the number of columns
@@ -821,10 +907,12 @@ class Prediction(dict):
     See also: https://dev.priorknowledge.com/docs/client/python
 
     """
-    def __init__(self, request, distribution, schema):
-        self.distribution = distribution
+    def __init__(self, request, distribution, schema, request_id=None):
+        self._fixed = [r for r in request.items() if r[1] is not None]
+        self._distribution = distribution
         self.uncertainty = {}
         self.request = request
+        self.request_id = request_id
         self.schema = dict([(k, schema[k]) for k in self.request.keys()])
         for k in self.request.keys():
             if self.request[k] is not None:
@@ -834,6 +922,12 @@ class Prediction(dict):
                 self[k] = self._point_estimate(k)
                 self.uncertainty[k] = self._uncertainty(k)
 
+    @property
+    def distribution(self):
+        pdist = copy.deepcopy(self._distribution)
+        [d.update(self._fixed) for d in pdist]
+        return self._distribution
+        
     def _sorted_values(self, column):
         values = [row[column] for row in self.distribution]
         values.sort()
@@ -944,13 +1038,15 @@ class Prediction(dict):
             if p is None:
                 p = .5
             freqs = self._freqs(self._counts(column))
-            sorted_freqs = sorted(freqs.items(), key=lambda x: x[1], reverse=True)
-            threshold_freqs = dict([(c, a) for c, a in sorted_freqs if a >= p])
+            sorted_freqs = sorted(freqs.items(), key=lambda x: x[1],
+                reverse=True)
+            threshold_freqs = dict(
+                [(c, a) for c, a in sorted_freqs if a >= p])
             return threshold_freqs
         elif col_type == 'count' or col_type == 'real':
-            # Note: this computes an interval that removes equal probability mass 
-            # from each end; a possible alternative would be to return the shorted 
-            # interval containing the given amount of mass
+            # Note: this computes an interval that removes equal probability
+            # mass from each end; a possible alternative would be to return
+            # the shortest interval containing the given amount of mass
             if p is None:
                 p = .9
             N = len(self.distribution)
