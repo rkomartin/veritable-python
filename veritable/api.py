@@ -926,7 +926,7 @@ class Prediction(dict):
     def distribution(self):
         pdist = copy.deepcopy(self._distribution)
         [d.update(self._fixed) for d in pdist]
-        return self._distribution
+        return pdist
         
     def _sorted_values(self, column):
         values = [row[column] for row in self.distribution]

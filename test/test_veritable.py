@@ -766,6 +766,10 @@ class TestPredictions:
         assert(isinstance(pr.distribution, list))
         for d in pr.distribution:
             assert(isinstance(d, dict))
+            if '_request_id' in req:
+                assert len(req) == (len(d)+1)
+            else:
+                assert len(req) == len(d)
             for k in d:
                 try:
                     if isinstance(schema_ref[k], basestring):
