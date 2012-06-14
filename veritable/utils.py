@@ -381,7 +381,7 @@ def validate_data(rows, schema):
         remove_extra_fields=False, allow_empty_columns=False,
         rename_columns=False)
 
-def clean_predictions(predictions, schema, convert_types=True,
+def clean_predictions(predictions, schema, convert_types=True, assign_ids=True,
     remove_invalids=True, remove_extra_fields=True, rename_columns=[['_id', '_request_id']]):
     """Cleans up a predictions request in accordance with an analysis schema.
 
@@ -402,6 +402,12 @@ def clean_predictions(predictions, schema, convert_types=True,
     convert_types -- controls whether clean_predictions will attempt to
         convert fixed cells in a column to be of the correct type
         (default: True)
+    assign_ids -- controls whether clean_predictions will automatically assign new
+        ids to the rows (default: True) If True, rows will be numbered
+        sequentially in the column '_request_id'. If a string, sequential ids will be
+        put into column assign_ids rather than '_request_id'. If the rows have an
+        existing column of the same name, remove_extra_fields must also be set
+        to True to avoid raising a VeritableError.
     remove_invalids -- controls whether clean_predictions will automatically
         remove fixed cells that are invalid for a given column (default: True)
     remove_extra_fields -- controls whether clean_predictions will
@@ -417,7 +423,7 @@ def clean_predictions(predictions, schema, convert_types=True,
     """
     return _validate(predictions, schema, convert_types=convert_types,
         allow_nones=True, remove_nones=False, remove_invalids=remove_invalids,
-        reduce_categories=False, has_ids='_request_id', assign_ids=True,
+        reduce_categories=False, has_ids='_request_id', assign_ids=assign_ids,
         allow_extra_fields=False, remove_extra_fields=remove_extra_fields,
         allow_empty_columns=True, rename_columns=rename_columns)
 
