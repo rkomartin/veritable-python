@@ -382,7 +382,7 @@ def validate_data(rows, schema):
         rename_columns=False)
 
 def clean_predictions(predictions, schema, convert_types=True,
-    remove_invalids=True, remove_extra_fields=True):
+    remove_invalids=True, remove_extra_fields=True, rename_columns=[['_id', '_request_id']]):
     """Cleans up a predictions request in accordance with an analysis schema.
 
     Raises a DataValidationException containing further details if the
@@ -407,6 +407,10 @@ def clean_predictions(predictions, schema, convert_types=True,
     remove_extra_fields -- controls whether clean_predictions will
         automatically remove columns that are not contained in the schema
         (default: True)
+    rename_columns -- a list of two-valued lists containing ['col_to_rename',
+        'new_name'], or False, in which case column names will not
+        be changed. Will silently succeed if asked to rename columns not
+        present in the dataset. Default is [['_id', '_request_id']]
 
     See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -415,7 +419,7 @@ def clean_predictions(predictions, schema, convert_types=True,
         allow_nones=True, remove_nones=False, remove_invalids=remove_invalids,
         reduce_categories=False, has_ids='_request_id', assign_ids=True,
         allow_extra_fields=False, remove_extra_fields=remove_extra_fields,
-        allow_empty_columns=True, rename_columns=[['_id', '_request_id']])
+        allow_empty_columns=True, rename_columns=rename_columns)
 
 def validate_predictions(predictions, schema):
     """Validates a predictions request against an analysis schema.
