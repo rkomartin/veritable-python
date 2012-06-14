@@ -7,6 +7,7 @@ See also: https://dev.priorknowledge.com/docs/client/python
 import os
 import sys
 import time
+import copy
 from .cursor import Cursor
 from .connection import Connection
 from .exceptions import VeritableError
@@ -907,9 +908,8 @@ class Prediction(dict):
 
     """
     def __init__(self, request, distribution, schema, request_id=None):
+        self._fixed = [r for r in request.items() if r[1] is not None]
         self._distribution = distribution
-        fixed = [r for r in request.items() if r[1] is not None]
-        [d.update(fixed) for d in self._distribution]
         self.uncertainty = {}
         self.request = request
         self.request_id = request_id
@@ -924,6 +924,8 @@ class Prediction(dict):
 
     @property
     def distribution(self):
+        pdist = copy.deepcopy(self._distribution)
+        [d.update(self._fixed) for d in pdist]
         return self._distribution
         
     def _sorted_values(self, column):
