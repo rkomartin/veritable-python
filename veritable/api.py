@@ -787,6 +787,8 @@ class Analysis:
         maxcols = self._conn.limits['predictions_max_cols'] if maxcols is None else maxcols
 
         def _execute_batch(batch, count, preds):
+            if len(batch) == 0:
+                return
             data = batch if len(batch) != 1 else batch[0] 
             res = self._conn.post(self._link('predict'),
                 data={'data': data, 'count': count, 'return_fixed': False})
@@ -815,7 +817,7 @@ class Analysis:
         elif self.state == 'succeeded':
             preds = list()
             ncells = 0
-            batch = list()
+            batch = list()            
             for row in rows:
                 ncols = sum([v is None for v in row.values()])
                 tcols = sum([k != '_request_id' for k in row])

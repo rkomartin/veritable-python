@@ -801,7 +801,7 @@ class TestPredictions:
             'bool': False})) for i in range(10)]
         prs = self.a2.batch_predict(rr)
         self._check_preds(schema_ref,rr,prs)
-        
+                
     @attr('async')
     def test_make_prediction_with_empty_row(self):
         self.a2.predict({})
@@ -812,8 +812,8 @@ class TestPredictions:
             {'cat': 'b', 'ct': 2, 'real': None, 'jello': False})
 
     @attr('async')
-    def test_make_prediction_missing_request_id_fails(self):
-        assert_raises(VeritableError, self.a2.predict,
+    def test_make_batch_prediction_missing_request_id_fails(self):
+        assert_raises(VeritableError, self.a2.batch_predict,
             [{'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
              {'cat': 'b', 'ct': 2, 'real': None, 'bool': None}])
 
@@ -830,6 +830,8 @@ class TestPredictions:
         self._check_preds(schema_ref,rr,prs)
         prs = self.a2._predict(rr, count=10, maxcells=20, maxcols=4)
         self._check_preds(schema_ref,rr,prs)
+        prs = self.a2._predict(rr, count=10, maxcells=17, maxcols=4)
+        self._check_preds(schema_ref,rr,prs)
         prs = self.a2._predict(rr, count=10, maxcells=10, maxcols=4)
         self._check_preds(schema_ref,rr,prs)
 
@@ -842,8 +844,6 @@ class TestPredictions:
         self._check_preds(schema_ref,rr,prs)
         assert_raises(VeritableError, self.a2._predict, rr, count=10, maxcells=20, maxcols=3)
         assert_raises(VeritableError, self.a2._predict, rr, count=10, maxcells=19, maxcols=4)
-
-
 
     @attr('async')
     def test_make_predictions_with_fixed_int_val_for_float_col(self):
