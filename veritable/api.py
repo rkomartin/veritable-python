@@ -397,21 +397,18 @@ class Table:
         self._batch_modify_rows('put', rows, per_page)
 
     def _batch_modify_rows(self, action, rows, per_page):
-        rs = []
         if not isinstance(per_page, int) or not per_page > 0:
             raise VeritableError("Page size must be an int greater than 0")
-        for row in rows:
-            if not isinstance(row, dict):
-                raise VeritableError("Rows must be represented by row dicts.")
-            if not "_id" in row:
-                raise VeritableError("Rows must contain row ids in the _id "\
-                "field.")
-            row["_id"] = _handle_unicode_id(row["_id"])
-            _check_id(row["_id"])
-            rs.append(row)
         batch = []
         i = 0
-        for r in rs:
+        for r in rows:
+            if not isinstance(r, dict):
+                raise VeritableError("Rows must be represented by row dicts.")
+            if not "_id" in r:
+                raise VeritableError("Rows must contain row ids in the _id "\
+                "field.")
+            r["_id"] = _handle_unicode_id(r["_id"])
+            _check_id(r["_id"])
             batch.append(r)
             i = i+1
             if i == per_page:
