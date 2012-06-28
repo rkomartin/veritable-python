@@ -875,6 +875,43 @@ class Analysis:
             raise VeritableError("Analysis with id {0} has failed and " \
             "cannot get relateds: {1}".format(self.id, self.error))
 
+    def similar_to(self, row, column_id, max_rows=None, return_data=True):
+        """Scores how similar rows are to row of interest in the context
+        of a particular column.
+
+        Returns an iterator over the columns in the table.
+
+        Arguments:
+        row -- a dict representing the row of interest. The dict
+            must contain an '_id' key whose value is the string id of a row
+            in the table, and need not contain any other keys.
+        column_id -- the id of the column of interest.
+        max_rows -- the maximum number of rows to return. If None (default)
+            will return as many rows as possible up to the specifications of the 
+            user limits.
+        return_data -- if True (default), row data will be returned along with
+            similarity scores. If False, only row_ids will be returned.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        if not isinstance(row, dict):
+            raise VeritableError("Must provide a row dict to get "\
+                "similar!")
+        if self.state == 'running':
+            self.update()
+        if self.state == 'succeeded':
+            res = self._conn.post(self._link('similar'),
+              data={'data': row, 'column_id': column_id,
+                    'max_rows': max_rows, 'return_data': return_data})
+            return res['data']
+        elif self.state == 'running':
+            raise VeritableError("Analysis with id {0} is still running " \
+            "and not yet ready to get similar".format(self.id))
+        elif self.state == 'failed':
+            raise VeritableError("Analysis with id {0} has failed and " \
+            "cannot get similar: {1}".format(self.id, self.error))
+
 
 
 class Prediction(dict):
