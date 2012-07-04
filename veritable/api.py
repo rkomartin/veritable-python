@@ -875,7 +875,7 @@ class Analysis:
             raise VeritableError("Analysis with id {0} has failed and " \
             "cannot get relateds: {1}".format(self.id, self.error))
 
-    def similar_to(self, row, column_id, max_rows=None, return_data=True):
+    def similar_to(self, row, column_id, max_rows, return_data=True):
         """Scores how similar rows are to row of interest in the context
         of a particular column.
 
@@ -886,9 +886,7 @@ class Analysis:
             must contain an '_id' key whose value is the string id of a row
             in the table, and need not contain any other keys.
         column_id -- the id of the column of interest.
-        max_rows -- the maximum number of rows to return. If None (default)
-            will return as many rows as possible up to the specifications of the 
-            user limits.
+        max_rows -- the maximum number of rows to return. 
         return_data -- if True (default), row data will be returned along with
             similarity scores. If False, only row_ids will be returned.
 
