@@ -1044,26 +1044,26 @@ class TestSimilar:
         self.a.wait()
         for col in self.schema.keys():
             for row in self.t.get_rows():
-                self.a.similar_to({'_id': row['_id']}, col)
+                self.a.similar_to({'_id': row['_id']}, col, 1)
 
     @attr('async')
     def test_similar_to_with_invalid_column_fails(self):
         self.a.wait()
         assert_raises(VeritableError, self.a.similar_to,
-          {'_id': 'row1'}, 'missing-col')
+          {'_id': 'row1'}, 'missing-col', 1)
         
     @attr('async')
     def test_similar_to_with_invalid_row_fails(self):
         self.a.wait()
         assert_raises(VeritableError, self.a.similar_to,
-          {'_id': 'missing-row:'}, 'ct')
+          {'_id': 'missing-row:'}, 'ct', 1)
 
     @attr('async')
     def test_similar_to_return_data(self):
         self.a.wait()
-        [assert_in('ct', r[0].keys()) for r in self.a.similar_to({'_id': 'row1'}, 'cat', 
+        [assert_in('ct', r[0].keys()) for r in self.a.similar_to({'_id': 'row1'}, 'cat', 1,
                                                              return_data=True)]
-        [assert_not_in('ct', r[0].keys()) for r in self.a.similar_to({'_id': 'row1'}, 'cat', 
+        [assert_not_in('ct', r[0].keys()) for r in self.a.similar_to({'_id': 'row1'}, 'cat', 1,
                                                              return_data=False)]
 
     @attr('async')
@@ -1074,7 +1074,7 @@ class TestSimilar:
     @attr('async')
     def test_similar_to_result(self):
         self.a.wait()
-        assert(len([r for r in self.a.similar_to({'_id': 'row1'}, 'cat')]) <= 5)
+        assert(len([r for r in self.a.similar_to({'_id': 'row1'}, 'cat', 1)]) <= 1)
 
     @attr('async')
     def test_similar_to_result_limit_0(self):
@@ -1087,9 +1087,3 @@ class TestSimilar:
         self.a.wait()
         assert(len([r for r in self.a.similar_to({'_id': 'row1'}, 'cat',
             max_rows=3)]) <= 3)
-
-    @attr('async')
-    def test_similar_to_limit_higher_than_numrows(self):
-        self.a.wait()
-        assert(len([r for r in self.a.similar_to({'_id': 'row1'}, 'cat',
-            max_rows=100)]) <= 5)
