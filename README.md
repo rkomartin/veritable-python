@@ -1,5 +1,3 @@
-FIXME add descriptions of error codes
-
 # Veritable Python client
 First things first.
 

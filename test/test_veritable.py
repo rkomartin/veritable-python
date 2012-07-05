@@ -503,7 +503,9 @@ class TestTableOps:
         schema = {'zim': {'type': 'categorical'},
                   'wos': {'type': 'real'},
                   'krob': {'type': 'count'}}
-        assert_raises(VeritableError, self.t.create_analysis, schema)
+        a = self.t.create_analysis(schema)
+        a.wait()
+        assert a.state == "failed"
 
     # Unpossible analysis types are identified synchronously
     @attr('sync')
