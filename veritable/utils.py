@@ -590,7 +590,7 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                         elif remove_invalids and isinstance(r[c], int) and r[c] < 0:
                             r.pop(c)
                         else:
-                            if not isinstance(r[c], int) or not r[c] >= 0:  # catch invalids
+                            if not isinstance(r[c], int) or not r[c] >= 0 or not r[c] <= 100000:  # catch invalids
                                 raise VeritableError("Row:'{0}' Key:'{1}' " \
                                 "Value:'{2}' is {3}, not a non-negative " \
                                 "int".format(str(i), c, str(r[c]),
