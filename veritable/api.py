@@ -900,7 +900,7 @@ class Analysis:
             self.update()
         if self.state == 'succeeded':
             res = self._conn.post(self._link('similar'),
-              data={'data': row, 'column_id': column_id,
+              data={'data': row, 'column': column_id,
                     'max_rows': max_rows, 'return_data': return_data})
             return res['data']
         elif self.state == 'running':
