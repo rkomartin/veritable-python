@@ -21,6 +21,7 @@ from .exceptions import VeritableError
 
 
 _alphanumeric = re.compile("^[-_a-zA-Z0-9]+$")
+COUNT_LIMIT = 100000
 
 
 def _handle_unicode_id(id):
@@ -587,10 +588,10 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                                     r[c] = None
                         if r[c] is None:  # remove flagged values
                             r.pop(c)
-                        elif remove_invalids and isinstance(r[c], int) and (r[c] < 0 or r[c] > 100000):
+                        elif remove_invalids and isinstance(r[c], int) and (r[c] < 0 or r[c] > COUNT_LIMIT):
                             r.pop(c)
                         else:
-                            if not isinstance(r[c], int) or not r[c] >= 0 or not r[c] <= 100000:  # catch invalids
+                            if not isinstance(r[c], int) or not r[c] >= 0 or not r[c] <= COUNT_LIMIT:  # catch invalids
                                 raise VeritableError("Row:'{0}' Key:'{1}' " \
                                 "Value:'{2}' is {3}, not a non-negative " \
                                 "int".format(str(i), c, str(r[c]),
