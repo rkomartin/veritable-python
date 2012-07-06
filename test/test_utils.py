@@ -491,6 +491,20 @@ def test_pred_nonvalid_int_count_fail():
         assert e.col == 'ColInt'
 
 
+def test_pred_int_count_limit_fail():
+    testrows = [
+        {'_request_id': '0', 'ColInt':3, 'ColFloat':None, 'ColCat': 'a',
+         'ColBool':True},
+        {'_request_id': '1', 'ColInt': 100001, 'ColFloat':None, 'ColCat': 'b',
+         'ColBool':False}]
+    assert_raises(VeritableError, validate_predictions, testrows, vschema)
+    try:
+        validate_predictions(testrows, vschema)
+    except VeritableError as e:
+        assert e.row == 1
+        assert e.col == 'ColInt'
+
+
 def test_data_nonvalid_int_count_fixfail():
     testrows = [
         {'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
