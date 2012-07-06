@@ -587,7 +587,7 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                                     r[c] = None
                         if r[c] is None:  # remove flagged values
                             r.pop(c)
-                        elif remove_invalids and isinstance(r[c], int) and r[c] < 0:
+                        elif remove_invalids and isinstance(r[c], int) and (r[c] < 0 or r[c] > 100000):
                             r.pop(c)
                         else:
                             if not isinstance(r[c], int) or not r[c] >= 0 or not r[c] <= 100000:  # catch invalids
