@@ -429,6 +429,20 @@ def test_data_non_int_count_fail():
         assert e.col == 'ColInt'
 
 
+def test_data_count_limit_fail():
+    testrows = [
+        {'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
+        {'_id': '2', 'ColInt': 100001, 'ColFloat':4.1, 'ColCat': 'b',
+         'ColBool':False}]
+    assert_raises(VeritableError, validate_data, testrows,
+        vschema)
+    try:
+        validate_data(testrows, vschema)
+    except VeritableError as e:
+        assert e.row == 1
+        assert e.col == 'ColInt'
+
+
 def test_pred_non_int_count_fail():
     testrows = [
         {'_request_id': '0', 'ColInt':3, 'ColFloat':None, 'ColCat': 'a',
@@ -505,6 +519,17 @@ def test_pred_int_count_limit_fail():
         assert e.col == 'ColInt'
 
 
+def test_pred_int_count_limit_fix():
+    testrows = [
+        {'_request_id': '0', 'ColInt':3, 'ColFloat':None, 'ColCat': 'a',
+         'ColBool':True},
+        {'_request_id': '1', 'ColInt': 100001, 'ColFloat':None, 'ColCat': 'b',
+         'ColBool':False}]
+    clean_predictions(testrows, vschema)
+    assert 'ColInt' not in testrows[1]
+    validate_predictions(testrows, vschema)
+
+
 def test_data_nonvalid_int_count_fixfail():
     testrows = [
         {'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
@@ -536,6 +561,16 @@ def test_data_nonvalid_int_count_fix():
     testrows = [
         {'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
         {'_id': '2', 'ColInt': 'jello', 'ColFloat':4.1, 'ColCat': 'b',
+         'ColBool':False}]
+    clean_data(testrows, vschema)
+    assert not('ColInt' in testrows[1])
+    validate_data(testrows, vschema)
+
+
+def test_data_int_count_limit_fix():
+    testrows = [
+        {'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
+        {'_id': '2', 'ColInt': 100001, 'ColFloat':4.1, 'ColCat': 'b',
          'ColBool':False}]
     clean_data(testrows, vschema)
     assert not('ColInt' in testrows[1])
