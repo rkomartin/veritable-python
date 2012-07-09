@@ -593,9 +593,9 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                         else:
                             if not isinstance(r[c], int) or not r[c] >= 0 or not r[c] <= COUNT_LIMIT:  # catch invalids
                                 raise VeritableError("Row:'{0}' Key:'{1}' " \
-                                "Value:'{2}' is {3}, not a non-negative " \
-                                "int".format(str(i), c, str(r[c]),
-                                    str(type(r[c]))), row=i, col=c)
+                                "Value:'{2}' is {3}, not an int " \
+                                "between 0 and {4}".format(str(i), c, str(r[c]),
+                                    str(type(r[c])),COUNT_LIMIT), row=i, col=c)
                     elif coltype == 'real':
                         if convert_types:  # try converting to float
                             try:
