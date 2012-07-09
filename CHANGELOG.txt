@@ -1,3 +1,7 @@
+veritable-python 0.9.5 - July 9, 2012
+    * Implemented fully streaming batch row uploads
+    * Added check for maximum count value (100000)
+
 veritable-python 0.9.4 - June 12, 2012
     * Added batch predictions via analysis.batch_predict
     * Added lamba support for schema rules in utils.make_schema
