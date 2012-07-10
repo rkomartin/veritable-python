@@ -873,7 +873,7 @@ class Analysis:
             "cannot get relateds: {1}".format(self.id, self.error))
 
     def similar_to(self, row, column_id, max_rows=10, return_data=True):
-        """Scores how similar rows are to a target row in the context
+        """Returns rows which are similar to a target row in the context
         of a particular column of interest. 
 
         Returns a list of row entries ordered from most similar to least similar.
@@ -885,7 +885,8 @@ class Analysis:
             If a row dict is provided, it must contain an '_id' key whose value
             is the '_id' of a row present in the table at the time of the analysis.
         column_id -- the name of the column of interest.
-        max_rows -- the maximum number of rows to return (default 10).
+        max_rows -- the maximum number of rows to return (default 10). The actual
+            number of similar rows returned will be less than or equal to max_rows.
         return_data -- if True (default), the full row content will be returned.
             If False, only the '_id' field for each row will be returned.
 
