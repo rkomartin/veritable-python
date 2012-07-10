@@ -70,6 +70,10 @@ class TestSimilar:
                 self.a.similar_to({'_id': row['_id']}, col, 1)
 
     @attr('async')
+    def test_similar_to_id_only(self):
+        self.a.similar_to('row1', 'cat', 1)
+
+    @attr('async')
     def test_similar_to_with_invalid_column_fails(self):
         assert_raises(VeritableError, self.a.similar_to,
           {'_id': 'row1'}, 'missing-col', 1)
