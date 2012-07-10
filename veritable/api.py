@@ -872,24 +872,32 @@ class Analysis:
             raise VeritableError("Analysis with id {0} has failed and " \
             "cannot get relateds: {1}".format(self.id, self.error))
 
-    def similar_to(self, row, column_id, max_rows, return_data=True):
-        """Scores how similar rows are to row of interest in the context
-        of a particular column.
+    def similar_to(self, row, column_id, max_rows=10, return_data=True):
+        """Scores how similar rows are to a target row in the context
+        of a particular column of interest. 
 
-        Returns an iterator over the columns in the table.
+        Returns an iterator over the rows in the table, ordered from
+        most similar to least similar.
 
         Arguments:
-        row -- a dict representing the row of interest. The dict
-            must contain an '_id' key whose value is the string id of a row
-            in the table, and need not contain any other keys.
-        column_id -- the id of the column of interest.
-        max_rows -- the maximum number of rows to return. 
+        row -- either a row '_id' string or a row dict corrsponding to the target row. 
+            If a row dict is provided, it must contain an '_id' key whose value
+            is the '_id' of a row present in the table at the time of the analysis.
+        column_id -- the name of the column of interest.
+        max_rows -- the maximum number of rows to return (default 10).
         return_data -- if True (default), row data will be returned along with
             similarity scores. If False, only row_ids will be returned.
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
+        try:
+            if isinstance(row, basestring):
+                row = str(id)
+        except:
+            pass
+        if isinstance(row, str):
+            row = {'_id':row}
         if not isinstance(row, dict):
             raise VeritableError("Must provide a row dict to get "\
                 "similar!")
