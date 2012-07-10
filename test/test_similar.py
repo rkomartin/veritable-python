@@ -85,9 +85,9 @@ class TestSimilar:
 
     @attr('async')
     def test_similar_to_return_data(self):
-        [assert_in('ct', r[0].keys()) for r in self.a.similar_to({'_id': 'row1'}, 'cat', 1,
+        [assert_true('ct' in r[0].keys()) for r in self.a.similar_to({'_id': 'row1'}, 'cat', 1,
                                                              return_data=True)]
-        [assert_not_in('ct', r[0].keys()) for r in self.a.similar_to({'_id': 'row1'}, 'cat', 1,
+        [assert_false('ct' in r[0].keys()) for r in self.a.similar_to({'_id': 'row1'}, 'cat', 1,
                                                              return_data=False)]
 
     @attr('async')
