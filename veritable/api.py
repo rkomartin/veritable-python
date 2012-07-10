@@ -848,8 +848,8 @@ class Analysis:
         Returns an iterator over the columns in the table.
 
         Arguments:
-        column_id -- the id of the column of interest.
-        start -- The column id from which to start (default: None) Columns
+        column_id -- the name of the column of interest.
+        start -- The column name from which to start (default: None) Columns
           whose related scores are greater than or equal to the score of start 
           will be returned by the iterator. If None, all rows will be
           returned.
@@ -876,8 +876,9 @@ class Analysis:
         """Scores how similar rows are to a target row in the context
         of a particular column of interest. 
 
-        Returns an iterator over the rows in the table, ordered from
-        most similar to least similar.
+        Returns a list of row entries ordered from most similar to least similar.
+        Each row entry is a list with the first element being the row itself
+        and the second element being a relatedness score between 0 and 1.
 
         Arguments:
         row -- either a row '_id' string or a row dict corrsponding to the target row. 
@@ -885,8 +886,8 @@ class Analysis:
             is the '_id' of a row present in the table at the time of the analysis.
         column_id -- the name of the column of interest.
         max_rows -- the maximum number of rows to return (default 10).
-        return_data -- if True (default), row data will be returned along with
-            similarity scores. If False, only row_ids will be returned.
+        return_data -- if True (default), the full row content will be returned.
+            If False, only the '_id' field for each row will be returned.
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
