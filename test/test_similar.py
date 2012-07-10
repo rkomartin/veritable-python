@@ -71,7 +71,7 @@ class TestSimilar:
 
     @attr('async')
     def test_similar_to_id_only(self):
-        self.a.similar_to('row1', 'cat', 1)
+        self.a.similar_to(u'row1', 'cat')
 
     @attr('async')
     def test_similar_to_with_invalid_column_fails(self):

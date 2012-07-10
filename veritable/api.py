@@ -893,7 +893,7 @@ class Analysis:
         """
         try:
             if isinstance(row, basestring):
-                row = str(id)
+                row = str(row)
         except:
             pass
         if isinstance(row, str):
