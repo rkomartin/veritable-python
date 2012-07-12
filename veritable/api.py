@@ -842,6 +842,26 @@ class Analysis:
             _execute_batch(batch, count, preds)
             return preds
 
+    def group(self, column_id):
+        if self.state == 'running':
+            self.update()
+        if self.state == 'succeeded':
+            group_res = self._conn.post(self._link('group'),
+              data={'columns': [column_id]})
+            res = self._conn.get(group_res['columns'][column_id])
+            return Group(self._conn, res)
+
+    def batch_group(self, column_ids):
+        if self.state == 'running':
+            self.update()
+        if self.state == 'succeeded':
+            res = self._conn.post(self._link('group'),
+              data={'columns': [column_ids]})
+            links = [res['columns'][c_id] for c_id in column_ids]
+            return [Group(self._conn, self._conn.get(link)) for link in links]
+
+
+
     def related_to(self, column_id, start=None, limit=None):
         """Scores how related columns are to column of interest 
 
@@ -1055,3 +1075,79 @@ class Prediction(dict):
             return (lo, hi)
         else:
             assert False, 'bad column type'
+
+class Group():
+
+    def __init__(self, connection, doc):
+        self._conn = connection
+        self._doc = doc
+
+    def __str__(self):
+        return "<veritable.Group column='" + self.column_id + "'>"
+
+    def __repr__(self):
+        return self.__str__()
+
+    def _link(self, name):
+        if name not in self._doc['links']:
+            raise VeritableError("Group instance is missing link " \
+            "to {0}".format(name))
+        return self._doc['links'][name]
+
+    @property
+    def column_id(self):
+        """The column id of the group.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        return str(self._doc['column'])
+
+    @property
+    def state(self):
+        """The state of the grouping operation
+
+        A string, one of 'succeeded', 'failed', or 'running'. Run the
+        update method to refresh.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        return str(self._doc['state'])
+
+    def update(self):
+        """Refreshes the group state
+
+        Checks whether the group has succeeded or failed, updating the
+        state and error attributes appropriately.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        self._doc = self._conn.get(self._link('self'))
+
+    def wait(self, max_time=None, poll=2):
+        """Waits for the running grouping to succeed or fail.
+
+        Returns None when the grouping succeeds or fails, and blocks until
+        it does. If a timeout is specified, raises a VeritableError if the
+        timeout has elapsed without the grouping completing.
+
+        Arguments:
+        max_time -- the number of seconds after which to return or raise an
+          exception. If this is None, group will block indefinitely.
+        poll -- the number of seconds to wait between updates (default: 2)
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        elapsed = 0
+        while self.state == 'running':
+            time.sleep(poll)
+            if max_time is not None:
+                elapsed += poll
+                if elapsed > max_time:
+                    raise VeritableError("Maximum time of {0} " \
+                    "exceeded".format(max_time))
+            self.update()
+
