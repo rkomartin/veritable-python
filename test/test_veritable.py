@@ -1010,4 +1010,37 @@ class TestRelated:
         self.a.wait()
         assert(len([r for r in self.a.related_to('cat',
             limit=100)]) <= 5)
+        
+class TestGroup:
+    @classmethod
+    def setup_class(self):
+        self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL,
+            **connect_kwargs)
+
+    def setup(self):
+        self.t = self.API.create_table()
+        self.t.batch_upload_rows(
+        [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
+         {'_id': 'row2', 'cat': 'b', 'ct': 0, 'real': 0.92131, 'bool': False},
+         {'_id': 'row3', 'cat': 'c', 'ct': 1, 'real': 1.82812, 'bool': True},
+         {'_id': 'row4', 'cat': 'c', 'ct': 1, 'real': 0.81271, 'bool': True},
+         {'_id': 'row5', 'cat': 'd', 'ct': 2, 'real': 1.14561, 'bool': False},
+         {'_id': 'row6', 'cat': 'a', 'ct': 5, 'real': 1.03412, 'bool': False}
+        ])
+        self.schema = {'cat': {'type': 'categorical'},
+                  'ct': {'type': 'count'},
+                  'real': {'type': 'real'},
+                  'bool': {'type': 'boolean'}
+                  }
+        self.a = self.t.create_analysis(self.schema, analysis_id="a1",
+            force=True)
+
+    def teardown(self):
+        self.t.delete()
+
+    @attr('async')
+    def test_group(self):
+        self.a.wait()
+        for col in self.schema.keys():
+            self.a.group(col)
 
