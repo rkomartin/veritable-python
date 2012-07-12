@@ -848,8 +848,8 @@ class Analysis:
         Returns an iterator over the columns in the table.
 
         Arguments:
-        column_id -- the id of the column of interest.
-        start -- The column id from which to start (default: None) Columns
+        column_id -- the name of the column of interest.
+        start -- The column name from which to start (default: None) Columns
           whose related scores are greater than or equal to the score of start 
           will be returned by the iterator. If None, all rows will be
           returned.
@@ -871,6 +871,51 @@ class Analysis:
         elif self.state == 'failed':
             raise VeritableError("Analysis with id {0} has failed and " \
             "cannot get relateds: {1}".format(self.id, self.error))
+
+    def similar_to(self, row, column_id, max_rows=10, return_data=True):
+        """Returns rows which are similar to a target row in the context
+        of a particular column of interest. 
+
+        Returns a list of row entries ordered from most similar to least similar.
+        Each row entry is a list with the first element being the row itself
+        and the second element being a relatedness score between 0 and 1.
+
+        Arguments:
+        row -- either a row '_id' string or a row dict corrsponding to the target row. 
+            If a row dict is provided, it must contain an '_id' key whose value
+            is the '_id' of a row present in the table at the time of the analysis.
+        column_id -- the name of the column of interest.
+        max_rows -- the maximum number of rows to return (default 10). The actual
+            number of similar rows returned will be less than or equal to max_rows.
+        return_data -- if True (default), the full row content will be returned.
+            If False, only the '_id' field for each row will be returned.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        try:
+            if isinstance(row, basestring):
+                row = str(row)
+        except:
+            pass
+        if isinstance(row, str):
+            row = {'_id':row}
+        if not isinstance(row, dict):
+            raise VeritableError("Must provide a row dict to get "\
+                "similar!")
+        if self.state == 'running':
+            self.update()
+        if self.state == 'succeeded':
+            res = self._conn.post(self._link('similar'),
+              data={'data': row, 'column': column_id,
+                    'max_rows': max_rows, 'return_data': return_data})
+            return res['data']
+        elif self.state == 'running':
+            raise VeritableError("Analysis with id {0} is still running " \
+            "and not yet ready to get similar".format(self.id))
+        elif self.state == 'failed':
+            raise VeritableError("Analysis with id {0} has failed and " \
+            "cannot get similar: {1}".format(self.id, self.error))
 
 
 
