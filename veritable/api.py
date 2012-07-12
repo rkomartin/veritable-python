@@ -790,7 +790,7 @@ class Analysis:
             if len(batch) == 1:
                 data = batch[0] 
                 ncols = sum([v is None for v in data.values()])
-                max_batch_count = count if ncols == 0 else int(maxcells)/int(ncols)
+                max_batch_count = count if ncols == 0 else int(maxcells/ncols)
                 res = []
                 while len(res) < count:
                     batch_count = min(max_batch_count,count-len(res))
