@@ -1076,7 +1076,7 @@ class Prediction(dict):
             assert False, 'bad column type'
 
 
-class Group():
+class Group:
 
     def __init__(self, connection, doc):
         self._conn = connection
@@ -1163,8 +1163,12 @@ class Group():
             self.update()
         if self.state == 'succeeded':
             groups_res = self._conn.get(self._link('groups'))
-            links = [self._link('groups')+'/'+ str(i) for i in range(groups_res['group_count'])]
-            return [self._conn.get(link)['rows'] for link in links]
+            group_links = [self._link('groups')+'/'+ str(i) for i in range(groups_res['group_count'])]
+            groups_data = []
+            for group in group_links:
+                collection = group + '/rows'
+                groups_data.append(list(Cursor(self._conn, collection, key='rows', start=None, limit=None)))
+            return groups_data
         elif self.state == 'running':
             raise VeritableError("Grouping for column_id {0} is still running " \
             "and not yet ready to get groups".format(self.column_id))
