@@ -1101,7 +1101,7 @@ class Group():
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return str(self._doc['column'])
+        return str(self._doc['column_name'])
 
     @property
     def state(self):
