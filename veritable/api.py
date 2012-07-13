@@ -1165,8 +1165,7 @@ class Group:
             groups_res = self._conn.get(self._link('groups'))
             group_links = [self._link('groups')+'/'+ str(i) for i in range(groups_res['group_count'])]
             groups_data = []
-            for group in group_links:
-                collection = group + '/rows'
+            for collection in group_links:
                 groups_data.append(list(Cursor(self._conn, collection, key='rows', start=None, limit=None)))
             return groups_data
         elif self.state == 'running':
