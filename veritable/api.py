@@ -744,7 +744,7 @@ class Analysis:
         if not isinstance(row, dict):
             raise VeritableError("Must provide a row dict to make "\
                 "predictions!")
-        return self._predict([row], count)[0]
+        return list(self._predict([row], count))[0]
 
     def batch_predict(self, rows, count=100):
         """Makes predictions from the analysis for multiple rows at a time.
@@ -752,7 +752,7 @@ class Analysis:
         Returns a list of veritable.api.Prediction instances.
 
         Arguments:
-        rows -- the list of row dicts whose missing values are to be
+        rows -- an iterable of row dicts whose missing values are to be
             predicted. These values should be None in each individual dict.
         count -- the number of samples from the joint predictive distribution
             to return. The number of samples allowed by the API is limited on
@@ -761,18 +761,17 @@ class Analysis:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        if not isinstance(rows, list):
-            raise VeritableError("Must provide a list of row dicts to make "\
-                "predictions!")
-        for row in rows:
-            if not isinstance(row, dict):
-                raise VeritableError("Invalid row for predictions: "\
-                    "{0}".format(row))
-            if not '_request_id' in row:
-                raise VeritableError("Rows for batch predictions must "\
-                    "contain a '_request_id' field: {0}".format(row))
-            _check_id(row['_request_id'])
-        return self._predict(rows, count)
+        def rowcheck():
+            for row in rows:         
+                if not isinstance(row, dict):
+                    raise VeritableError("Invalid row for predictions: "\
+                        "{0}".format(row))
+                if not '_request_id' in row:
+                    raise VeritableError("Rows for batch predictions must "\
+                        "contain a '_request_id' field: {0}".format(row))
+                _check_id(row['_request_id'])
+                yield row
+        return self._predict(rowcheck(), count)
 
     def _predict(self, rows, count, maxcells=None, maxcols=None):
         """ Encapsulate prediction logic for single and multi-row predictions.
@@ -784,7 +783,7 @@ class Analysis:
         maxcells = self._conn.limits['predictions_max_response_cells'] if maxcells is None else maxcells
         maxcols = self._conn.limits['predictions_max_cols'] if maxcols is None else maxcols
 
-        def _execute_batch(batch, count, preds, maxcells):
+        def _execute_batch(batch, count, maxcells):
             if len(batch) == 0:
                 return
             if len(batch) == 1:
@@ -812,8 +811,7 @@ class Analysis:
                 for d in distribution:
                     if '_request_id' in d:
                         del d['_request_id']
-                preds.append(Prediction(request, distribution,
-                    self.get_schema(), request_id=request_id))
+                yield Prediction(request, distribution, self.get_schema(), request_id=request_id)
         if self.state == 'running':
             self.update()
         if self.state == 'running':
@@ -823,7 +821,6 @@ class Analysis:
             raise VeritableError("Analysis with id {0} has failed and " \
             "cannot predict: {1}".format(self.id, self.error))
         elif self.state == 'succeeded':
-            preds = list()
             ncells = 0
             batch = list()            
             for row in rows:
@@ -838,18 +835,17 @@ class Analysis:
                         "with {1} missing values: "\
                         "exceeds predicted cell limit of {2}".format(
                             row.get('_request_id'), ncols, maxcells))
-            for row in rows:
-                ncols = sum([v is None for v in row.values()])
                 n = ncols * count
                 if ncells + n > maxcells:
-                    _execute_batch(batch, count, preds, maxcells)
+                    for pr in _execute_batch(batch, count, maxcells):
+                        yield pr
                     ncells = n
                     batch = [row]
                 else:
                     batch.append(row)
                     ncells = ncells + n
-            _execute_batch(batch, count, preds, maxcells)
-            return preds
+            for pr in _execute_batch(batch, count, maxcells):
+                yield pr
 
     def related_to(self, column_id, start=None, limit=None):
         """Scores how related columns are to column of interest 
