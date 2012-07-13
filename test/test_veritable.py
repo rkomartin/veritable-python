@@ -1042,5 +1042,11 @@ class TestGroup:
     def test_group(self):
         self.a.wait()
         for col in self.schema.keys():
-            self.a.group(col)
+            g = self.a.group(col)
+            g.wait()
+            g.get_groups()
+            g.get_rows()
+            for row in ['row' + str(i) for i in range(1, 7)]:
+                g.get_row(row)
+
 
