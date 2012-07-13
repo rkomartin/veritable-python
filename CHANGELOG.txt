@@ -1,5 +1,6 @@
 veritable-python 0.9.6 - July 12, 2012
     * Support for similar API call to retrieve rows similar to a target row
+    * Implemented count-batching for predictions
 
 veritable-python 0.9.5 - July 9, 2012
     * Implemented fully streaming batch row uploads

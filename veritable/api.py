@@ -784,12 +784,22 @@ class Analysis:
         maxcells = self._conn.limits['predictions_max_response_cells'] if maxcells is None else maxcells
         maxcols = self._conn.limits['predictions_max_cols'] if maxcols is None else maxcols
 
-        def _execute_batch(batch, count, preds):
+        def _execute_batch(batch, count, preds, maxcells):
             if len(batch) == 0:
                 return
-            data = batch if len(batch) != 1 else batch[0] 
-            res = self._conn.post(self._link('predict'),
-                data={'data': data, 'count': count, 'return_fixed': False})
+            if len(batch) == 1:
+                data = batch[0] 
+                ncols = sum([v is None for v in data.values()])
+                max_batch_count = count if ncols == 0 else int(maxcells/ncols)
+                res = []
+                while len(res) < count:
+                    batch_count = min(max_batch_count,count-len(res))
+                    res = res + self._conn.post(self._link('predict'),
+                        data={'data': data, 'count': batch_count, 'return_fixed': False})
+            else:
+                res = self._conn.post(self._link('predict'),
+                    data={'data': batch, 'count': count, 'return_fixed': False})
+                
             if not isinstance(res, list):
                 raise VeritableError("Error making "\
                     "predictions: {0}".format(res))
@@ -823,23 +833,22 @@ class Analysis:
                     raise VeritableError("Cannot predict for row {0} "\
                         "with more than {1} combined fixed and predicted values".format(
                             row.get('_request_id'), maxcols))
-                n = ncols * count
-                if n > maxcells:
+                if ncols > maxcells:
                     raise VeritableError("Cannot predict for row {0} "\
-                        "with {1} missing values and count {2}: "\
-                        "exceeds predicted cell limit of {3}".format(
-                            row.get('_request_id'), ncols, count, maxcells))
+                        "with {1} missing values: "\
+                        "exceeds predicted cell limit of {2}".format(
+                            row.get('_request_id'), ncols, maxcells))
             for row in rows:
                 ncols = sum([v is None for v in row.values()])
                 n = ncols * count
                 if ncells + n > maxcells:
-                    _execute_batch(batch, count, preds)
+                    _execute_batch(batch, count, preds, maxcells)
                     ncells = n
                     batch = [row]
                 else:
                     batch.append(row)
                     ncells = ncells + n
-            _execute_batch(batch, count, preds)
+            _execute_batch(batch, count, preds, maxcells)
             return preds
 
     def related_to(self, column_id, start=None, limit=None):
