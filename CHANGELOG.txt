@@ -1,3 +1,6 @@
+veritable-python 0.9.7 - July 18, 2012
+    * batch_predict returns an interable of Prediction objects
+
 veritable-python 0.9.6 - July 12, 2012
     * Support for similar API call to retrieve rows similar to a target row
     * Implemented count-batching for predictions
