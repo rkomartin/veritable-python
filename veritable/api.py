@@ -1218,10 +1218,11 @@ class Group:
             self.update()
         if self.state == 'succeeded':
             res = self._conn.get(self._link('rows') +'/'+row_id)
-            return res
+            return (res['group_id'], res['confidence'])
         elif self.state == 'running':
             raise VeritableError("Grouping for column_id {0} is still running " \
             "and not yet ready to get groups".format(self.column_id))
         elif self.state == 'failed':
             raise VeritableError("Grouping with id {0} has failed and " \
             "cannot get groups".format(self.id))
+
