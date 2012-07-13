@@ -1151,3 +1151,57 @@ class Group():
                     "exceeded".format(max_time))
             self.update()
 
+    def get_groups(self):
+        """
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        if self.state == 'running':
+            self.update()
+        if self.state == 'succeeded':
+            groups_res = self._conn.get(self._link('groups'))
+            links = [self._link('groups')+'/'+ str(i) for i in range(groups_res['group_count'])]
+            return [self._conn.get(link)['rows'] for link in links]
+        elif self.state == 'running':
+            raise VeritableError("Grouping for column_id {0} is still running " \
+            "and not yet ready to get groups".format(self.column_id))
+        elif self.state == 'failed':
+            raise VeritableError("Grouping with id {0} has failed and " \
+            "cannot get groups".format(self.id))
+
+    def get_rows(self, start=None, limit=None):
+        """
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        if self.state == 'running':
+            self.update()
+        if self.state == 'succeeded':
+            collection = self._link('rows')
+            return Cursor(self._conn, collection, start=start, limit=limit)
+        elif self.state == 'running':
+            raise VeritableError("Grouping for column_id {0} is still running " \
+            "and not yet ready to get groups".format(self.column_id))
+        elif self.state == 'failed':
+            raise VeritableError("Grouping with id {0} has failed and " \
+            "cannot get groups".format(self.id))
+
+    def get_row(self, row_id):
+        """
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        if self.state == 'running':
+            self.update()
+        if self.state == 'succeeded':
+            res = self._conn.get(self._link('rows') +'/'+row_id)
+            return res
+        elif self.state == 'running':
+            raise VeritableError("Grouping for column_id {0} is still running " \
+            "and not yet ready to get groups".format(self.column_id))
+        elif self.state == 'failed':
+            raise VeritableError("Grouping with id {0} has failed and " \
+            "cannot get groups".format(self.id))
