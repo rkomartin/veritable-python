@@ -893,7 +893,6 @@ class Analysis:
             "cannot get relateds: {1}".format(self.id, self.error))
 
 
-
 class Prediction(dict):
     """Represents predictions responses.
 
@@ -1076,6 +1075,7 @@ class Prediction(dict):
         else:
             assert False, 'bad column type'
 
+
 class Group():
 
     def __init__(self, connection, doc):
@@ -1152,7 +1152,9 @@ class Group():
             self.update()
 
     def get_groups(self):
-        """
+        """Get all groups in the grouping.
+
+        Returns a list of lists where each entry is the rows in a particular group.
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -1171,7 +1173,16 @@ class Group():
             "cannot get groups".format(self.id))
 
     def get_rows(self, start=None, limit=None):
-        """
+        """Get group assignment and confidence information for rows in the analysis.
+
+        Returns an iterator over the columns in the table.
+
+        Arguments:
+        start -- The integer index from which to start from which to start 
+         (default: None). If None, all rows will be returned.
+        limit -- If set to an integer value, will limit the number of columns
+          returned by the iterator. (default: None) If None, the number of
+          columns returned will not be limited.
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -1189,7 +1200,12 @@ class Group():
             "cannot get groups".format(self.id))
 
     def get_row(self, row_id):
-        """
+        """Get group information for a particular row.
+
+        Returns a tuple (group_id, confidence)
+
+        Arguments:
+        row_id -- The id of the row of interest.
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
