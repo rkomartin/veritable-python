@@ -749,7 +749,7 @@ class Analysis:
     def batch_predict(self, rows, count=100):
         """Makes predictions from the analysis for multiple rows at a time.
 
-        Returns a list of veritable.api.Prediction instances.
+        Returns an iterable of veritable.api.Prediction instances.
 
         Arguments:
         rows -- an iterable of row dicts whose missing values are to be
