@@ -384,7 +384,7 @@ class Table:
         Returns None on success.
 
         Arguments:
-        rows - a list of dicts representing the rows to upload. Each dict
+        rows - a iterable of row data dicts representing the rows to upload. Each dict
             must contain an '_id' key whose value is a string containing only
             alphanumerics, underscores, and hyphens, and is unique in the
             table.
@@ -442,7 +442,7 @@ class Table:
         nonexistent resources.
 
         Arguments:
-        rows -- a list of dics representing the rows to delete. Each dict
+        rows -- a iterable of row dicts representing the rows to delete. Each dict
             must contain an '_id' key whose value is the string id of a row
             to delete from the table, and need not contain any other keys.
 
@@ -749,7 +749,7 @@ class Analysis:
     def batch_predict(self, rows, count=100):
         """Makes predictions from the analysis for multiple rows at a time.
 
-        Returns an iterable of veritable.api.Prediction instances.
+        Returns an iterator over veritable.api.Prediction instances.
 
         Arguments:
         rows -- an iterable of row dicts whose missing values are to be
@@ -881,7 +881,7 @@ class Analysis:
         """Returns rows which are similar to a target row in the context
         of a particular column of interest. 
 
-        Returns a list of row entries ordered from most similar to least similar.
+        Returns an iterator over row entries ordered from most similar to least similar.
         Each row entry is a list with the first element being the row itself
         and the second element being a relatedness score between 0 and 1.
 
@@ -914,7 +914,8 @@ class Analysis:
             res = self._conn.post(self._link('similar'),
               data={'data': row, 'column': column_id,
                     'max_rows': max_rows, 'return_data': return_data})
-            return res['data']
+            for r in res['data']:
+                yield r
         elif self.state == 'running':
             raise VeritableError("Analysis with id {0} is still running " \
             "and not yet ready to get similar".format(self.id))

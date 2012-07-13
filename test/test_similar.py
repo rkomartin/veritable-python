@@ -75,13 +75,13 @@ class TestSimilar:
 
     @attr('async')
     def test_similar_to_with_invalid_column_fails(self):
-        assert_raises(VeritableError, self.a.similar_to,
-          {'_id': 'row1'}, 'missing-col', 1)
+        assert_raises(VeritableError, list, self.a.similar_to(
+          {'_id': 'row1'}, 'missing-col', 1))
         
     @attr('async')
     def test_similar_to_with_invalid_row_fails(self):
-        assert_raises(VeritableError, self.a.similar_to,
-          {'_id': 'missing-row:'}, 'ct', 1)
+        assert_raises(VeritableError, list, self.a.similar_to(
+          {'_id': 'missing-row:'}, 'ct', 1))
 
     @attr('async')
     def test_similar_to_return_data(self):

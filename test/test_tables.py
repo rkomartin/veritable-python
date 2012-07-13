@@ -98,11 +98,14 @@ class TestRowUploads:
     def test_batch_upload_rows(self):
         id = json.loads(json.dumps(
             {'id': "sevenbug"}))['id']
-        self.t.batch_upload_rows(
-            [{'_id': 'fourbug', 'zim': 'zop', 'wos': 10.3},
+        rr = [{'_id': 'fourbug', 'zim': 'zop', 'wos': 10.3},
              {'_id': 'fivebug', 'zim': 'zam', 'wos': 9.3},
              {'_id': 'sixbug', 'zim': 'zop', 'wos': 18.9},
-             {'_id': id, 'zim': 'zop', 'wos': 14.9}])
+             {'_id': id, 'zim': 'zop', 'wos': 14.9}]
+        def wrr():
+            for r in rr:
+                yield r
+        self.t.batch_upload_rows(wrr())
 
     @attr('sync')
     def test_batch_upload_rows_with_invalid_ids(self):
@@ -249,8 +252,11 @@ class TestTableOps:
 
     @attr('sync')
     def test_batch_delete_rows(self):
-        rs = self.t.get_rows()
-        self.t.batch_delete_rows([r for r in rs])
+        rs = list(self.t.get_rows())
+        def wrr():
+            for r in rs:
+                yield r
+        self.t.batch_delete_rows(wrr())
 
     @attr('sync')
     def test_batch_delete_rows_by_id_only(self):
