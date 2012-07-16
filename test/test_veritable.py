@@ -1048,5 +1048,6 @@ class TestGroup:
             g.get_rows()
             for row in ['row' + str(i) for i in range(1, 7)]:
                 g.get_row(row)
+                g.get_row_group(row)
 
 
