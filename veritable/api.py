@@ -1225,3 +1225,28 @@ class Group:
             raise VeritableError("Grouping with id {0} has failed and " \
             "cannot get groups".format(self.id))
 
+    def get_row_group(self, row_id):
+        """Get group for a particular row.
+
+        Returns a list of dictionaries:
+            [{'row_id': row_id, 'confidence': confidence}, ...]
+
+        Arguments:
+        row_id -- The id of the row of interest.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        if self.state == 'running':
+            self.update()
+        if self.state == 'succeeded':
+            row_res = self._conn.get(self._link('rows') +'/'+row_id)
+            collection = self._link('groups') + '/' + str(row_res['group_id'])
+            group = list(Cursor(self._conn, collection, key='rows', start=None, limit=None))
+            return group
+        elif self.state == 'running':
+            raise VeritableError("Grouping for column_id {0} is still running " \
+            "and not yet ready to get groups".format(self.column_id))
+        elif self.state == 'failed':
+            raise VeritableError("Grouping with id {0} has failed and " \
+            "cannot get groups".format(self.id))
