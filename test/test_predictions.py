@@ -59,6 +59,7 @@ class TestPredictions:
         self.t2.delete()
 
     def _check_preds(self, schema_ref, reqs, preds):
+        preds = list(preds)
         assert len(reqs)==len(preds)
         for i in range(len(reqs)):
             req = reqs[i]
@@ -98,8 +99,7 @@ class TestPredictions:
                 except:
                     assert(isinstance(d[k], type(schema_ref[k])))
                 assert (d[k] == req[k] or req[k] is None)
-            
-      
+   
     @attr('async')
     def test_make_prediction(self):
         schema_ref = json.loads(json.dumps({'cat': 'b', 'ct': 2, 'real': 3.1, 'bool': False}))
@@ -136,9 +136,9 @@ class TestPredictions:
 
     @attr('async')
     def test_make_batch_prediction_missing_request_id_fails(self):
-        assert_raises(VeritableError, self.a2.batch_predict,
+        assert_raises(VeritableError, list, self.a2.batch_predict(
             [{'cat': 'b', 'ct': 2, 'real': None, 'bool': False},
-             {'cat': 'b', 'ct': 2, 'real': None, 'bool': None}])
+             {'cat': 'b', 'ct': 2, 'real': None, 'bool': None}]))
 
     @attr('async')
     def test_batch_prediction_batching(self):
@@ -169,6 +169,21 @@ class TestPredictions:
                   'real': 3.8, 'bool': True} ]
         prs = self.a2._predict(rr, count=10, maxcells=1, maxcols=4)
         self._check_preds(schema_ref,rr,prs)
+    
+    @attr('async')
+    def test_batch_prediction_streaming(self):
+        schema_ref = {'cat': 'b', 'ct': 2, 'real': 3.1, 'bool': False}
+        rr = [ {'_request_id':'a', 'cat': None, 'ct': 2,
+                  'real': 4.0, 'bool': False},
+                 {'_request_id':'b','cat': 'b', 'ct': 2,
+                  'real': None, 'bool': True},
+                 {'_request_id':'c','cat': 'b', 'ct': None,
+                  'real': 3.8, 'bool': True} ]
+        def wrr():
+            for r in rr:
+                yield r
+        prs = self.a2._predict(wrr(), count=10, maxcells=5)
+        self._check_preds(schema_ref,rr,prs)
 
     @attr('async')
     def test_batch_prediction_too_many_cells(self):
@@ -177,8 +192,8 @@ class TestPredictions:
                   'real': 4.0, 'bool': False} ]
         prs = self.a2._predict(rr, count=10, maxcells=20, maxcols=4)
         self._check_preds(schema_ref,rr,prs)
-        assert_raises(VeritableError, self.a2._predict, rr, count=10, maxcells=20, maxcols=3)
-        assert_raises(VeritableError, self.a2._predict, rr, count=10, maxcells=1, maxcols=4)
+        assert_raises(VeritableError, list, self.a2._predict( rr, count=10, maxcells=20, maxcols=3))
+        assert_raises(VeritableError, list, self.a2._predict( rr, count=10, maxcells=1, maxcols=4))
 
     @attr('async')
     def test_make_predictions_with_fixed_int_val_for_float_col(self):
@@ -267,3 +282,4 @@ class TestPredictionUtils:
             assert c_values == {False: 0.75}
             c_values = tp.credible_values('ColBool',p=0.10)
             assert c_values == {True: 0.25, False: 0.75}
+

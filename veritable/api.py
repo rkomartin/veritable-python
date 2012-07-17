@@ -384,7 +384,7 @@ class Table:
         Returns None on success.
 
         Arguments:
-        rows - a list of dicts representing the rows to upload. Each dict
+        rows - a iterable of row data dicts representing the rows to upload. Each dict
             must contain an '_id' key whose value is a string containing only
             alphanumerics, underscores, and hyphens, and is unique in the
             table.
@@ -442,7 +442,7 @@ class Table:
         nonexistent resources.
 
         Arguments:
-        rows -- a list of dics representing the rows to delete. Each dict
+        rows -- a iterable of row dicts representing the rows to delete. Each dict
             must contain an '_id' key whose value is the string id of a row
             to delete from the table, and need not contain any other keys.
 
@@ -744,15 +744,15 @@ class Analysis:
         if not isinstance(row, dict):
             raise VeritableError("Must provide a row dict to make "\
                 "predictions!")
-        return self._predict([row], count)[0]
+        return list(self._predict([row], count))[0]
 
     def batch_predict(self, rows, count=100):
         """Makes predictions from the analysis for multiple rows at a time.
 
-        Returns a list of veritable.api.Prediction instances.
+        Returns an iterator over veritable.api.Prediction instances.
 
         Arguments:
-        rows -- the list of row dicts whose missing values are to be
+        rows -- an iterable of row dicts whose missing values are to be
             predicted. These values should be None in each individual dict.
         count -- the number of samples from the joint predictive distribution
             to return. The number of samples allowed by the API is limited on
@@ -761,18 +761,17 @@ class Analysis:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        if not isinstance(rows, list):
-            raise VeritableError("Must provide a list of row dicts to make "\
-                "predictions!")
-        for row in rows:
-            if not isinstance(row, dict):
-                raise VeritableError("Invalid row for predictions: "\
-                    "{0}".format(row))
-            if not '_request_id' in row:
-                raise VeritableError("Rows for batch predictions must "\
-                    "contain a '_request_id' field: {0}".format(row))
-            _check_id(row['_request_id'])
-        return self._predict(rows, count)
+        def rowcheck():
+            for row in rows:         
+                if not isinstance(row, dict):
+                    raise VeritableError("Invalid row for predictions: "\
+                        "{0}".format(row))
+                if not '_request_id' in row:
+                    raise VeritableError("Rows for batch predictions must "\
+                        "contain a '_request_id' field: {0}".format(row))
+                _check_id(row['_request_id'])
+                yield row
+        return self._predict(rowcheck(), count)
 
     def _predict(self, rows, count, maxcells=None, maxcols=None):
         """ Encapsulate prediction logic for single and multi-row predictions.
@@ -784,7 +783,7 @@ class Analysis:
         maxcells = self._conn.limits['predictions_max_response_cells'] if maxcells is None else maxcells
         maxcols = self._conn.limits['predictions_max_cols'] if maxcols is None else maxcols
 
-        def _execute_batch(batch, count, preds, maxcells):
+        def _execute_batch(batch, count, maxcells):
             if len(batch) == 0:
                 return
             if len(batch) == 1:
@@ -812,8 +811,7 @@ class Analysis:
                 for d in distribution:
                     if '_request_id' in d:
                         del d['_request_id']
-                preds.append(Prediction(request, distribution,
-                    self.get_schema(), request_id=request_id))
+                yield Prediction(request, distribution, self.get_schema(), request_id=request_id)
         if self.state == 'running':
             self.update()
         if self.state == 'running':
@@ -823,7 +821,6 @@ class Analysis:
             raise VeritableError("Analysis with id {0} has failed and " \
             "cannot predict: {1}".format(self.id, self.error))
         elif self.state == 'succeeded':
-            preds = list()
             ncells = 0
             batch = list()            
             for row in rows:
@@ -838,18 +835,17 @@ class Analysis:
                         "with {1} missing values: "\
                         "exceeds predicted cell limit of {2}".format(
                             row.get('_request_id'), ncols, maxcells))
-            for row in rows:
-                ncols = sum([v is None for v in row.values()])
                 n = ncols * count
                 if ncells + n > maxcells:
-                    _execute_batch(batch, count, preds, maxcells)
+                    for pr in _execute_batch(batch, count, maxcells):
+                        yield pr
                     ncells = n
                     batch = [row]
                 else:
                     batch.append(row)
                     ncells = ncells + n
-            _execute_batch(batch, count, preds, maxcells)
-            return preds
+            for pr in _execute_batch(batch, count, maxcells):
+                yield pr
 
     def related_to(self, column_id, start=None, limit=None):
         """Scores how related columns are to column of interest 
@@ -885,7 +881,7 @@ class Analysis:
         """Returns rows which are similar to a target row in the context
         of a particular column of interest. 
 
-        Returns a list of row entries ordered from most similar to least similar.
+        Returns an iterator over row entries ordered from most similar to least similar.
         Each row entry is a list with the first element being the row itself
         and the second element being a relatedness score between 0 and 1.
 
@@ -918,7 +914,8 @@ class Analysis:
             res = self._conn.post(self._link('similar'),
               data={'data': row, 'column': column_id,
                     'max_rows': max_rows, 'return_data': return_data})
-            return res['data']
+            for r in res['data']:
+                yield r
         elif self.state == 'running':
             raise VeritableError("Analysis with id {0} is still running " \
             "and not yet ready to get similar".format(self.id))
