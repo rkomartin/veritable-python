@@ -582,6 +582,7 @@ class Analysis:
     def __init__(self, connection, doc):
         self._conn = connection
         self._doc = doc
+        self._schema = self._conn.get(self._link('schema'))
 
     def __str__(self):
         return "<veritable.Analysis id='" + self.id + "'>"
@@ -699,7 +700,7 @@ class Analysis:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return self._conn.get(self._link('schema'))
+        return self._schema
 
     def wait(self, max_time=None, poll=2):
         """Waits for the running analysis to succeed or fail.
@@ -783,8 +784,6 @@ class Analysis:
         maxcells = self._conn.limits['predictions_max_response_cells'] if maxcells is None else maxcells
         maxcols = self._conn.limits['predictions_max_cols'] if maxcols is None else maxcols
 
-        schema = self.get_schema()
-
         def _execute_batch(batch, count, maxcells):
             if len(batch) == 0:
                 return
@@ -813,7 +812,7 @@ class Analysis:
                 for d in distribution:
                     if '_request_id' in d:
                         del d['_request_id']
-                yield Prediction(request, distribution, schema, request_id=request_id)
+                yield Prediction(request, distribution, self.get_schema(), request_id=request_id)
         if self.state == 'running':
             self.update()
         if self.state == 'running':
