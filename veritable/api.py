@@ -881,9 +881,8 @@ class Analysis:
         """Returns rows which are similar to a target row in the context
         of a particular column of interest. 
 
-        Returns an iterator over row entries ordered from most similar to least similar.
-        Each row entry is a list with the first element being the row itself
-        and the second element being a relatedness score between 0 and 1.
+        Returns an iterator over row data dicts ordered from most similar to least similar.
+        Each row data dict has a '_similarity' key containing a similarity score between 0 and 1.   
 
         Arguments:
         row -- either a row '_id' string or a row dict corrsponding to the target row. 
