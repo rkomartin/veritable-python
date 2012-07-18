@@ -1,5 +1,5 @@
 veritable-python 0.9.8 - July 18, 2012
-    * Updated for new similar_to return format
+    * Updated for new analysis.similar_to return format
 
 veritable-python 0.9.7 - July 14, 2012
     * Analysis.batch_predict returns an iterable of Prediction objects instead of a list
