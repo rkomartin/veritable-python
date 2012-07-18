@@ -87,14 +87,14 @@ class TestSimilar:
     def test_similar_to_return_data(self):
         result = self.a.similar_to({'_id': 'row1'}, 'cat', 1, return_data=True)
         for row in result:
-            assert_true('_id' in r[0].keys())
-            assert_true('_similarity' in r[0].keys())
-            assert_true('ct' in r[0].keys())
+            assert_true('_id' in row)
+            assert_true('_similarity' in row)
+            assert_true('ct' in row)
         result = self.a.similar_to({'_id': 'row1'}, 'cat', 1, return_data=False)
         for row in result:
-            assert_true('_id' in r[0].keys())
-            assert_true('_similarity' in r[0].keys())
-            assert_false('ct' in r[0].keys())
+            assert_true('_id' in row)
+            assert_true('_similarity' in row)
+            assert_false('ct' in row)
 
     @attr('async')
     def test_similar_to_link_is_present(self):
