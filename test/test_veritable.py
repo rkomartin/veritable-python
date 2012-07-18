@@ -1042,12 +1042,27 @@ class TestGroup:
     def test_group(self):
         self.a.wait()
         for col in self.schema.keys():
-            g = self.a.group(col)
+            g = self.a.create_grouping(col)
+            self.a.get_grouping(col)
+            self.a.get_groupings()
             g.wait()
             g.get_groups()
             g.get_rows()
             for row in ['row' + str(i) for i in range(1, 7)]:
                 g.get_row(row)
                 g.get_row_group(row)
+
+    @attr('async')
+    def test_batch_group(self):
+        self.a.wait()
+        groupings = self.a.batch_create_grouping(self.schema.keys())
+        for g in groupings:
+            g.wait()
+            g.get_groups()
+            g.get_rows()
+            for row in ['row' + str(i) for i in range(1, 7)]:
+                g.get_row(row)
+                g.get_row_group(row)
+
 
 

@@ -842,24 +842,42 @@ class Analysis:
             _execute_batch(batch, count, preds)
             return preds
 
-    def group(self, column_id):
+    def create_grouping(self, column_id):
         if self.state == 'running':
             self.update()
         if self.state == 'succeeded':
-            group_res = self._conn.post(self._link('group'),
+            r = self._conn.post(self._link('group'),
               data={'columns': [column_id]})
-            res = self._conn.get(group_res['columns'][column_id])
-            return Group(self._conn, res)
+            return Group(self._conn, r['columns'][0])
+        elif self.state == 'running':
+            raise VeritableError("Analysis with id {0} is still running and " \
+            "cannot group: {1}".format(self.id, self.error))
+        elif self.state == 'failed':
+            raise VeritableError("Analysis with id {0} has failed and " \
+            "cannot group: {1}".format(self.id, self.error))
 
-    def batch_group(self, column_ids):
+    def batch_create_grouping(self, column_ids):
         if self.state == 'running':
             self.update()
         if self.state == 'succeeded':
-            res = self._conn.post(self._link('group'),
-              data={'columns': [column_ids]})
-            links = [res['columns'][c_id] for c_id in column_ids]
-            return [Group(self._conn, self._conn.get(link)) for link in links]
+            r = self._conn.post(self._link('group'),
+              data={'columns': column_ids})
+            return map(lambda g: Group(self._conn, g), r['columns'])
+        elif self.state == 'running':
+            raise VeritableError("Analysis with id {0} is still running and " \
+            "cannot group: {1}".format(self.id, self.error))
+        elif self.state == 'failed':
+            raise VeritableError("Analysis with id {0} has failed and " \
+            "cannot group: {1}".format(self.id, self.error))
 
+    def get_grouping(self, column_id):
+        r = self._conn.get(_format_url([self._link("group"), column_id],
+            noquote=[0]))
+        return Group(self._conn, r)
+
+    def get_groupings(self):
+        r = self._conn.get(self._link("group"))
+        return map(lambda g: Group(self._conn, g), r['columns'])
 
 
     def related_to(self, column_id, start=None, limit=None):
