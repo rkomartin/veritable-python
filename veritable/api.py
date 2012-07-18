@@ -783,6 +783,8 @@ class Analysis:
         maxcells = self._conn.limits['predictions_max_response_cells'] if maxcells is None else maxcells
         maxcols = self._conn.limits['predictions_max_cols'] if maxcols is None else maxcols
 
+        schema = self.get_schema()
+
         def _execute_batch(batch, count, maxcells):
             if len(batch) == 0:
                 return
@@ -811,7 +813,7 @@ class Analysis:
                 for d in distribution:
                     if '_request_id' in d:
                         del d['_request_id']
-                yield Prediction(request, distribution, self.get_schema(), request_id=request_id)
+                yield Prediction(request, distribution, schema, request_id=request_id)
         if self.state == 'running':
             self.update()
         if self.state == 'running':
