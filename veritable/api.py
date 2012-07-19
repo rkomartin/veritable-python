@@ -582,6 +582,7 @@ class Analysis:
     def __init__(self, connection, doc):
         self._conn = connection
         self._doc = doc
+        self._schema = self._conn.get(self._link('schema'))
 
     def __str__(self):
         return "<veritable.Analysis id='" + self.id + "'>"
@@ -699,7 +700,7 @@ class Analysis:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return self._conn.get(self._link('schema'))
+        return self._schema
 
     def wait(self, max_time=None, poll=2):
         """Waits for the running analysis to succeed or fail.
