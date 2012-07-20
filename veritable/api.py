@@ -881,9 +881,10 @@ class Analysis:
             noquote=[0]))
         return Group(self._conn, r)
 
-    def get_groupings(self):
-        r = self._conn.get(self._link("group"))
-        return map(lambda g: Group(self._conn, g), r['columns'])
+    def get_groupings(self, start=None, limit=None):
+        collection = self._link("group")
+        return Cursor(self._conn, collection, key='columns', start=start,
+            limit=limit)
 
 
     def related_to(self, column_id, start=None, limit=None):
