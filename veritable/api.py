@@ -848,7 +848,7 @@ class Analysis:
             for pr in _execute_batch(batch, count, maxcells):
                 yield pr
 
-    def create_grouping(self, column_id):
+    def get_grouping(self, column_id):
         if self.state == 'running':
             self.update()
         if self.state == 'succeeded':
@@ -862,7 +862,7 @@ class Analysis:
             raise VeritableError("Analysis with id {0} has failed and " \
             "cannot group: {1}".format(self.id, self.error))
 
-    def batch_create_grouping(self, column_ids):
+    def get_groupings(self, column_ids):
         if self.state == 'running':
             self.update()
         if self.state == 'succeeded':
@@ -875,16 +875,6 @@ class Analysis:
         elif self.state == 'failed':
             raise VeritableError("Analysis with id {0} has failed and " \
             "cannot group: {1}".format(self.id, self.error))
-
-    def get_grouping(self, column_id):
-        r = self._conn.get(_format_url([self._link("group"), column_id],
-            noquote=[0]))
-        return Group(self._conn, r)
-
-    def get_groupings(self, start=None, limit=None):
-        collection = self._link("group")
-        return Cursor(self._conn, collection, key='columns', start=start,
-            limit=limit)
 
 
     def related_to(self, column_id, start=None, limit=None):

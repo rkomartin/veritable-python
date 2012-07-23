@@ -56,12 +56,12 @@ class TestGroup:
         self.t.delete()
 
     @attr('async')
-    def test_group(self):
+    def test_grouping(self):
         self.a.wait()
         for col in self.schema.keys():
-            g = self.a.create_grouping(col)
+            g = self.a.get_grouping(col)
             self.a.get_grouping(col)
-            self.a.get_groupings()
+            self.a.get_groupings([col])
             g.wait()
             g.get_groups()
             g.get_rows()
@@ -72,7 +72,7 @@ class TestGroup:
     @attr('async')
     def test_batch_group(self):
         self.a.wait()
-        groupings = self.a.batch_create_grouping(self.schema.keys())
+        groupings = self.a.get_groupings(self.schema.keys())
         for g in groupings:
             g.wait()
             g.get_groups()
