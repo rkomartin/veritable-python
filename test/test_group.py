@@ -64,10 +64,10 @@ class TestGroup:
             self.a.get_groupings([col])
             g.wait()
             g.get_groups()
-            g.get_rows()
+            for group in g.get_groups():
+                g.get_rows(group)
             for row in ['row' + str(i) for i in range(1, 7)]:
-                g.get_row(row)
-                g.get_row_group(row)
+                g.get_row({'_id': row})
 
     @attr('async')
     def test_batch_group(self):
@@ -76,7 +76,7 @@ class TestGroup:
         for g in groupings:
             g.wait()
             g.get_groups()
-            g.get_rows()
+            for group in g.get_groups():
+                g.get_rows(group)
             for row in ['row' + str(i) for i in range(1, 7)]:
-                g.get_row(row)
-                g.get_row_group(row)
+                g.get_row({'_id': row})
