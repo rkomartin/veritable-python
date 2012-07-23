@@ -1211,10 +1211,10 @@ class Group:
                     "exceeded".format(max_time))
             self.update()
 
-    def get_groups(self):
+    def get_groups(self, start=None, limit=None):
         """Get all groups in the grouping.
 
-        Returns a list of lists where each entry is the rows in a particular group.
+        Returns an iterator over group_ids of all groups found in this grouping.
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -1222,12 +1222,8 @@ class Group:
         if self.state == 'running':
             self.update()
         if self.state == 'succeeded':
-            groups_res = self._conn.get(self._link('groups'))
-            group_links = [self._link('groups')+'/'+ str(i) for i in range(groups_res['group_count'])]
-            groups_data = []
-            for collection in group_links:
-                groups_data.append(list(Cursor(self._conn, collection, key='rows', start=None, limit=None)))
-            return groups_data
+            collection = self._link('groups')
+            return Cursor(self._conn, collection, start=start, limit=limit)
         elif self.state == 'running':
             raise VeritableError("Grouping for column_id {0} is still running " \
             "and not yet ready to get groups".format(self.column_id))
