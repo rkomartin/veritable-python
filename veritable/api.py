@@ -1214,7 +1214,7 @@ class Group:
     def get_groups(self, start=None, limit=None):
         """Get all groups in the grouping.
 
-        Returns an iterator over group_ids of all groups found in this grouping.
+        Returns a list of group_ids of all groups found in this grouping.
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -1223,7 +1223,7 @@ class Group:
             self.update()
         if self.state == 'succeeded':
             collection = self._link('groups')
-            return Cursor(self._conn, collection, start=start, limit=limit)
+            return [d['group_id'] for d in Cursor(self._conn, collection, start=start, limit=limit)]
         elif self.state == 'running':
             raise VeritableError("Grouping for column_id {0} is still running " \
             "and not yet ready to get groups".format(self.column_id))
@@ -1231,12 +1231,14 @@ class Group:
             raise VeritableError("Grouping with id {0} has failed and " \
             "cannot get groups".format(self.id))
 
-    def get_rows(self, start=None, limit=None):
-        """Get group assignment and confidence information for rows in the analysis.
+    def get_rows(self, group_id, return_data=True, start=None, limit=None):
+        """Get rows and confidence information for a particular group.
 
-        Returns an iterator over the columns in the table.
+        Returns an iterator over rows in the group. 
 
         Arguments:
+        group_id -- The id of the group of interst.
+        return_data -- Return row data along with confidence info (default: True).
         start -- The integer index from which to start from which to start 
          (default: None). If None, all rows will be returned.
         limit -- If set to an integer value, will limit the number of columns
@@ -1249,8 +1251,10 @@ class Group:
         if self.state == 'running':
             self.update()
         if self.state == 'succeeded':
-            collection = self._link('rows')
-            return Cursor(self._conn, collection, start=start, limit=limit)
+            collection = self._link('groups') + '/' + str(group_id)
+            extra_args = {'return_data': return_data}
+            return Cursor(self._conn, collection, key='rows', start=start, limit=limit, 
+                         extra_args=extra_args)
         elif self.state == 'running':
             raise VeritableError("Grouping for column_id {0} is still running " \
             "and not yet ready to get groups".format(self.column_id))
@@ -1258,13 +1262,16 @@ class Group:
             raise VeritableError("Grouping with id {0} has failed and " \
             "cannot get groups".format(self.id))
 
-    def get_row(self, row_id):
+    def get_row(self, row, return_data=True):
         """Get group information for a particular row.
 
-        Returns a tuple (group_id, confidence)
+        Returns a veritable row dictionary, with group_id and confidence specified by 
+        the _group_id and _confidence fields respectively.
 
         Arguments:
-        row_id -- The id of the row of interest.
+        row -- The row of interest. The row must contain an _id field. 
+            All other fields will be ignored.
+        return_data -- Return row data along with confidence info (default: True).
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -1272,34 +1279,9 @@ class Group:
         if self.state == 'running':
             self.update()
         if self.state == 'succeeded':
+            row_id = row['_id']
             res = self._conn.get(self._link('rows') +'/'+row_id)
-            return (res['group_id'], res['confidence'])
-        elif self.state == 'running':
-            raise VeritableError("Grouping for column_id {0} is still running " \
-            "and not yet ready to get groups".format(self.column_id))
-        elif self.state == 'failed':
-            raise VeritableError("Grouping with id {0} has failed and " \
-            "cannot get groups".format(self.id))
-
-    def get_row_group(self, row_id):
-        """Get group for a particular row.
-
-        Returns a list of dictionaries:
-            [{'row_id': row_id, 'confidence': confidence}, ...]
-
-        Arguments:
-        row_id -- The id of the row of interest.
-
-        See also: https://dev.priorknowledge.com/docs/client/python
-
-        """
-        if self.state == 'running':
-            self.update()
-        if self.state == 'succeeded':
-            row_res = self._conn.get(self._link('rows') +'/'+row_id)
-            collection = self._link('groups') + '/' + str(row_res['group_id'])
-            group = list(Cursor(self._conn, collection, key='rows', start=None, limit=None))
-            return group
+            return res['row']
         elif self.state == 'running':
             raise VeritableError("Grouping for column_id {0} is still running " \
             "and not yet ready to get groups".format(self.column_id))
