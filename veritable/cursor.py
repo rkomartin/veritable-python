@@ -15,7 +15,7 @@ class Cursor:
 
     """
     def __init__(self, connection, collection, key=None, start=None,
-                 per_page=100, limit=None):        
+                 per_page=100, limit=None, extra_args={}):        
         self.__limit = limit
         self.__start = start
         self.__per_page = per_page
@@ -24,6 +24,7 @@ class Cursor:
         collection_key = collection.split("/")[-1]
         params = {'per_page': self.__per_page,
                   'start': self.__start}
+        params.update(extra_args)
         res = self.__connection.get(self.__collection, params=params)
         if key:
             self.__key = key
