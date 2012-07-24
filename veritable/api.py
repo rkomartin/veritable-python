@@ -1280,7 +1280,8 @@ class Group:
             self.update()
         if self.state == 'succeeded':
             row_id = row['_id']
-            res = self._conn.get(self._link('rows') +'/'+row_id)
+            extra_args = {'return_data': return_data}
+            res = self._conn.get(self._link('rows') +'/'+row_id, params=extra_args)
             return res['row']
         elif self.state == 'running':
             raise VeritableError("Grouping for column_id {0} is still running " \
