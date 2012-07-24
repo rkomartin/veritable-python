@@ -257,7 +257,7 @@ def write_csv(rows, filename, dialect=csv.excel, na_val=''):
 
 
 # Dialects: csv.excel_tab, csv.excel
-def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
+def read_csv(filename, id_col=None, dialect=csv.excel, na_vals=['']):
     """Reads a .csv from disk into a list of row dicts.
 
     Returns a list of dicts representing the rows in the .csv file.
@@ -272,8 +272,7 @@ def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
         functions). If id_col is specified, but ids are missing for some rows,
         then a VeritableError will be raised.
     dialect -- a subclass of csv.Dialect to use in reading the .csv file
-        (default: None) If None, read_csv will try to sniff the dialect using
-        csv.Sniffer.
+        (default: csv.excel)
     na_vals -- a list of values to treat as NA (default: ['']) Each row dict
         will contain only those columns in which these values do not occur.
 
@@ -282,8 +281,6 @@ def read_csv(filename, id_col=None, dialect=None, na_vals=['']):
     """
     table = []
     with open(filename, "rU") as f:
-        if dialect is None:
-            dialect = csv.Sniffer().sniff(f.read(1024))
         f.seek(0)
         reader = csv.reader(f, dialect)
         header = [h.strip() for h in next(reader)]
