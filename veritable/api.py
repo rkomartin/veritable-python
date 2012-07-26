@@ -854,7 +854,7 @@ class Analysis:
         if self.state == 'succeeded':
             r = self._conn.post(self._link('group'),
               data={'columns': [column_id]})
-            return Group(self._conn, r['columns'][0])
+            return Group(self._conn, r['groupings'][0])
         elif self.state == 'running':
             raise VeritableError("Analysis with id {0} is still running and " \
             "cannot group: {1}".format(self.id, self.error))
@@ -868,7 +868,7 @@ class Analysis:
         if self.state == 'succeeded':
             r = self._conn.post(self._link('group'),
               data={'columns': column_ids})
-            return map(lambda g: Group(self._conn, g), r['columns'])
+            return map(lambda g: Group(self._conn, g), r['groupings'])
         elif self.state == 'running':
             raise VeritableError("Analysis with id {0} is still running and " \
             "cannot group: {1}".format(self.id, self.error))
