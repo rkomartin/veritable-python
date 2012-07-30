@@ -1247,13 +1247,14 @@ class Grouping:
             raise VeritableError("Grouping with id {0} has failed and " \
             "cannot get groups".format(self.id))
 
-    def get_rows(self, group_id, return_data=True, start=None, limit=None):
+    def get_rows(self, group_id=None, return_data=True, start=None, limit=None):
         """Get rows and confidence information for a particular group.
 
         Returns an iterator over rows in the group. 
 
         Arguments:
-        group_id -- The id of the group of interst.
+        group_id -- The id of the group of interest. If None (default), 
+          returns all rows in the table
         return_data -- Return row data along with confidence info (default: True).
         start -- The integer index from which to start from which to start 
          (default: None). If None, all rows will be returned.
@@ -1267,10 +1268,16 @@ class Grouping:
         if self.state == 'running':
             self.update()
         if self.state == 'succeeded':
-            collection = self._link('groups') + '/' + str(group_id)
-            extra_args = {'return_data': return_data}
-            return Cursor(self._conn, collection, key='rows', start=start, limit=limit, 
-                         extra_args=extra_args)
+            if group_id is not None:
+                collection = self._link('groups') + '/' + str(group_id)
+                extra_args = {'return_data': return_data}
+                return Cursor(self._conn, collection, key='rows', start=start, limit=limit, 
+                             extra_args=extra_args)
+            else:
+                collection = self._link('rows')
+                extra_args = {'return_data': return_data}
+                return Cursor(self._conn, collection, key='rows', start=start, limit=limit, 
+                             extra_args=extra_args)
         elif self.state == 'running':
             raise VeritableError("Grouping for column_id {0} is still running " \
             "and not yet ready to get groups".format(self.column_id))
