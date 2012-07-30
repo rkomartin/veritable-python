@@ -849,6 +849,14 @@ class Analysis:
                 yield pr
 
     def get_grouping(self, column_id):
+        """Get a grouping for a particular column.
+        If no grouping is currently running, this will create it.
+
+        Returns a veritable.api.Grouping instance.
+
+        Arguments:
+        column_id -- the name of the column which to create the grouping.
+        """
         if self.state == 'running':
             self.update()
         if self.state == 'succeeded':
@@ -863,6 +871,14 @@ class Analysis:
             "cannot group: {1}".format(self.id, self.error))
 
     def get_groupings(self, column_ids):
+        """Get a grouping for a list of columns.
+        If no grouping is currently running for a particular column, this will create it.
+
+        Returns a list of veritable.api.Grouping instances.
+
+        Arguments:
+        column_ids -- a list of column_ids which to create groupings.
+        """
         if self.state == 'running':
             self.update()
         if self.state == 'succeeded':
