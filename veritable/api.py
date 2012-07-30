@@ -862,7 +862,7 @@ class Analysis:
         if self.state == 'succeeded':
             r = self._conn.post(self._link('group'),
               data={'columns': [column_id]})
-            return Group(self._conn, r['groupings'][0])
+            return Grouping(self._conn, r['groupings'][0])
         elif self.state == 'running':
             raise VeritableError("Analysis with id {0} is still running and " \
             "cannot group: {1}".format(self.id, self.error))
@@ -884,7 +884,7 @@ class Analysis:
         if self.state == 'succeeded':
             r = self._conn.post(self._link('group'),
               data={'columns': column_ids})
-            return map(lambda g: Group(self._conn, g), r['groupings'])
+            return map(lambda g: Grouping(self._conn, g), r['groupings'])
         elif self.state == 'running':
             raise VeritableError("Analysis with id {0} is still running and " \
             "cannot group: {1}".format(self.id, self.error))
@@ -1152,27 +1152,27 @@ class Prediction(dict):
             assert False, 'bad column type'
 
 
-class Group:
+class Grouping:
 
     def __init__(self, connection, doc):
         self._conn = connection
         self._doc = doc
 
     def __str__(self):
-        return "<veritable.Group column='" + self.column_id + "'>"
+        return "<veritable.Grouping column='" + self.column_id + "'>"
 
     def __repr__(self):
         return self.__str__()
 
     def _link(self, name):
         if name not in self._doc['links']:
-            raise VeritableError("Group instance is missing link " \
+            raise VeritableError("Grouping instance is missing link " \
             "to {0}".format(name))
         return self._doc['links'][name]
 
     @property
     def column_id(self):
-        """The column id of the group.
+        """The column id of the grouping.
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -1194,7 +1194,7 @@ class Group:
     def update(self):
         """Refreshes the group state
 
-        Checks whether the group has succeeded or failed, updating the
+        Checks whether the grouping has succeeded or failed, updating the
         state and error attributes appropriately.
 
         See also: https://dev.priorknowledge.com/docs/client/python
