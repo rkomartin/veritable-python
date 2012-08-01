@@ -36,14 +36,13 @@ class TestGroup:
 
     def setup(self):
         self.t = self.API.create_table()
-        self.t.batch_upload_rows(
-        [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
+        self.rows = [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
          {'_id': 'row2', 'cat': 'b', 'ct': 0, 'real': 0.92131, 'bool': False},
          {'_id': 'row3', 'cat': 'c', 'ct': 1, 'real': 1.82812, 'bool': True},
          {'_id': 'row4', 'cat': 'c', 'ct': 1, 'real': 0.81271, 'bool': True},
          {'_id': 'row5', 'cat': 'd', 'ct': 2, 'real': 1.14561, 'bool': False},
-         {'_id': 'row6', 'cat': 'a', 'ct': 5, 'real': 1.03412, 'bool': False}
-        ])
+         {'_id': 'row6', 'cat': 'a', 'ct': 5, 'real': 1.03412, 'bool': False}]
+        self.t.batch_upload_rows(self.rows)
         self.schema = {'cat': {'type': 'categorical'},
                   'ct': {'type': 'count'},
                   'real': {'type': 'real'},
@@ -55,28 +54,90 @@ class TestGroup:
     def teardown(self):
         self.t.delete()
 
+    def _check_grouping(self, g, col):
+        assert_equal(g.state, 'succeeded')
+        assert_equal(g.column_id, col)
+
+        g = self.a.get_grouping(col)
+        assert_equal(g.state, 'succeeded')
+        assert_equal(g.column_id, col)
+
+        g = self.a.get_groupings([col]).next()
+        assert_equal(g.state, 'succeeded')
+        assert_equal(g.column_id, col)
+
     @attr('async')
-    def test_grouping(self):
+    def test_get_grouping(self):
         self.a.wait()
         for col in self.schema.keys():
             g = self.a.get_grouping(col)
-            self.a.get_grouping(col)
-            self.a.get_groupings([col])
             g.wait()
-            g.get_groups()
-            for group in g.get_groups():
-                g.get_rows(group)
-            for row in ['row' + str(i) for i in range(1, 7)]:
-                g.get_row({'_id': row})
-
+            self._check_grouping(g, col)
+            
     @attr('async')
-    def test_batch_group(self):
+    def test_get_groupings(self):
         self.a.wait()
         groupings = self.a.get_groupings(self.schema.keys())
         for g in groupings:
+            col = g.column_id
             g.wait()
-            g.get_groups()
-            for group in g.get_groups():
-                g.get_rows(group)
-            for row in ['row' + str(i) for i in range(1, 7)]:
-                g.get_row({'_id': row})
+            self._check_grouping(g, col)
+
+    @attr('async')
+    def test_grouping_groups(self):
+        for col in self.schema.keys():
+            g = self.a.get_grouping(col)
+            g.wait()
+            groups = g.get_groups()
+            for gid in groups:
+                group_rows = g.get_rows(gid)
+                for row in group_rows:
+                    assert_equal(row['_group_id'], gid)
+
+    @attr('async')
+    def test_grouping_rows(self):
+        for col in self.schema.keys():
+            g = self.a.get_grouping(col)
+            g.wait()
+            rows = g.get_rows()
+            assert_equal(set([r['_id'] for r in self.rows]),
+                         set([r['_id'] for r in rows]))
+
+    def _check_row(self, row):
+        assert_in('_id', row)
+        assert_in('_group_id', row)
+        assert_in('_group_confidence', row)
+
+    @attr('async')
+    def test_return_data_true(self):
+        for col in self.schema.keys():
+            g = self.a.get_grouping(col)
+            g.wait()
+            rows = g.get_rows()
+            table_rows = dict([(r['_id'], r) for r in self.rows])
+            for row in rows:
+                self._check_row(row)
+                for key, val in table_rows[row['_id']].items():
+                    assert_equal(row[key], val)
+
+    @attr('async')
+    def test_return_data_false(self):
+        for col in self.schema.keys():
+            g = self.a.get_grouping(col)
+            g.wait()
+            rows = g.get_rows(return_data=False)
+            table_rows = dict([(r['_id'], r) for r in self.rows])
+            for row in rows:
+                assert_equal(set(['_id', '_group_id', '_group_confidence']),
+                             set(row.keys()))
+
+    @attr('async')
+    def test_get_row(self):
+        for col in self.schema.keys():
+            g = self.a.get_grouping(col)
+            g.wait()
+            for row in self.rows:
+                group_row = g.get_row(row)
+                self._check_row(group_row)
+
+
