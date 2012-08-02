@@ -33,8 +33,6 @@ class TestGroup:
     def setup_class(self):
         self.API = veritable.connect(TEST_API_KEY, TEST_BASE_URL,
             **connect_kwargs)
-
-    def setup(self):
         self.t = self.API.create_table()
         self.rows = [{'_id': 'row1', 'cat': 'a', 'ct': 0, 'real': 1.02394, 'bool': True},
          {'_id': 'row2', 'cat': 'b', 'ct': 0, 'real': 0.92131, 'bool': False},
@@ -50,8 +48,10 @@ class TestGroup:
                   }
         self.a = self.t.create_analysis(self.schema, analysis_id="a1",
             force=True)
+        self.a.wait()
 
-    def teardown(self):
+    @classmethod
+    def teardown_class(self):
         self.t.delete()
 
     def _check_grouping(self, g, col):
