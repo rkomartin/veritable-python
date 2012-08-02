@@ -874,7 +874,7 @@ class Analysis:
         """Get a grouping for a list of columns.
         If no grouping is currently running for a particular column, this will create it.
 
-        Returns a list of veritable.api.Grouping instances.
+        Returns an iterator over veritable.api.Grouping instances.
 
         Arguments:
         column_ids -- a list of column_ids which to create groupings.
@@ -1230,7 +1230,7 @@ class Grouping:
     def get_groups(self, start=None, limit=None):
         """Get all groups in the grouping.
 
-        Returns a list of group_ids of all groups found in this grouping.
+        Returns an iterator over group_ids of all groups found in this grouping.
 
         See also: https://dev.priorknowledge.com/docs/client/python
 
@@ -1239,7 +1239,7 @@ class Grouping:
             self.update()
         if self.state == 'succeeded':
             collection = self._link('groups')
-            return [d['group_id'] for d in Cursor(self._conn, collection, start=start, limit=limit)]
+            return Cursor(self._conn, collection, key=lambda x: x['group_id'], start=start, limit=limit)
         elif self.state == 'running':
             raise VeritableError("Grouping for column_id {0} is still running " \
             "and not yet ready to get groups".format(self.column_id))
@@ -1271,12 +1271,12 @@ class Grouping:
             if group_id is not None:
                 collection = self._link('groups') + '/' + str(group_id)
                 extra_args = {'return_data': return_data}
-                return Cursor(self._conn, collection, key='rows', start=start, limit=limit, 
+                return Cursor(self._conn, collection, start=start, limit=limit, 
                              extra_args=extra_args)
             else:
                 collection = self._link('rows')
                 extra_args = {'return_data': return_data}
-                return Cursor(self._conn, collection, key='rows', start=start, limit=limit, 
+                return Cursor(self._conn, collection, start=start, limit=limit, 
                              extra_args=extra_args)
         elif self.state == 'running':
             raise VeritableError("Grouping for column_id {0} is still running " \
