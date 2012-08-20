@@ -883,7 +883,7 @@ class Analysis:
             self.update()
         if self.state == 'succeeded':
             r = self._conn.post(self._link('group'),
-              data={'columns': column_ids})
+              data={'columns': list(column_ids)})
             return list(map(lambda g: Grouping(self._conn, g), r['groupings']))
         elif self.state == 'running':
             raise VeritableError("Analysis with id {0} is still running and " \
