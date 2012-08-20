@@ -23,8 +23,11 @@ class Cursor:
         self.__collection = collection
         self.__f = key
         collection_key = collection.split("/")[-1]
-        params = {'per_page': self.__per_page,
-                  'start': self.__start}
+        params = {}
+        if self.__per_page is not None:
+            params['per_page'] = self.__per_page
+        if self.__start is not None:
+            params['start'] = self.__start
         params.update(extra_args)
         res = self.__connection.get(self.__collection, params=params)
         if collection_key in res:
@@ -55,9 +58,11 @@ class Cursor:
         elif self.__last:
             return 0
         else:
-            params = {'count': self.__per_page}
-            if self.__start:
-                params.update({'start': self.__start})
+            params = {}
+            if self.__per_page is not None:
+                params['count'] = self.__per_page
+            if self.__start is not None:
+                params['start'] = self.__start
             res = self.__connection.get(self.__collection, params=params)
         if 'links' in res and 'next' in res['links']:
             self.__next = res['links']['next']
