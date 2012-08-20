@@ -62,7 +62,7 @@ class TestGroup:
         assert_equal(g.state, 'succeeded')
         assert_equal(g.column_id, col)
 
-        g = self.a.get_groupings([col]).next()
+        g = list(self.a.get_groupings([col]))[0]
         assert_equal(g.state, 'succeeded')
         assert_equal(g.column_id, col)
 
