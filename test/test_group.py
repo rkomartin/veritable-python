@@ -104,9 +104,9 @@ class TestGroup:
                          set([r['_id'] for r in rows]))
 
     def _check_row(self, row):
-        assert_in('_id', row)
-        assert_in('_group_id', row)
-        assert_in('_group_confidence', row)
+        assert '_id' in row
+        assert '_group_id' in row
+        assert '_group_confidence' in row
 
     @attr('async')
     def test_return_data_true(self):
