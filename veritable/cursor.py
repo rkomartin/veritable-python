@@ -22,8 +22,11 @@ class Cursor:
         self.__connection = connection
         self.__collection = collection
         collection_key = collection.split("/")[-1]
-        params = {'per_page': self.__per_page,
-                  'start': self.__start}
+        params = {}
+        if self.__per_page is not None:
+            params['per_page'] = self.__per_page
+        if self.__start is not None:
+            params['start'] = self.__start
         res = self.__connection.get(self.__collection, params=params)
         if collection_key in res:
             self.__key = collection_key
