@@ -1,3 +1,6 @@
+veritable-python 0.9.9 - August 21, 2012
+    * Initial support for group operations
+
 veritable-python 0.9.8 - July 18, 2012
     * Updated for new analysis.similar_to return format
 
