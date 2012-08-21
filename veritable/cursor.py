@@ -14,19 +14,21 @@ class Cursor:
     See also: https://dev.priorknowledge.com/docs/client/python
 
     """
-    def __init__(self, connection, collection, start=None,
-                 per_page=100, limit=None):        
+    def __init__(self, connection, collection, key=lambda x: x, start=None,
+                 per_page=100, limit=None, extra_args={}):        
         self.__limit = limit
         self.__start = start
         self.__per_page = per_page
         self.__connection = connection
         self.__collection = collection
+        self.__f = key
         collection_key = collection.split("/")[-1]
         params = {}
         if self.__per_page is not None:
             params['per_page'] = self.__per_page
         if self.__start is not None:
             params['start'] = self.__start
+        params.update(extra_args)
         res = self.__connection.get(self.__collection, params=params)
         if collection_key in res:
             self.__key = collection_key
@@ -82,6 +84,6 @@ class Cursor:
                 if self.__limit == 0:
                     raise StopIteration
                 self.__limit -= 1
-            return self.__data.pop(0)
+            return self.__f(self.__data.pop(0))
         else:
             raise StopIteration

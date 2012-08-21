@@ -720,6 +720,31 @@ def test_data_nonvalid_float_real_fail():
         assert e.row == 1
         assert e.col == 'ColFloat'
 
+def test_data_nan_float_real_fail():
+    testrows = [
+        {'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
+        {'_id': '2', 'ColInt':4, 'ColFloat': float('NaN'), 'ColCat': 'b',
+         'ColBool':False}]
+    assert_raises(VeritableError, validate_data, testrows, vschema)
+    try:
+        validate_data(testrows, vschema)
+    except VeritableError as e:
+        assert e.row == 1
+        assert e.col == 'ColFloat'
+
+def test_data_inf_float_real_fail():
+    testrows = [
+        {'_id': '1', 'ColInt':3, 'ColFloat':3.1, 'ColCat': 'a', 'ColBool':True},
+        {'_id': '2', 'ColInt':4, 'ColFloat': float('Inf'), 'ColCat': 'b',
+         'ColBool':False}]
+    assert_raises(VeritableError, validate_data, testrows, vschema)
+    try:
+        validate_data(testrows, vschema)
+    except VeritableError as e:
+        assert e.row == 1
+        assert e.col == 'ColFloat'
+
+
 
 def test_pred_nonvalid_float_real_fail():
     testrows = [

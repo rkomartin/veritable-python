@@ -848,6 +848,51 @@ class Analysis:
             for pr in _execute_batch(batch, count, maxcells):
                 yield pr
 
+    def get_grouping(self, column_id):
+        """Get a grouping for a particular column.
+        If no grouping is currently running, this will create it.
+
+        Returns a veritable.api.Grouping instance.
+
+        Arguments:
+        column_id -- the name of the column which to create the grouping.
+        """
+        if self.state == 'running':
+            self.update()
+        if self.state == 'succeeded':
+            r = self._conn.post(self._link('group'),
+              data={'columns': [column_id]})
+            return Grouping(self._conn, r['groupings'][0])
+        elif self.state == 'running':
+            raise VeritableError("Analysis with id {0} is still running and " \
+            "cannot group: {1}".format(self.id, self.error))
+        elif self.state == 'failed':
+            raise VeritableError("Analysis with id {0} has failed and " \
+            "cannot group: {1}".format(self.id, self.error))
+
+    def get_groupings(self, column_ids):
+        """Get a grouping for a list of columns.
+        If no grouping is currently running for a particular column, this will create it.
+
+        Returns an iterator over veritable.api.Grouping instances.
+
+        Arguments:
+        column_ids -- a list of column_ids which to create groupings.
+        """
+        if self.state == 'running':
+            self.update()
+        if self.state == 'succeeded':
+            r = self._conn.post(self._link('group'),
+              data={'columns': list(column_ids)})
+            return list(map(lambda g: Grouping(self._conn, g), r['groupings']))
+        elif self.state == 'running':
+            raise VeritableError("Analysis with id {0} is still running and " \
+            "cannot group: {1}".format(self.id, self.error))
+        elif self.state == 'failed':
+            raise VeritableError("Analysis with id {0} has failed and " \
+            "cannot group: {1}".format(self.id, self.error))
+
+
     def related_to(self, column_id, start=None, limit=None):
         """Scores how related columns are to column of interest 
 
@@ -922,7 +967,6 @@ class Analysis:
         elif self.state == 'failed':
             raise VeritableError("Analysis with id {0} has failed and " \
             "cannot get similar: {1}".format(self.id, self.error))
-
 
 
 class Prediction(dict):
@@ -1106,3 +1150,165 @@ class Prediction(dict):
             return (lo, hi)
         else:
             assert False, 'bad column type'
+
+
+class Grouping:
+
+    def __init__(self, connection, doc):
+        self._conn = connection
+        self._doc = doc
+
+    def __str__(self):
+        return "<veritable.Grouping column='" + self.column_id + "'>"
+
+    def __repr__(self):
+        return self.__str__()
+
+    def _link(self, name):
+        if name not in self._doc['links']:
+            raise VeritableError("Grouping instance is missing link " \
+            "to {0}".format(name))
+        return self._doc['links'][name]
+
+    @property
+    def column_id(self):
+        """The column id of the grouping.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        return str(self._doc['column_name'])
+
+    @property
+    def state(self):
+        """The state of the grouping operation
+
+        A string, one of 'succeeded', 'failed', or 'running'. Run the
+        update method to refresh.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        return str(self._doc['state'])
+
+    def update(self):
+        """Refreshes the group state
+
+        Checks whether the grouping has succeeded or failed, updating the
+        state and error attributes appropriately.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        self._doc = self._conn.get(self._link('self'))
+
+    def wait(self, max_time=None, poll=2):
+        """Waits for the running grouping to succeed or fail.
+
+        Returns None when the grouping succeeds or fails, and blocks until
+        it does. If a timeout is specified, raises a VeritableError if the
+        timeout has elapsed without the grouping completing.
+
+        Arguments:
+        max_time -- the number of seconds after which to return or raise an
+          exception. If this is None, group will block indefinitely.
+        poll -- the number of seconds to wait between updates (default: 2)
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        elapsed = 0
+        while self.state == 'running':
+            time.sleep(poll)
+            if max_time is not None:
+                elapsed += poll
+                if elapsed > max_time:
+                    raise VeritableError("Maximum time of {0} " \
+                    "exceeded".format(max_time))
+            self.update()
+
+    def get_groups(self, start=None, limit=None):
+        """Get all groups in the grouping.
+
+        Returns an iterator over group_ids of all groups found in this grouping.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        if self.state == 'running':
+            self.update()
+        if self.state == 'succeeded':
+            collection = self._link('groups')
+            return Cursor(self._conn, collection, key=lambda x: x['group_id'], start=start, limit=limit)
+        elif self.state == 'running':
+            raise VeritableError("Grouping for column_id {0} is still running " \
+            "and not yet ready to get groups".format(self.column_id))
+        elif self.state == 'failed':
+            raise VeritableError("Grouping with id {0} has failed and " \
+            "cannot get groups".format(self.id))
+
+    def get_rows(self, group_id=None, return_data=True, start=None, limit=None):
+        """Get rows and confidence information for a particular group.
+
+        Returns an iterator over rows in the group. 
+
+        Arguments:
+        group_id -- The id of the group of interest. If None (default), 
+          returns all rows in the table
+        return_data -- Return row data along with confidence info (default: True).
+        start -- The integer index from which to start from which to start 
+         (default: None). If None, all rows will be returned.
+        limit -- If set to an integer value, will limit the number of columns
+          returned by the iterator. (default: None) If None, the number of
+          columns returned will not be limited.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        if self.state == 'running':
+            self.update()
+        if self.state == 'succeeded':
+            if group_id is not None:
+                collection = self._link('groups') + '/' + str(group_id)
+                extra_args = {'return_data': return_data}
+                return Cursor(self._conn, collection, start=start, limit=limit, 
+                             extra_args=extra_args)
+            else:
+                collection = self._link('rows')
+                extra_args = {'return_data': return_data}
+                return Cursor(self._conn, collection, start=start, limit=limit, 
+                             extra_args=extra_args)
+        elif self.state == 'running':
+            raise VeritableError("Grouping for column_id {0} is still running " \
+            "and not yet ready to get groups".format(self.column_id))
+        elif self.state == 'failed':
+            raise VeritableError("Grouping with id {0} has failed and " \
+            "cannot get groups".format(self.id))
+
+    def get_row(self, row, return_data=True):
+        """Get group information for a particular row.
+
+        Returns a veritable row dictionary, with group_id and confidence specified by 
+        the _group_id and _confidence fields respectively.
+
+        Arguments:
+        row -- The row of interest. The row must contain an _id field. 
+            All other fields will be ignored.
+        return_data -- Return row data along with confidence info (default: True).
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        if self.state == 'running':
+            self.update()
+        if self.state == 'succeeded':
+            row_id = row['_id']
+            extra_args = {'return_data': return_data}
+            res = self._conn.get(self._link('rows') +'/'+row_id, params=extra_args)
+            return res['row']
+        elif self.state == 'running':
+            raise VeritableError("Grouping for column_id {0} is still running " \
+            "and not yet ready to get groups".format(self.column_id))
+        elif self.state == 'failed':
+            raise VeritableError("Grouping with id {0} has failed and " \
+            "cannot get groups".format(self.id))

@@ -589,4 +589,3 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema, analysis_id="a", force=True)
         assert schema == a.get_schema()
-

@@ -5,7 +5,7 @@ See also: https://dev.priorknowledge.com/docs/client/python
 """
 
 import uuid
-from math import floor, ceil, log
+from math import floor, ceil, log, isnan, isinf
 from random import shuffle
 try:
     from urlparse import urlparse
@@ -597,17 +597,20 @@ def _validate(rows, schema, convert_types, allow_nones, remove_nones,
                         if convert_types:  # try converting to float
                             try:
                                 r[c] = float(r[c])
+                                if isnan(r[c]) or isinf(r[c]):
+                                    raise VeritableError("Invalid NaN or Inf")
                             except:
                                 if remove_invalids:  # flag for removal
                                     r[c] = None
                         if r[c] is None:  # remove flagged values
                             r.pop(c)
                         else:
-                            if not isinstance(r[c], float):  # catch invalids
+                            if (not isinstance(r[c], float)) or isnan(r[c]) or isinf(r[c]):  # catch invalids
                                 raise VeritableError("Row:'{0}' Key: '{1}' " \
                                 "Value: '{2}' is {3}, not a " \
-                                "float".format(str(i), c, str(r[c]),
+                                "valid float".format(str(i), c, str(r[c]),
                                     str(type(r[c]))), row=i, col=c)
+
                     elif coltype == 'boolean':
                         if convert_types:  # try converting to bool
                             lc = str(r[c]).strip().lower()
