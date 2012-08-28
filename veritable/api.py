@@ -864,18 +864,7 @@ class Analysis:
         Arguments:
         column_id -- the name of the column which to create the grouping.
         """
-        if self.state == 'running':
-            self.update()
-        if self.state == 'succeeded':
-            r = self._conn.post(self._link('group'),
-              data={'columns': [column_id]})
-            return Grouping(self._conn, r['groupings'][0])
-        elif self.state == 'running':
-            raise VeritableError("Analysis with id {0} is still running and " \
-            "cannot group: {1}".format(self.id, self.error))
-        elif self.state == 'failed':
-            raise VeritableError("Analysis with id {0} has failed and " \
-            "cannot group: {1}".format(self.id, self.error))
+        return list(self.get_groupings([column_id]))[0]
 
     def get_groupings(self, column_ids):
         """Get a grouping for a list of columns.
@@ -1277,14 +1266,11 @@ class Grouping:
         if self.state == 'succeeded':
             if group_id is not None:
                 collection = self._link('groups') + '/' + str(group_id)
-                extra_args = {'return_data': return_data}
-                return Cursor(self._conn, collection, start=start, limit=limit, 
-                             extra_args=extra_args)
             else:
                 collection = self._link('rows')
-                extra_args = {'return_data': return_data}
-                return Cursor(self._conn, collection, start=start, limit=limit, 
-                             extra_args=extra_args)
+            extra_args = {'return_data': return_data}
+            return Cursor(self._conn, collection, start=start, limit=limit, 
+                          extra_args=extra_args)
         elif self.state == 'running':
             raise VeritableError("Grouping for column_id {0} is still running " \
             "and not yet ready to get groups".format(self.column_id))
