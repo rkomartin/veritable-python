@@ -287,8 +287,15 @@ class Table:
             "to {0}".format(name))
         return self._doc['links'][name]
 
-    def _analysis_exists(self, analysis_id):
-        # Checks if an analysis with a given id already exists.
+    def analysis_exists(self, analysis_id):
+        """Check whether an analysis with a given id already exists.
+
+        Arguments:
+        analysis_id -- the string id of the analysis to check.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
         try:
             self.get_analysis(analysis_id)
         except:
@@ -540,7 +547,7 @@ class Table:
             analysis_id = _handle_unicode_id(analysis_id)
             _check_id(analysis_id)
             autogen = False
-        if self._analysis_exists(analysis_id):
+        if self.analysis_exists(analysis_id):
             if autogen:
                 return self.create_analysis(schema=schema,
                         description=description, analysis_id=None,
