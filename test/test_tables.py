@@ -277,6 +277,14 @@ class TestTableOps:
         assert_raises(VeritableError, self.t.batch_delete_rows, rs)
 
     @attr('sync')
+    def test_analysis_exists(self):
+        schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
+        self.t.create_analysis(schema, analysis_id="zubble_1", force=True)
+
+        assert_true(self.t.analysis_exists("zubble_1"))
+        assert_false(self.t.analysis_exists("nonexistent_analysis"))
+
+    @attr('sync')
     def test_get_analyses(self):
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
         self.t.create_analysis(schema, analysis_id="zubble_1", force=True)
