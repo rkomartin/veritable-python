@@ -864,6 +864,10 @@ class Analysis:
         Arguments:
         column_id -- the name of the column which to create the grouping.
         """
+        if not isinstance(column_id, basestring):
+            raise VeritableError(
+                "Expected column_id to be a string, actual: {}".format(
+                    column_ids))
         return list(self.get_groupings([column_id]))[0]
 
     def get_groupings(self, column_ids):
@@ -875,6 +879,10 @@ class Analysis:
         Arguments:
         column_ids -- a list of column_ids which to create groupings.
         """
+        if not isinstance(column_ids, list):
+            raise VeritableError(
+                "Expected column_ids to be a list, actual: {}".format(
+                    column_ids))
         if self.state == 'running':
             self.update()
         if self.state == 'succeeded':
