@@ -867,7 +867,7 @@ class Analysis:
         if not isinstance(column_id, basestring):
             raise VeritableError(
                 "Expected column_id to be a string, actual: {}".format(
-                    column_ids))
+                    column_id))
         return list(self.get_groupings([column_id]))[0]
 
     def get_groupings(self, column_ids):
