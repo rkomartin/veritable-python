@@ -968,10 +968,10 @@ class Analysis:
 class Prediction(dict):
     """Represents predictions responses.
 
-    A dictionary whose keys are the columns in the prediction request,
-    and whose values are point estimates for those columns. For fixed
-    columns, the value is the fixed value. For predicted values, the
-    point estimate varies by datatype:
+    A dictionary-like object whose keys are the columns in the prediction
+    request, and whose values are point estimates for those columns.
+    For fixed columns, the value is the fixed value.
+    For predicted values, the point estimate varies by datatype:
     
     real -- mean
     count -- mean rounded to the nearest integer
