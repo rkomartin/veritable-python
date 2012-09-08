@@ -41,6 +41,15 @@ class TestAPI:
         print(self.API)
 
     @attr('sync')
+    def test_api_limits(self):
+        limits = self.API.limits()
+        assert_is_instance(limits, dict)
+
+    @attr('sync')
+    def test_table_exists_false(self):
+        assert_false(self.API.table_exists('table_does_not_exist_417'))
+
+    @attr('sync')
     def test_get_tables(self):
         tables = list(self.API.get_tables())
         assert_true(len(tables) > 0)
@@ -48,8 +57,29 @@ class TestAPI:
             assert_true(isinstance(table, veritable.api.Table))
 
     @attr('sync')
+    def test_get_tables_start(self):
+        start = 'start'
+        tables = list(self.API.get_tables(start=start))
+        assert_greater_equal(tables[0].id, start)
+
+
+    @attr('sync')
+    def test_get_tables_limit(self):
+        limit = 5
+        tables = list(self.API.get_tables(limit=limit))
+        assert_less_equal(len(tables), limit)
+
+
+    @attr('sync')
     def test_create_table_autoid(self):
         t = self.API.create_table()
+        t.delete()
+
+    @attr('sync')
+    def test_table_exists_true(self):
+        table_id = 'this_table_now_exists'
+        t = self.API.create_table(table_id)
+        assert_true(self.API.table_exists(table_id))
         t.delete()
 
     @attr('sync')
@@ -89,6 +119,7 @@ class TestAPI:
     def test_get_table_by_id_attr(self):
         t = self.API.create_table()
         t = self.API.get_table(t.id)
+        assert_is_instance(t, veritable.api.Table)
         t.delete()
 
     @attr('sync')
