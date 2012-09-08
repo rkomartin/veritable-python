@@ -122,7 +122,7 @@ class API:
         See also: https://dev.priorknowledge.com/docs/client/python
 
         """
-        return self._conn._limits
+        return self._conn.limits
 
     def table_exists(self, table_id):
         """Checks if a table with the specified id is available to the user.
