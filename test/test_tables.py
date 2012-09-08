@@ -295,6 +295,16 @@ class TestTableOps:
             assert_true(isinstance(a, veritable.api.Analysis))
 
     @attr('sync')
+    def test_get_analyses_0(self):
+        schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
+        self.t.create_analysis(schema, analysis_id="zubble_1", force=True)
+
+        analyses = list(self.t.get_analyses(limit=0))
+        assert_equal(len(analyses), 0)
+        for a in analyses:
+            assert_true(isinstance(a, veritable.api.Analysis))
+
+    @attr('sync')
     def test_create_analysis_1(self):
         schema = {'zim': {'type': 'categorical'}, 'wos': {'type': 'real'}}
         self.t.create_analysis(schema, analysis_id="zubble_1", force=True)

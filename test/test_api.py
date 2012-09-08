@@ -69,6 +69,11 @@ class TestAPI:
         tables = list(self.API.get_tables(limit=limit))
         assert_less_equal(len(tables), limit)
 
+    @attr('sync')
+    def test_get_tables_limit_0(self):
+        limit = 0
+        tables = list(self.API.get_tables(limit=limit))
+        assert_less_equal(len(tables), limit)
 
     @attr('sync')
     def test_create_table_autoid(self):
