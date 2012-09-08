@@ -42,6 +42,14 @@ class TestConnection:
         veritable.connect(TEST_API_KEY, TEST_BASE_URL, debug=True,
             **connect_kwargs)
 
+    def test_create_api_with_ssl_verify_false(self):
+        veritable.connect(TEST_API_KEY, TEST_BASE_URL, ssl_verify=False,
+            **connect_kwargs)
+
+    def test_create_api_with_enable_gzip_false(self):
+        veritable.connect(TEST_API_KEY, TEST_BASE_URL, enable_gzip=False,
+            **connect_kwargs)
+
     def test_create_api_with_invalid_user(self):
         assert_raises(VeritableError, veritable.connect,
             "completely_invalid_user_id_3426", TEST_BASE_URL,
@@ -50,4 +58,5 @@ class TestConnection:
     def test_create_api_with_invalid_server(self):
         assert_raises(VeritableError, veritable.connect,
             "foo", "http://www.google.com", **connect_kwargs)
+
 
