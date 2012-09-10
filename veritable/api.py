@@ -12,7 +12,7 @@ from .cursor import Cursor
 from .connection import Connection
 from .exceptions import VeritableError
 from .utils import (_make_table_id, _make_analysis_id, _check_id,
-    _format_url, _handle_unicode_id)
+    _format_url, _handle_unicode_id, _is_str)
 
 # ensure map returns an iterator (as in python 3) not a generator (as in 2)
 try:
@@ -49,8 +49,11 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
     """
     if api_key is None:
         api_key = os.getenv("VERITABLE_KEY")
+        if api_key is None:
+            raise VeritableError("No API key provided.")
     if api_base_url is None:
         api_base_url = os.getenv("VERITABLE_URL") or BASE_URL
+    abbrev_key = '{0}...'.format(api_key[:6])
     connection = Connection(api_key=api_key, api_base_url=api_base_url,
             ssl_verify=ssl_verify, enable_gzip=enable_gzip, debug=debug)
     try:
@@ -58,18 +61,18 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
     except Exception as e:
         raise VeritableError("Error connecting to server: No Veritable " \
         "server found at {0} using API key {1}".format(api_base_url,
-            api_key), internal=e, internal_traceback=sys.exc_info()[2])
+            abbrev_key), internal=e, internal_traceback=sys.exc_info()[2])
     try:
         status = connection_test['status']
         entropy = connection_test['entropy']
     except:
         raise VeritableError("Error connecting to server: No Veritable " \
         "server found at {0} using API key {1}".format(api_base_url,
-            api_key))
+            abbrev_key))
     if status != "SUCCESS" or not isinstance(entropy, float):
         raise VeritableError("Error connecting to server: No Veritable " \
         "server found at {0} using API key {1}".format(api_base_url,
-            api_key))
+            abbrev_key))
     return API(connection)
 
 
@@ -864,6 +867,10 @@ class Analysis:
         Arguments:
         column_id -- the name of the column which to create the grouping.
         """
+        if not _is_str(column_id):
+            raise VeritableError(
+                "Expected column_id to be a string, actual: {}".format(
+                    column_id))
         return list(self.get_groupings([column_id]))[0]
 
     def get_groupings(self, column_ids):
@@ -875,6 +882,7 @@ class Analysis:
         Arguments:
         column_ids -- a list of column_ids which to create groupings.
         """
+        column_ids = list(column_ids)
         if self.state == 'running':
             self.update()
         if self.state == 'succeeded':
@@ -968,10 +976,10 @@ class Analysis:
 class Prediction(dict):
     """Represents predictions responses.
 
-    A dictionary whose keys are the columns in the prediction request,
-    and whose values are point estimates for those columns. For fixed
-    columns, the value is the fixed value. For predicted values, the
-    point estimate varies by datatype:
+    A dictionary-like object whose keys are the columns in the prediction
+    request, and whose values are point estimates for those columns.
+    For fixed columns, the value is the fixed value.
+    For predicted values, the point estimate varies by datatype:
     
     real -- mean
     count -- mean rounded to the nearest integer
