@@ -607,3 +607,19 @@ class TestTableOps:
                   }
         a = self.t2.create_analysis(schema, analysis_id="a", force=True)
         assert schema == a.get_schema()
+
+    @attr('sync')
+    def test_analysis_properties(self):
+        schema = {'cat': {'type': 'categorical'},
+                  'ct': {'type': 'count'},
+                  'real': {'type': 'real'},
+                  'bool': {'type': 'boolean'}
+                  }
+        a = self.t2.create_analysis(schema, analysis_id="a", force=True)
+        a.id
+        a.error
+        a.state
+        a.created_at
+        a.finished_at
+        a.progress
+
