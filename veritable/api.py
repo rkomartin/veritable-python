@@ -1187,6 +1187,18 @@ class Grouping:
         """
         return str(self._doc['state'])
 
+    @property
+    def error(self):
+        """The error, if any, encountered by the grouping.
+
+        See also: https://dev.priorknowledge.com/docs/client/python
+
+        """
+        if self.state != 'failed':
+            return None
+        else:
+            return self._doc['error']
+
     def update(self):
         """Refreshes the group state
 
