@@ -140,4 +140,12 @@ class TestGroup:
                 group_row = g.get_row(row)
                 self._check_row(group_row)
 
+    @attr('async')
+    def test_group_properties(self):
+        for col in self.schema.keys():
+            g = self.a.get_grouping(col)
+            g.column_id
+            g.error
+            g.state
+
 
