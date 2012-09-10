@@ -12,10 +12,7 @@ from nose.plugins.attrib import attr
 from nose.tools import *
 from nose.tools import (assert_raises,
                         assert_true, 
-                        assert_equal,
-                        assert_less_equal,
-                        assert_greater_equal,
-                        assert_is_instance)
+                        assert_equal)
 from veritable.exceptions import VeritableError
 from veritable.api import Prediction
 
@@ -48,7 +45,7 @@ class TestAPI:
     @attr('sync')
     def test_api_limits(self):
         limits = self.API.limits()
-        assert_is_instance(limits, dict)
+        assert_true(isinstance(limits, dict))
 
     @attr('sync')
     def test_table_exists_false(self):
@@ -70,7 +67,7 @@ class TestAPI:
         start = 'start'
         tables = list(self.API.get_tables(start=start))
         for table in tables:
-            assert_greater_equal(table.id, start)
+            assert_true(table.id >= start)
         t_1.delete()
         t_2.delete()
 
@@ -79,13 +76,13 @@ class TestAPI:
     def test_get_tables_limit(self):
         limit = 5
         tables = list(self.API.get_tables(limit=limit))
-        assert_less_equal(len(tables), limit)
+        assert_equal(len(tables), limit)
 
     @attr('sync')
     def test_get_tables_limit_0(self):
         limit = 0
         tables = list(self.API.get_tables(limit=limit))
-        assert_less_equal(len(tables), limit)
+        assert_true(len(tables) <= limit)
 
     @attr('sync')
     def test_create_table_autoid(self):
@@ -136,7 +133,7 @@ class TestAPI:
     def test_get_table_by_id_attr(self):
         t = self.API.create_table()
         t = self.API.get_table(t.id)
-        assert_is_instance(t, veritable.api.Table)
+        assert_true(isinstance(t, veritable.api.Table))
         t.delete()
 
     @attr('sync')
