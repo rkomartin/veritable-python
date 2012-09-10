@@ -65,11 +65,14 @@ class TestAPI:
 
     @attr('sync')
     def test_get_tables_start(self):
-        t = self.API.create_table()
+        t_1 = self.API.create_table('a')
+        t_2 = self.API.create_table('t')
         start = 'start'
         tables = list(self.API.get_tables(start=start))
-        assert_greater_equal(tables[0].id, start)
-        t.delete()
+        for table in tables:
+            assert_greater_equal(table.id, start)
+        t_1.delete()
+        t_2.delete()
 
 
     @attr('sync')
