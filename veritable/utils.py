@@ -54,6 +54,14 @@ def _check_id(id):
     if id[0] == '_':
         raise VeritableError("Specified id is invalid: may not begin with an underscore!")
 
+def _is_str(s):
+    try:
+        if isinstance(s, basestring):
+            s = str(s)
+    except:
+        pass
+    return isinstance(s, str)
+
 
 def _make_table_id():
     # Autogenerate id

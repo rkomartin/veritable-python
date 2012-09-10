@@ -12,7 +12,7 @@ from .cursor import Cursor
 from .connection import Connection
 from .exceptions import VeritableError
 from .utils import (_make_table_id, _make_analysis_id, _check_id,
-    _format_url, _handle_unicode_id)
+    _format_url, _handle_unicode_id, _is_str)
 
 # ensure map returns an iterator (as in python 3) not a generator (as in 2)
 try:
@@ -867,6 +867,10 @@ class Analysis:
         Arguments:
         column_id -- the name of the column which to create the grouping.
         """
+        if not _is_str(column_id):
+            raise VeritableError(
+                "Expected column_id to be a string, actual: {}".format(
+                    column_id))
         return list(self.get_groupings([column_id]))[0]
 
     def get_groupings(self, column_ids):
@@ -878,6 +882,7 @@ class Analysis:
         Arguments:
         column_ids -- a list of column_ids which to create groupings.
         """
+        column_ids = list(column_ids)
         if self.state == 'running':
             self.update()
         if self.state == 'succeeded':
