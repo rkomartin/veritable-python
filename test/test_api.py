@@ -76,7 +76,7 @@ class TestAPI:
     def test_get_tables_limit(self):
         limit = 5
         tables = list(self.API.get_tables(limit=limit))
-        assert_less_equal(len(tables), limit)
+        assert_true(len(tables)<=limit)
 
     @attr('sync')
     def test_get_tables_limit_0(self):
