@@ -10,7 +10,12 @@ import os
 import json
 from nose.plugins.attrib import attr
 from nose.tools import *
-from nose.tools import assert_raises, assert_true, assert_equal
+from nose.tools import (assert_raises,
+                        assert_true, 
+                        assert_equal,
+                        assert_less_equal,
+                        assert_greater_equal,
+                        assert_is_instance)
 from veritable.exceptions import VeritableError
 from veritable.api import Prediction
 
@@ -51,16 +56,20 @@ class TestAPI:
 
     @attr('sync')
     def test_get_tables(self):
+        t = self.API.create_table()
         tables = list(self.API.get_tables())
         assert_true(len(tables) > 0)
         for table in tables:
             assert_true(isinstance(table, veritable.api.Table))
+        t.delete()
 
     @attr('sync')
     def test_get_tables_start(self):
+        t = self.API.create_table()
         start = 'start'
         tables = list(self.API.get_tables(start=start))
         assert_greater_equal(tables[0].id, start)
+        t.delete()
 
 
     @attr('sync')
