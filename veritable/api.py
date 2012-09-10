@@ -49,9 +49,11 @@ def connect(api_key=None, api_base_url=None, ssl_verify=True,
     """
     if api_key is None:
         api_key = os.getenv("VERITABLE_KEY")
+        if api_key is None:
+            raise VeritableError("No API key provided.")
     if api_base_url is None:
         api_base_url = os.getenv("VERITABLE_URL") or BASE_URL
-    abbrev_key = '{}...'.format(api_key[:6])
+    abbrev_key = '{0}...'.format(api_key[:6])
     connection = Connection(api_key=api_key, api_base_url=api_base_url,
             ssl_verify=ssl_verify, enable_gzip=enable_gzip, debug=debug)
     try:
