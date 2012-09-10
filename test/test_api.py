@@ -42,10 +42,13 @@ class TestAPI:
 
     @attr('sync')
     def test_get_tables(self):
+        t = self.API.create_table()
         tables = list(self.API.get_tables())
         assert_true(len(tables) > 0)
         for table in tables:
             assert_true(isinstance(table, veritable.api.Table))
+        t.delete()
+        
 
     @attr('sync')
     def test_create_table_autoid(self):
